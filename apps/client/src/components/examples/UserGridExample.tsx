@@ -324,4 +324,3 @@ export default function UserGridExample() {
 		</div>
 	)
 }
- 
