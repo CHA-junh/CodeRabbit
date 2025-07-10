@@ -1,0 +1,23 @@
+{
+	"name": "bist-new",
+	"version": "1.0.0",
+	"private": true,
+	"workspaces": [
+		"apps/*"
+	],
+	"scripts": {
+		"dev": "concurrently \"npm run dev --workspace=apps/client\" \"npm run start:dev --workspace=apps/server\"",
+		"build": "npm run build --workspaces",
+		"start": "npm run start --workspace=apps/server"
+	},
+	"dependencies": {
+		"dotenv": "^17.1.0",
+		"oracledb": "^6.8.0",
+		"xlsx": "^0.18.5"
+	},
+	"devDependencies": {
+		"@types/node-fetch": "^2.6.12",
+		"@types/oracledb": "^6.6.1",
+		"concurrently": "^8.0.0"
+	}
+}
