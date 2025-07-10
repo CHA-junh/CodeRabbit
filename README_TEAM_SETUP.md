@@ -23,6 +23,27 @@
 
 ---
 
+## 2-1. Git 사용자명/이메일 등록 (최초 1회만)
+
+- 커밋을 하려면 반드시 사용자명과 이메일을 등록해야 합니다.
+- 아래 명령어를 터미널(명령 프롬프트, PowerShell, VS Code 터미널 등)에 입력하세요.
+
+  ```bash
+  git config --global user.name "본인이름"
+  git config --global user.email "본인메일주소@도메인"
+  ```
+
+- 예시:
+
+  ```bash
+  git config --global user.name "홍길동"
+  git config --global user.email "honggildong@buttle.co.kr"
+  ```
+
+- 한 번만 등록하면, 이후에는 다시 입력할 필요 없습니다.
+
+---
+
 ## 3. VS Code 설치 (권장)
 
 - [https://code.visualstudio.com/](https://code.visualstudio.com/) 접속 → 설치
@@ -81,4 +102,4 @@
 
 ## 7. 문의
 
-- **문의: 성지훈차장 에게 직접 문의**
+- **문의: sosa0070@buttle.co.kr 또는 팀장에게 직접 문의**
