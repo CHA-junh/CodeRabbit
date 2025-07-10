@@ -4,85 +4,75 @@ import React from 'react'
 
 export default function DesignsPage() {
 	return (
-		<div className='min-h-screen bg-gray-50 p-8'>
-			<div className='max-w-7xl mx-auto'>
-				{/* 헤더 */}
-				<div className='mb-8'>
-					<h1 className='text-3xl font-bold text-gray-900 mb-2'>
-						🎨 디자인 시안 갤러리
-					</h1>
-					<p className='text-gray-600'>
-						디자이너가 업로드한 시안들을 확인할 수 있습니다.
-					</p>
-				</div>
+		<div className="min-h-screen w-full flex items-center justify-center bg-gray-100 px-4"
+      style={{ backgroundImage: `url('/login_bg.png')` }}
+    >
+      <div className="w-full max-w-5xl bg-gradient-to-b from-sky-50 to-white rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row">
+        
+        {/* 이미지 영역 */}
+        <div className="relative w-full md:w-1/2 h-[300px] md:h-auto">
+          {/* 배경 이미지 */}
+          <img
+            src="/login_notebook.png"
+            alt="Login"
+            className="w-full h-full object-cover md:rounded-l-3xl"
+          />
 
-				{/* 시안 그리드 */}
-				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-					{/* 시안 카드 예시 */}
-					<div className='bg-white rounded-lg shadow-md overflow-hidden'>
-						<div className='h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center'>
-							<span className='text-white text-lg font-semibold'>시안 1</span>
-						</div>
-						<div className='p-4'>
-							<h3 className='font-semibold text-gray-900 mb-2'>
-								로그인 페이지
-							</h3>
-							<p className='text-sm text-gray-600 mb-3'>
-								새로운 로그인 페이지 디자인 시안입니다.
-							</p>
-							<div className='flex justify-between items-center'>
-								<span className='text-xs text-gray-500'>2024.01.15</span>
-								<button className='px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700'>
-									상세보기
-								</button>
-							</div>
-						</div>
-					</div>
+          {/* 로고 이미지 (좌측 상단 고정) */}
+          <img
+            src="/logo.svg"
+            alt="Logo"
+            className="absolute top-4 left-4 max-w-md h-auto"
+          />
+        </div>
 
-					<div className='bg-white rounded-lg shadow-md overflow-hidden'>
-						<div className='h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center'>
-							<span className='text-white text-lg font-semibold'>시안 2</span>
-						</div>
-						<div className='p-4'>
-							<h3 className='font-semibold text-gray-900 mb-2'>대시보드</h3>
-							<p className='text-sm text-gray-600 mb-3'>
-								메인 대시보드 레이아웃 시안입니다.
-							</p>
-							<div className='flex justify-between items-center'>
-								<span className='text-xs text-gray-500'>2024.01.14</span>
-								<button className='px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700'>
-									상세보기
-								</button>
-							</div>
-						</div>
-					</div>
+        {/* 로그인 영역 */}
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-gray-800 mb-10">Sign in</h2>
 
-					<div className='bg-white rounded-lg shadow-md overflow-hidden'>
-						<div className='h-48 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center'>
-							<span className='text-white text-lg font-semibold'>시안 3</span>
-						</div>
-						<div className='p-4'>
-							<h3 className='font-semibold text-gray-900 mb-2'>사용자 관리</h3>
-							<p className='text-sm text-gray-600 mb-3'>
-								사용자 관리 페이지 디자인 시안입니다.
-							</p>
-							<div className='flex justify-between items-center'>
-								<span className='text-xs text-gray-500'>2024.01.13</span>
-								<button className='px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700'>
-									상세보기
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
+          {/* ID 입력 */}
+          <div className="mb-6">
+            <label className="block text-gray-800 text-lg font-bold mb-2">ID</label>
+            <input
+              type="text"
+              placeholder="Employee number"
+              className="w-full px-6 py-3 rounded-full bg-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
 
-				{/* 새 시안 업로드 버튼 */}
-				<div className='mt-8 text-center'>
-					<button className='px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors'>
-						📤 새 시안 업로드
-					</button>
-				</div>
-			</div>
-		</div>
+          {/* Password 입력 */}
+          <div className="mb-4">
+            <label className="block text-gray-800 text-lg font-bold mb-2">Password</label>
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full px-6 py-3 rounded-full bg-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          {/* Forgot password */}
+          <div className="text-right mb-6">
+            <a href="#" className="text-sm text-gray-500 hover:underline">
+              Forget password?
+            </a>
+          </div>
+
+          {/* Login 버튼 */}
+          <button className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-full text-lg transition duration-200">
+            Login
+          </button>
+
+          {/* 안내 문구 */}
+          <p className="text-sm text-gray-600 mt-6">
+            ID는 사원번호이며, 비밀번호는 웹메일 비밀번호입니다.
+          </p>
+        </div>
+      </div>
+
+      {/* 하단 안내 */}
+      <div className="absolute bottom-4 text-center w-full text-gray-700 text-sm">
+        본 시스템은 부뜰종합전산시스템입니다. 문의사항은 경영지원본부를 이용해 주십시오.
+      </div>
+    </div>
 	)
 }
