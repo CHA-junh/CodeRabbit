@@ -3,76 +3,81 @@
 import React from 'react'
 
 export default function DesignsPage() {
-	return (
-		<div className="min-h-screen w-full flex items-center justify-center bg-gray-100 px-4"
-      style={{ backgroundImage: `url('/login_bg.png')` }}
-    >
-      <div className="w-full max-w-5xl bg-gradient-to-b from-sky-50 to-white rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row">
-        
-        {/* 이미지 영역 */}
-        <div className="relative w-full md:w-1/2 h-[300px] md:h-auto">
-          {/* 배경 이미지 */}
-          <img
-            src="/login_notebook.png"
-            alt="Login"
-            className="w-full h-full object-cover md:rounded-l-3xl"
-          />
+'use client';
 
-          {/* 로고 이미지 (좌측 상단 고정) */}
-          <img
-            src="/logo.svg"
-            alt="Logo"
-            className="absolute top-4 left-4 max-w-md h-auto"
-          />
+import React from 'react';
+
+export default function TopBar() {
+  return (
+    <header className="w-full h-16 bg-gray-700 border-b border-gray-600 px-4 flex items-center relative z-10">
+      {/* 좌측: 로고 + 사용자 정보 */}
+      <div className="flex items-center min-w-[220px]">
+        {/* 아이콘 */}
+        <div className="w-10 h-10 bg-gray-400 rounded-3xl flex flex-col justify-center items-center mr-3">
+          <div className="w-3 h-3 bg-white mb-1" />
+          <div className="w-6 h-1 bg-white" />
         </div>
 
-        {/* 로그인 영역 */}
-        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
-          <h2 className="text-3xl md:text-5xl font-extrabold text-gray-800 mb-10">Sign in</h2>
-
-          {/* ID 입력 */}
-          <div className="mb-6">
-            <label className="block text-gray-800 text-lg font-bold mb-2">ID</label>
-            <input
-              type="text"
-              placeholder="Employee number"
-              className="w-full px-6 py-3 rounded-full bg-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
-          </div>
-
-          {/* Password 입력 */}
-          <div className="mb-4">
-            <label className="block text-gray-800 text-lg font-bold mb-2">Password</label>
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full px-6 py-3 rounded-full bg-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
-          </div>
-
-          {/* Forgot password */}
-          <div className="text-right mb-6">
-            <a href="#" className="text-sm text-gray-500 hover:underline">
-              Forget password?
-            </a>
-          </div>
-
-          {/* Login 버튼 */}
-          <button className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-full text-lg transition duration-200">
-            Login
-          </button>
-
-          {/* 안내 문구 */}
-          <p className="text-sm text-gray-600 mt-6">
-            ID는 사원번호이며, 비밀번호는 웹메일 비밀번호입니다.
-          </p>
+        {/* 텍스트 */}
+        <div className="text-white font-['NanumGothic']">
+          <div className="text-xs text-gray-300 leading-tight">ADMIN</div>
+          <div className="text-sm font-bold">SI 3팀 김부뜰 대리</div>
         </div>
       </div>
 
-      {/* 하단 안내 */}
-      <div className="absolute bottom-4 text-center w-full text-gray-700 text-sm">
-        본 시스템은 부뜰종합전산시스템입니다. 문의사항은 경영지원본부를 이용해 주십시오.
+      {/* 중앙: 검색창 + 공지사항 */}
+      <div className="flex-1 flex flex-col items-start justify-center px-6 hidden lg:flex">
+        {/* 검색창 */}
+        <div className="w-full max-w-sm h-8 flex items-center bg-white rounded px-2 mb-1">
+          <svg
+            className="w-4 h-4 text-gray-500 mr-2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.2-5.2m0 0A7.5 7.5 0 1010 17.5a7.5 7.5 0 005.8-1.7z" />
+          </svg>
+          <input
+            className="flex-1 text-sm text-gray-700 outline-none"
+            placeholder="검색어를 입력하세요"
+          />
+        </div>
+
+        {/* 공지사항 */}
+        <div className="text-white text-sm font-normal truncate">
+          공지사항내용이 표시됩니다.
+        </div>
       </div>
-    </div>
-	)
+
+      {/* 우측: 버튼 + 알림 */}
+      <div className="flex items-center gap-2 min-w-[300px] justify-end">
+        <a
+          href="#"
+          className="hidden md:inline-block h-10 px-4 bg-gray-600 text-white text-sm rounded hover:bg-gray-500"
+        >
+          부뜰 홈페이지 바로가기
+        </a>
+        <a
+          href="#"
+          className="hidden md:inline-block h-10 px-4 bg-gray-600 text-white text-sm rounded hover:bg-gray-500"
+        >
+          그룹웨어로 바로가기
+        </a>
+
+        {/* 알림 아이콘 */}
+        <div className="relative w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+          <div className="w-4 h-4 bg-yellow-500 rounded" />
+        </div>
+      </div>
+
+      {/* 모바일 전용 공지 (아래쪽으로 따로 출력) */}
+      <div className="absolute bottom-[-2rem] left-1/2 -translate-x-1/2 text-white text-sm block lg:hidden">
+        공지사항내용이 표시됩니다.
+      </div>
+    </header>
+  );
 }
+
+
+
