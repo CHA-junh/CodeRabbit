@@ -57,35 +57,92 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		// GW 인증 성공 - 사용자 정보 조회 (실제로는 DB에서 조회)
-		// TODO: 실제 DB 연동 시 Stored Procedure 호출
-		const user = {
-			userId: empNo,
-			empNo: empNo,
-			name: '사용자', // 실제로는 DB에서 조회
-			email: `${empNo}@buttle.co.kr`,
-			department: '부서', // 실제로는 DB에서 조회
-			position: '직급', // 실제로는 DB에서 조회
-			role: 'USER',
-			permissions: ['read', 'write'],
-			lastLoginAt: new Date().toISOString(),
+		// GW 인증 성공 - 서버에서 DB 연동 사용자 정보 조회
+		const serverUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+		console.log(`🔗 서버 요청 URL: ${serverUrl}/auth/login`)
+		console.log(`📤 요청 데이터:`, { empNo, password })
+
+		const requestBody = JSON.stringify({ empNo, password })
+		console.log(`📤 요청 본문 (JSON):`, requestBody)
+
+		const dbResponse = await fetch(`${serverUrl}/auth/login`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Accept: 'application/json',
+			},
+			body: requestBody,
+		})
+
+		console.log(`📥 서버 응답 상태: ${dbResponse.status}`)
+		console.log(
+			`📥 서버 응답 헤더:`,
+			Object.fromEntries(dbResponse.headers.entries())
+		)
+
+		if (!dbResponse.ok) {
+			console.error(`❌ 서버 응답 실패: ${dbResponse.status}`)
+			const errorText = await dbResponse.text()
+			console.error(`❌ 서버 응답 내용:`, errorText)
+			return NextResponse.json(
+				{ success: false, message: '사용자 정보 조회에 실패했습니다.' },
+				{ status: 500 }
+			)
 		}
 
-		// 세션 쿠키 설정
+		const responseText = await dbResponse.text()
+		console.log(`📥 서버 응답 원본 텍스트:`, responseText)
+
+		let dbData
+		try {
+			dbData = JSON.parse(responseText)
+			console.log(`📊 서버 응답 파싱된 데이터:`, dbData)
+		} catch (parseError) {
+			console.error(`❌ JSON 파싱 실패:`, parseError)
+			console.error(`❌ 파싱 실패한 텍스트:`, responseText)
+			return NextResponse.json(
+				{ success: false, message: '서버 응답 파싱에 실패했습니다.' },
+				{ status: 500 }
+			)
+		}
+
+		if (!dbData.success) {
+			console.error(`❌ 서버 응답 실패: ${dbData.message}`)
+			return NextResponse.json(
+				{ success: false, message: dbData.message },
+				{ status: 401 }
+			)
+		}
+
+		// DB에서 조회한 사용자 정보를 클라이언트 형식으로 변환
+		const user = {
+			userId: dbData.user.userId,
+			empNo: dbData.user.userId,
+			name: dbData.user.userName || '사용자',
+			email: dbData.user.emailAddr || `${empNo}@buttle.co.kr`,
+			department: dbData.user.deptNm || `부서(${dbData.user.deptCd})`,
+			position: dbData.user.dutyNm || '직급',
+			role: dbData.user.usrRoleId || 'USER',
+			permissions: ['read', 'write'],
+			lastLoginAt: new Date().toISOString(),
+			// 추가 정보
+			deptCd: dbData.user.deptCd,
+			dutyDivCd: dbData.user.dutyDivCd,
+			authCd: dbData.user.authCd,
+		}
+
+		// 서버에서 설정한 세션 쿠키를 그대로 사용
 		const response = NextResponse.json({
 			success: true,
 			message: '로그인 성공',
 			user,
-			token: 'gw-token-' + Date.now(),
 		})
 
-		// 쿠키 설정
-		response.cookies.set('session', 'gw-session-' + empNo, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'lax',
-			maxAge: 60 * 60 * 24 * 7, // 7일
-		})
+		// 서버 응답의 Set-Cookie 헤더를 클라이언트로 전달
+		const setCookieHeader = dbResponse.headers.get('set-cookie')
+		if (setCookieHeader) {
+			response.headers.set('set-cookie', setCookieHeader)
+		}
 
 		return response
 	} catch (error) {

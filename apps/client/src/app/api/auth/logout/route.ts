@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',
 			maxAge: 0, // 즉시 만료
+			path: '/', // 모든 경로에서 쿠키 삭제
 		})
 
 		return response

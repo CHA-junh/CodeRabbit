@@ -85,6 +85,7 @@ export default function COM0020M00() {
 								inputMode='numeric'
 								pattern='[0-9]*'
 								autoComplete='off'
+								spellCheck={false}
 								className='w-full px-6 py-3 rounded-full bg-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-sky-500'
 							/>
 						</div>
@@ -99,6 +100,7 @@ export default function COM0020M00() {
 								placeholder='Password'
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
+								spellCheck={false}
 								className='w-full px-6 py-3 rounded-full bg-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-sky-500'
 							/>
 						</div>

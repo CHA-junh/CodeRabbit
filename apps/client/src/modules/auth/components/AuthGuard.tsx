@@ -1,7 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { usePathname } from 'next/navigation'
 
 interface AuthGuardProps {
 	children: React.ReactNode
@@ -10,6 +11,21 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children, fallback }: AuthGuardProps) {
 	const { isAuthenticated, loading } = useAuth()
+	const pathname = usePathname()
+
+	// 로그인 관련 페이지들
+	const isAuthPage =
+		pathname === '/signin' ||
+		pathname === '/login' ||
+		pathname.startsWith('/signin') ||
+		pathname.startsWith('/login')
+
+	useEffect(() => {
+		// 로딩이 완료되고, 인증되지 않았고, 로그인 페이지가 아닌 경우에만 리다이렉트
+		if (!loading && !isAuthenticated && !isAuthPage) {
+			window.location.href = '/signin'
+		}
+	}, [loading, isAuthenticated, isAuthPage])
 
 	if (loading) {
 		return (
@@ -41,13 +57,16 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
 		)
 	}
 
+	// 로그인 페이지에서는 인증 상태와 관계없이 렌더링
+	if (isAuthPage) {
+		return <>{children}</>
+	}
+
+	// 인증되지 않은 경우 fallback 또는 null 반환
 	if (!isAuthenticated) {
 		if (fallback) {
 			return <>{fallback}</>
 		}
-
-		// 기본 로그인 페이지로 리다이렉트
-		window.location.href = '/login'
 		return null
 	}
 

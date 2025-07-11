@@ -1,22 +1,23 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+'use client'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
-
-export const metadata: Metadata = {
-	title: 'BIST_NEW - Business Intelligence System',
-	description: '비즈니스 인텔리전스 시스템',
-}
+import { usePathname } from 'next/navigation'
 
 export default function RootLayout({
 	children,
 }: {
 	children: React.ReactNode
 }) {
+	const pathname = usePathname()
+	const isAuthPage =
+		pathname.startsWith('/signin') || pathname.startsWith('/signup')
+
 	return (
 		<html lang='ko'>
-			<body className={inter.className}>{children}</body>
+			<body
+				className={isAuthPage ? '' : 'min-h-screen h-screen overflow-hidden'}
+			>
+				{children}
+			</body>
 		</html>
 	)
 }
