@@ -84,6 +84,7 @@ html,body {
 .btn-search {
   @apply bg-[#1784EA] text-white hover:opacity-80;
   height: 26px;
+  width:72px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -94,13 +95,14 @@ html,body {
   background-image: url('/icon_search.svg');
   background-repeat: no-repeat;
   background-position: left 10px center;
-  background-size: 14px 14px;
+  background-size: 16px 16px;
 }
 
 /* --- 엑셀 버튼 (아이콘 포함) --- */
 .btn-excel {
   @apply bg-[#00B846] text-white hover:opacity-80;
   height: 26px;
+  width:72px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -111,7 +113,7 @@ html,body {
   background-image: url('/icon_excel.svg');
   background-repeat: no-repeat;
   background-position: left 10px center;
-  background-size: 18px 18px;
+  background-size: 16px 16px;
 }
 
 /* --- 아이콘 전용 버튼 --- */
@@ -182,10 +184,11 @@ html,body {
   @apply table-row;
 }
 .form-th {
-  @apply table-cell bg-[#F1F5F8] border border-stone-300 px-2 py-1 text-sm text-right align-middle whitespace-nowrap;
+  @apply table-cell bg-[#F1F5F8] border border-stone-300 px-2 py-1 text-sm text-right text-[#2A2A2A] align-middle whitespace-nowrap;
   height: 30px; /* 고정 높이 지정 */
   vertical-align: middle;
 }
+
 .form-td {
   @apply table-cell bg-white border border-stone-300 px-2 py-1 text-left align-middle;
   height: 30px; /* 고정 높이 지정 */
@@ -248,6 +251,13 @@ html,body {
   @apply bg-transparent  h-[30px] text-ellipsis overflow-hidden;
 }
 
+.tit_area {
+  @apply font-medium h-[37px] ;
+  justify-content: space-between;
+  display: flex;
+  align-items: center;
+}
+
 /* ==== 투명 테이블 ==== */
 .clearbox-div {
   @apply border rounded-[8px] p-3 ;
@@ -269,9 +279,72 @@ html,body {
 
 /**페이지**/
 .mdi {
-  @apply min-w-[1510px] overflow-auto ;
+  @apply min-w-[1510px] overflow-auto scroll-area ;
 
 }
+
+
+/**grid**/
+/* === 공통 그리드 박스 === */
+.gridbox-div {
+  @apply border border-gray-200 rounded-md overflow-hidden;
+}
+
+/* === 테이블 전체 === */
+.grid-table {
+  @apply table w-full text-sm text-gray-800 border-collapse border-t border-[#00509A]; 
+}
+
+/* === 헤더 행 === */
+.grid-th {
+  @apply bg-[#EBF1F6] text-center font-semibold text-gray-700 border border-[#ccc] px-2 py-2 whitespace-nowrap;
+}
+
+/* === 데이터 행 === */
+.grid-td {
+  @apply text-center px-2 py-2 border-b border-gray-100 whitespace-nowrap;
+}
+/* === 자동 스크롤을 위한 래퍼 === */
+.grid-scroll {
+  @apply overflow-y-auto w-full;
+  /* 필요 시 max-height 적용 */
+  max-height: 300px;
+}
+/* === 그리드 짝수 컬러 다르게 === */
+.grid-tr {
+  @apply even:bg-[#fbfbfb] hover:bg-blue-50 cursor-pointer;
+}
+/* === hover 효과 === */
+.grid-tr:hover {
+  background-color: #DBECFF !important; /* hover 시 더 강한 컬러 */
+}
+@layer utilities {
+  .h-grid {
+    @apply max-h-[28.5rem] overflow-auto;
+  }
+}
+
+
+
+.title-box {
+  @apply font-semibold text-sm px-4 py-2 bg-blue-50 border-b border-gray-300;
+}
+
+.grid-table {
+  @apply w-full table-fixed border border-gray-200 text-sm text-gray-800 border-collapse;
+}
+
+.grid-th {
+  @apply bg-[#F4F7FA] border border-gray-200 px-2 py-1 text-center font-semibold;
+}
+
+.grid-td {
+  @apply border border-gray-100 px-2 py-1 text-left;
+}
+
+
+
+
 
 
 

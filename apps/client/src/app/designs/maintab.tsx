@@ -24,7 +24,7 @@ export default function TabFrame() {
   };
 
   return (
-    <div className="flex items-center h-10 px-2 overflow-x-auto bg-white scrollbar-thin scrollbar-thumb-[#cbd5e1] scrollbar-track-transparent">
+    <div className="flex items-center h-10 px-2 overflow-x-auto bg-white scrollbar-thin scrollbar-thumb-[#cbd5e1] scrollbar-track-transparent mt-1">
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
         return (

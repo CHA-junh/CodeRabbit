@@ -3,6 +3,7 @@
 import React from 'react';
 
 export default function SearchSection() {
+  <PageTitle programId="PSM0010M00" title="개인정보수정" />
   return (
     <div className="mdi">
       <div className="search-div">
