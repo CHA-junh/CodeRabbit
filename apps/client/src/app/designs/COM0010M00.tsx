@@ -66,8 +66,12 @@ export default function Page() {
 
         {/* 버튼 2개 */}
         <div className="flex items-center gap-2 ml-3">
-          <button className="bg-[#4b5563] px-3 py-2 rounded text-sm">부뜰 홈페이지 바로가기</button>
-          <button className="bg-[#4b5563] px-3 py-2 rounded text-sm">그룹웨어로 바로가기</button>
+          <button className="bg-[#4b5563] px-3 py-2 rounded text-sm hover:brightness-110">
+            부뜰 홈페이지 바로가기
+          </button>
+          <button className="bg-[#4b5563] px-3 py-2 rounded text-sm hover:brightness-110">
+            그룹웨어로 바로가기
+          </button>
         </div>
       </header>
     </div>

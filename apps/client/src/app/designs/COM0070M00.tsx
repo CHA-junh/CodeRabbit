@@ -14,7 +14,7 @@ export default function Page() {
   ];
 
   return (
-    <div className="w-20 h-screen flex flex-col justify-between bg-[#F6FBFF] border-r border-slate-200">
+    <div className="w-20 h-full flex flex-col bg-[#F6FBFF] border-r border-slate-200">
       {/* 상단 메뉴들 */}
       <div className="flex flex-col items-center gap-6 pt-6">
         {menuItems.map((item, idx) => (
@@ -27,7 +27,7 @@ export default function Page() {
               alt={`${item.label} 아이콘`}
               className="w-6 h-6 transition-transform duration-200 transform group-hover:scale-110 group-focus:scale-110"
             />
-            <span className="text-sm font-nanum text-[#3B82C4] text-center whitespace-nowrap leading-tight">
+            <span className="text-[11px] font-nanum text-[#3B82C4] text-center leading-tight">
               {item.label}
             </span>
           </button>
@@ -35,16 +35,18 @@ export default function Page() {
       </div>
 
       {/* 하단 로그아웃 */}
-      <button className="flex flex-col items-center gap-1 pb-6 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82C4] rounded-sm">
-        <img
-          src="/icon_logout.svg"
-          alt="로그아웃 아이콘"
-          className="w-6 h-6 transition-transform duration-200 transform group-hover:scale-110 group-focus:scale-110"
-        />
-        <span className="text-sm font-nanum text-[#3B82C4] text-center whitespace-nowrap">
-          로그아웃
-        </span>
-      </button>
+      <div className="mt-auto flex flex-col items-center gap-1 pb-6">
+        <button className="flex flex-col items-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82C4] rounded-sm">
+          <img
+            src="/icon_logout.svg"
+            alt="로그아웃 아이콘"
+            className="w-6 h-6 transition-transform duration-200 transform group-hover:scale-110 group-focus:scale-110"
+          />
+          <span className="text-[11px] font-nanum text-[#3B82C4] text-center">
+            로그아웃
+          </span>
+        </button>
+      </div>
     </div>
   );
 }
