@@ -9,6 +9,7 @@ import ContentFrame from './ContentFrame'; // 콘텐츠 프레임
 import PageTitle from './PageTitle';    // ✅ 타이틀 컴포넌트 추가
 import './common.css';
 
+
 export default function MainLayout() {
   // ✅ 현재 선택된 탭 상태 관리
   const [selectedTab, setSelectedTab] = useState({ title: '개인정보수정', programId: 'PSM0010M00' });
