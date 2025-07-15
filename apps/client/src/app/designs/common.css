@@ -62,11 +62,15 @@ html,body {
 /* 공통 베이스 */
 .btn-base {
   @apply flex items-center justify-center 
-    h-[26px] px-3  pt-[4px] pb-[6px]
+    h-[26px] px-3 pt-[4px] pb-[6px]
     text-sm font-normal font-nanum 
     rounded 
-    transition duration-150 ease-in-out;
+    transition duration-150 ease-in-out
+    whitespace-nowrap /* ✅ 텍스트 줄바꿈 방지 */
+    leading-none        /* ✅ 세로 깨짐 방지 */
+    min-w-[64px];       /* ✅ 최소 가로폭 확보 */
 }
+
 
 /* --- 기본 버튼 스타일 --- */
 .btn-etc {
@@ -380,7 +384,7 @@ html,body {
 
 /* 팝업 전체 래퍼 */
 .popup-wrapper {
-  @apply w-full h-full flex flex-col bg-white border border-gray-300 rounded;
+  @apply w-full h-full flex flex-col bg-white border border-gray-300 rounded min-w-[600px];
 }
 /* 상단 헤더 */
 .popup-header {
