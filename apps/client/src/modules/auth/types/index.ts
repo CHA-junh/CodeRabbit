@@ -33,6 +33,7 @@ export interface UserInfo {
 	role?: string
 	permissions?: string[]
 	lastLoginAt?: string
+	needsPasswordChange?: boolean
 }
 
 // 로그인 응답 타입

@@ -89,18 +89,41 @@ export const useAuth = () => {
 				setLoading(true)
 				const response = await AuthService.login(loginData)
 
+				// message가 JSON 문자열로 올 경우 파싱해서 진짜 메시지만 추출
+				let safeMessage = ''
+				if (typeof response.message === 'string') {
+					try {
+						const parsed = JSON.parse(response.message)
+						if (parsed && typeof parsed === 'object' && parsed.message) {
+							safeMessage = parsed.message
+						} else {
+							safeMessage = response.message
+						}
+					} catch {
+						safeMessage = response.message
+					}
+				} else if (response.message) {
+					safeMessage = JSON.stringify(response.message)
+				}
+
+				if (response.needsPasswordChange) {
+					return {
+						success: false,
+						needsPasswordChange: true,
+						message: safeMessage,
+					}
+				}
+
 				if (response.success && response.user) {
 					setSession({
 						isAuthenticated: true,
 						user: response.user,
 						token: response.token,
 					})
-
-					// 메인 페이지로 이동
 					router.push('/dashboard')
 					return { success: true }
 				} else {
-					return { success: false, message: response.message }
+					return { success: false, message: safeMessage }
 				}
 			} catch (error) {
 				console.error('로그인 오류:', error)

@@ -25,10 +25,7 @@ console.log('🧹 기존 세션 모두 삭제됨');
 
 @Controller('api/auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post('login')
   async login(
@@ -36,58 +33,59 @@ export class AuthController {
     @Res() res: Response,
   ) {
     try {
-      // GW 인증
-      const gwResult = await this.authService.login(body.empNo, body.password);
-
-      if (!gwResult.success) {
-        return res.json(gwResult);
-      }
-
-      // DB에서 사용자 정보 조회
-      const userInfo = await this.userService.findUserWithDept(body.empNo);
-
-      if (!userInfo) {
-        return res.json({
+      const { empNo, password } = body;
+      // 입력 검증
+      if (!empNo || !password) {
+        return res.status(400).json({
           success: false,
-          message: '사용자 정보를 찾을 수 없습니다.',
+          message: '사원번호와 비밀번호를 입력해주세요.',
         });
       }
-
-      // 세션 ID 생성
-      const sessionId = randomUUID();
-      const now = Date.now();
-
-      // 세션 저장
-      sessionStore[sessionId] = {
-        userId: body.empNo,
-        userInfo,
-        createdAt: now,
-        lastAccess: now,
-      };
-
-      console.log(
-        '✅ 로그인 성공 - 세션 생성:',
-        sessionId,
-        '총 세션 수:',
-        Object.keys(sessionStore).length,
+      // 사용자 존재 확인
+      const userExists = await this.userService.userExists(empNo);
+      if (!userExists) {
+        return res.status(401).json({
+          success: false,
+          message: '존재하지 않는 사용자입니다.',
+        });
+      }
+      // DB 비밀번호 검증
+      const isPasswordValid = await this.userService.validateUserPassword(
+        empNo,
+        password,
       );
-
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: '비밀번호가 일치하지 않습니다.',
+        });
+      }
+      // 사용자 정보 조회
+      const userInfo = await this.userService.findUserWithDept(empNo);
+      if (!userInfo) {
+        return res.status(500).json({
+          success: false,
+          message: '사용자 정보 조회에 실패했습니다.',
+        });
+      }
+      // 비밀번호가 사번과 동일한지 체크
+      const needsPasswordChange = password === empNo;
       // 세션 쿠키 설정
+      const sessionId = `db-session-${empNo}`;
       res.cookie('session', sessionId, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 * 1000, // 7일 (밀리초)
+        maxAge: 60 * 60 * 24 * 7 * 1000, // 7일
       });
-
       return res.json({
         success: true,
         message: '로그인 성공',
-        user: userInfo,
+        user: { ...userInfo, needsPasswordChange },
       });
     } catch (error) {
       console.error('로그인 오류:', error);
-      return res.json({
+      return res.status(500).json({
         success: false,
         message: '로그인 중 오류가 발생했습니다.',
       });

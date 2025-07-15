@@ -30,13 +30,16 @@ export class AuthService {
 			authCd: plainUser.authCd ?? '',
 			emailAddr: plainUser.emailAddr ?? '',
 			usrRoleId: plainUser.usrRoleId ?? '',
+			needsPasswordChange: plainUser.needsPasswordChange ?? false,
 		}
 		console.log('🟢 변환 후 클라이언트 user:', userInfo)
 		return userInfo
 	}
 
 	// 로그인
-	static async login(loginData: LoginRequest): Promise<LoginResponse> {
+	static async login(
+		loginData: LoginRequest
+	): Promise<LoginResponse & { needsPasswordChange?: boolean }> {
 		try {
 			const response = await fetch(`${this.API_BASE_URL}/login`, {
 				method: 'POST',
@@ -47,10 +50,19 @@ export class AuthService {
 				credentials: 'include', // 쿠키 포함
 			})
 			const data = await response.json()
-			console.log('서버 응답 user:', data.user)
+			console.log('서버 응답 data:', data)
+
+			// needsPasswordChange를 최대한 명확하게 판별
+			const needsPasswordChange =
+				data.needsPasswordChange === true ||
+				(data.user && data.user.needsPasswordChange === true) ||
+				(typeof data.message === 'string' &&
+					data.message.includes('초기 비밀번호'))
+
 			return {
 				...data,
 				user: data.user ? this.mapServerUserToClientUser(data.user) : undefined,
+				needsPasswordChange,
 			}
 		} catch (error) {
 			return {

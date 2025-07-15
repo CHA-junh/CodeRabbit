@@ -44,10 +44,18 @@ export class AuthController {
         });
       }
 
-      // 2. GW 인증이 성공했으므로 비밀번호 검증은 건너뛰고 바로 사용자 정보 조회
-      console.log(
-        `🔐 GW 인증 성공 - 비밀번호 검증 건너뛰고 사용자 정보 조회: ${empNo}`,
+      // 2. DB를 이용한 비밀번호 검증
+      const isPasswordValid = await this.userService.validateUserPassword(
+        empNo,
+        password,
       );
+      if (!isPasswordValid) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          success: false,
+          message: '비밀번호가 일치하지 않습니다.',
+        });
+      }
+      console.log(`🔐 DB 인증 성공: ${empNo}`);
 
       // 3. 사용자 정보 조회 (부서명 포함)
       const userInfo = await this.userService.findUserWithDept(empNo);
@@ -58,13 +66,30 @@ export class AuthController {
         });
       }
 
+      // 비밀번호가 사번과 동일한지 확인
+      const needsPasswordChange = password === empNo;
+
+      if (needsPasswordChange) {
+        // 세션/쿠키 발급 없이 비밀번호 변경 안내만 응답
+        return res.status(HttpStatus.OK).json({
+          success: false,
+          needsPasswordChange: true,
+          user: { needsPasswordChange: true },
+          message:
+            '초기 비밀번호입니다. 비밀번호를 변경해야 로그인할 수 있습니다.',
+        });
+      }
+
       // 4. 세션 쿠키 설정
       const token = `db-token-${Date.now()}`;
 
       const response: LoginResponseDto = {
         success: true,
         message: '로그인 성공',
-        user: userInfo,
+        user: {
+          ...userInfo,
+          needsPasswordChange,
+        },
         token,
       };
 
@@ -137,6 +162,44 @@ export class AuthController {
       });
     } catch (error) {
       console.error('세션 확인 API 오류:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: '서버 오류가 발생했습니다.',
+      });
+    }
+  }
+
+  @Post('change-password')
+  async changePassword(
+    @Body() body: { userId: string; newPassword: string },
+    @Res() res: Response,
+  ) {
+    try {
+      const { userId, newPassword } = body;
+      if (!userId || !newPassword) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          message: '사용자 ID와 새 비밀번호를 모두 입력해주세요.',
+        });
+      }
+
+      const isSuccess = await this.userService.updatePassword(
+        userId,
+        newPassword,
+      );
+
+      if (isSuccess) {
+        return res.status(HttpStatus.OK).json({
+          success: true,
+          message: '비밀번호가 성공적으로 변경되었습니다.',
+        });
+      } else {
+        return res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ success: false, message: '비밀번호 변경에 실패했습니다.' });
+      }
+    } catch (error) {
+      console.error('비밀번호 변경 API 오류:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: '서버 오류가 발생했습니다.',

@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
 			role: data.user.usrRoleId || 'USER',
 			permissions: ['read', 'write'],
 			lastLoginAt: new Date().toISOString(),
+			needsPasswordChange: false, // 세션 확인 시에는 항상 false로 반환
 		}
 
 		console.log('✅ 변환된 사용자 정보:', user)

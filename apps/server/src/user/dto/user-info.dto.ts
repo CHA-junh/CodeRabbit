@@ -1,4 +1,4 @@
-export class UserInfoDto {
+export interface UserInfoDto {
   userId: string;
   userName?: string;
   deptCd?: string;
@@ -9,6 +9,7 @@ export class UserInfoDto {
   authCd?: string;
   emailAddr?: string;
   usrRoleId?: string;
+  needsPasswordChange?: boolean;
 }
 
 export class LoginResponseDto {
