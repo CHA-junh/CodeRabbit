@@ -5,10 +5,11 @@ import MenuTree from './menu';
 import COM0070M00 from './COM0070M00'; // 좌측 아이콘바
 import COM0010M00 from './COM0010M00'; // 상단 헤더
 import Maintab from './maintab';       // 탭 프레임
-import ContentFrame from './SYS1001M00'; // 콘텐츠 프레임
+import ContentFrame from './ContentFrame'; // 콘텐츠 프레임
 import PageTitle from './PageTitle';    // ✅ 타이틀 컴포넌트 추가
 import './common.css';
 import SYS1000M00 from './SYS1000M00'; // 콘텐츠 프레임
+
 
 export default function MainLayout() {
   // ✅ 현재 선택된 탭 상태 관리

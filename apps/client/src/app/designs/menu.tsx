@@ -50,12 +50,12 @@ export default function ProgramMenuTree() {
       </div>
 
       {/* 메뉴 리스트: 스크롤 대상 영역 */}
-      <div className="flex-1 overflow-y-auto px-3 py-1 space-y-1 scroll-area">
+      <div className="flex-1 overflow-y-auto py-1 space-y-1 scroll-area">
         {menuData.map((menu) => (
           <div key={menu.title}>
             {/* 1차 메뉴 */}
             <div
-              className="flex items-center gap-2 px-2 py-1 cursor-pointer rounded text-stone-700 hover:text-[#0071DB]"
+              className="flex items-center gap-2 px-2 pt-[4px] pb-[6px] cursor-pointer rounded  border-b border-dashed text-stone-700 hover:text-[#0071DB]"
               onClick={() => toggleMenu(menu.title)}
             >
               <img src="/icon_plus.svg" alt="expand" className="w-4 h-4 shrink-0" />
@@ -64,11 +64,11 @@ export default function ProgramMenuTree() {
 
             {/* 2차 메뉴 */}
             {openMenus[menu.title] && menu.children.length > 0 && (
-              <div className="pl-6 space-y-1">
+              <div className=" space-y-1">
                 {menu.children.map((sub) => (
                   <div
                     key={sub}
-                    className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer ${
+                    className={`flex items-center gap-2 px-2 py-1 rounded pl-6 cursor-pointer ${
                       selectedMenu === sub
                         ? 'text-[#0071DB] font-bold bg-blue-50'
                         : 'text-stone-700 hover:text-[#0071DB]'
