@@ -120,7 +120,7 @@ export const useAuth = () => {
 						user: response.user,
 						token: response.token,
 					})
-					router.push('/dashboard')
+					router.push('/mainframe')
 					return { success: true }
 				} else {
 					return { success: false, message: safeMessage }

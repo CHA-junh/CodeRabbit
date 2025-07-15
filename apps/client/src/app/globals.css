@@ -5,6 +5,7 @@
 /* AG Grid CSS */
 @import 'ag-grid-community/styles/ag-grid.css';
 @import 'ag-grid-community/styles/ag-theme-alpine.css';
+@import './common/common.css';
 
 /* AG Grid 커스텀 스타일 */
 .ag-theme-alpine {

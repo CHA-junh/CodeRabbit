@@ -12,7 +12,7 @@ export default function SigninPage() {
 	useEffect(() => {
 		// 로딩이 완료되고 이미 인증된 경우 대시보드로 리다이렉트
 		if (!loading && isAuthenticated) {
-			router.push('/dashboard')
+			router.push('/mainframe')
 		}
 	}, [loading, isAuthenticated, router])
 
