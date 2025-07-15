@@ -5,7 +5,6 @@ import './common.css';
 import PageTitle from './PageTitle';
 
 export default function SearchSection() {
-  <PageTitle programId="SYS1001M00" title="프로그램 그룹관리" />
 
   return (
     <div className="mdi">

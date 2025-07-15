@@ -6,8 +6,7 @@ import MenuTree from './menu'; // 실제 컴포넌트 경로에 맞게 수정 �
 import './common.css';
 
 export default function RoleManagementPage() {
-  {/* 🔹 페이지 타이틀 */}
-      <PageTitle programId="SYS1012R00" title="메뉴미리보기" />
+
   const [selectedTab, setSelectedTab] = useState({ title: '', programId: '' });
 
   return (

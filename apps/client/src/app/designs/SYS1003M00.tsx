@@ -4,7 +4,6 @@ import React from 'react';
 import './common.css';
 
 export default function RoleManagementPage() {
-  <PageTitle programId="SYS1003M00" title="사용자역할관리" />
   return (
     <div className="mdi">
       

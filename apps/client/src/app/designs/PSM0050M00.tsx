@@ -5,7 +5,6 @@ import './common.css';
 import PageTitle from './PageTitle';
 
 export default function SearchSection() {
-  <PageTitle programId="PSM0050M00" title="프로파일관리" />
   const data = [
     {
       no: 1,

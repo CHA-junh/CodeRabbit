@@ -384,13 +384,15 @@ html,body {
 }
 /* 상단 헤더 */
 .popup-header {
-  @apply flex items-center justify-between h-[37px] px-4 text-white bg-[#00509A];
+  @apply flex items-center justify-between !h-[37px] px-4 text-white bg-[#00509A];
   font-size: 14px;
   font-weight: 500;
+  line-height: 1;
+  white-space: nowrap; /* ✅ 텍스트 줄바꿈 방지 */
 }
 /* 타이틀 텍스트 */
 .popup-title {
-  @apply truncate font-medium text-white;
+  @apply truncate font-medium text-white py-3;
 }
 /* 닫기 버튼 */
 .popup-close {
