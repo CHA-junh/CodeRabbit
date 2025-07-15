@@ -1,0 +1,20 @@
+export interface UserInfoDto {
+  userId: string;
+  userName?: string;
+  deptCd?: string;
+  deptNm?: string;
+  dutyCd?: string;
+  dutyNm?: string;
+  dutyDivCd?: string;
+  authCd?: string;
+  emailAddr?: string;
+  usrRoleId?: string;
+  needsPasswordChange?: boolean;
+}
+
+export class LoginResponseDto {
+  success: boolean;
+  message: string;
+  user?: UserInfoDto;
+  token?: string;
+}

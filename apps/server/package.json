@@ -11,18 +11,23 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:test": "ts-node src/database/db-test.ts",
+    "db:analyze": "ts-node src/database/db-analyze.ts",
+    "db:login-test": "ts-node src/database/test-login.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/typeorm": "^11.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.1.0",
     "node-fetch": "^3.3.2",
     "oracledb": "^6.8.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.25"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",

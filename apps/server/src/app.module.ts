@@ -4,10 +4,12 @@ import { AppService } from './app.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { OracleService } from './database/database.provider';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 import * as cookieParser from 'cookie-parser';
 
 @Module({
-  imports: [],
+  imports: [AuthModule, UserModule],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService, OracleService],
 })

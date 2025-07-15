@@ -16,14 +16,24 @@ export interface GWAuthResponse {
 // 사용자 정보 타입
 export interface UserInfo {
 	userId: string
-	empNo: string
-	name: string
-	email?: string
-	department: string
-	position: string
-	role: string
-	permissions: string[]
+	userName?: string
+	deptCd?: string
+	deptNm?: string
+	dutyCd?: string
+	dutyNm?: string
+	dutyDivCd?: string
+	authCd?: string
+	emailAddr?: string
+	usrRoleId?: string
+	// 클라이언트 호환성을 위한 별칭
+	empNo?: string
+	name?: string
+	department?: string
+	position?: string
+	role?: string
+	permissions?: string[]
 	lastLoginAt?: string
+	needsPasswordChange?: boolean
 }
 
 // 로그인 응답 타입
