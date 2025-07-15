@@ -5,7 +5,7 @@ import './common.css';
 import PageTitle from './PageTitle';
 
 export default function SearchSection() {
-  <PageTitle programId="SYS1002M00" title="메뉴관리" />
+  
   // 메뉴 리스트 더미 데이터
   const menuListData = [
     { no: 1, menuId: 'MNU001', menuName: '업무등록', useYn: '사용', userCount: 23, modifier: 'admin', modifiedAt: '2025-07-15 14:32' },
@@ -34,6 +34,7 @@ export default function SearchSection() {
 
   return (
     <div className="mdi">
+      <PageTitle programId="SYS1002M00" title="메뉴관리" />
       {/* 조회 영역 */}
       <div className="search-div mb-4">
         <table className="search-table w-full">

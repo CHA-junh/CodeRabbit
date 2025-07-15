@@ -42,7 +42,7 @@ export default function ProgramMenuTree() {
 
       {/* 검색 영역 */}
       <div className="flex items-center justify-between px-2 py-1 border-b border-stone-200 bg-white shrink-0">
-        <span className="text-stone-400">메뉴명을 입력 해 주세요</span>
+        <span className="text-stone-400 m-1">메뉴명을 입력 해 주세요</span>
         <div className="w-auto h-4 flex gap-2">
           <img src="/icon_plus.svg" alt="plus" className="w-4 h-4" />
           <img src="/icon_minus.svg" alt="minus" className="w-4 h-4" />
@@ -58,7 +58,7 @@ export default function ProgramMenuTree() {
               className="flex items-center gap-2 px-2 pt-[4px] pb-[6px] cursor-pointer rounded  border-b border-dashed text-stone-700 hover:text-[#0071DB]"
               onClick={() => toggleMenu(menu.title)}
             >
-              <img src="/icon_plus.svg" alt="expand" className="w-4 h-4 shrink-0" />
+              <img src="/icon_plus.svg" alt="expand" className="w-4 h-4 pl-1 shrink-0" />
               <span className="leading-none inline-block m-2">{menu.title}</span>
             </div>
 

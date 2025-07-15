@@ -5,7 +5,7 @@ import './common.css';
 import PageTitle from './PageTitle';
 
 export default function SearchSection() {
-  <PageTitle programId="PSM0050M00" title="프로파일관리" />
+  
   const data = [
     {
       no: 1,
@@ -39,6 +39,7 @@ export default function SearchSection() {
 
   return (
     <div className="mdi">
+      <PageTitle programId="PSM0050M00" title="프로파일관리" />
       {/* 조회 영역 */}
       <div className="search-div mb-4">
         <table className="search-table w-full">

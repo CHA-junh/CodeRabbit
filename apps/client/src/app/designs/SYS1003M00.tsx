@@ -4,8 +4,10 @@ import React from 'react';
 import './common.css';
 
 export default function RoleManagementPage() {
+  
   return (
     <div className="mdi">
+      <PageTitle programId="SYS1003M00" title="사용자역할관리" />
       {/* 🔍 조회 영역 */}
       <div className="search-div mb-4">
         <table className="search-table w-full">
