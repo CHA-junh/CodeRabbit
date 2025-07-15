@@ -12,7 +12,7 @@ export default function RoleManagementPopup() {
       </div>
 
       <div className="popup-body">
-        <table className="form-table mt-4">
+        <table className="form-table my-4">
           <tbody>
             {/* 운영체제 */}
             <tr className="form-tr">
@@ -168,7 +168,13 @@ export default function RoleManagementPopup() {
             </tr>
           </tbody>
         </table>
+                    {/*버튼 SET */}
+      <div className="flex gap-2 justify-end">
+        <button className="btn-base btn-delete">취소</button>
+        <button className="btn-base btn-act">확인</button>
       </div>
+      </div>
+
     </div>
   );
 }
