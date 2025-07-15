@@ -4,7 +4,7 @@ import React from 'react';
 import './common.css';
 
 export default function RoleManagementPage() {
-  
+  <PageTitle programId="SYS1010D00" title="프로그램 찾기" />
   // ✅ 더미 데이터 선언
   const data = [
     {
@@ -33,7 +33,7 @@ export default function RoleManagementPage() {
 
   return (
     <div className="mdi">
-      <PageTitle programId="SYS1010D00" title="프로그램 찾기" />
+      
       {/* 🔍 조회 영역 */}
       <div className="search-div mb-4">
         <table className="search-table w-full">

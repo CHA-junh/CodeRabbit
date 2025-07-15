@@ -5,11 +5,11 @@ import './common.css';
 import PageTitle from './PageTitle';
 
 export default function SearchSection() {
-  
+  <PageTitle programId="SYS1001M00" title="프로그램 그룹관리" />
 
   return (
     <div className="mdi">
-      <PageTitle programId="SYS1001M00" title="프로그램 그룹관리" />
+      
       {/* 조회부 */}
       <div className="search-div mb-4 ">
         <table className="search-table w-full">

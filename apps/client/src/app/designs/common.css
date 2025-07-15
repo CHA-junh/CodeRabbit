@@ -62,8 +62,7 @@ html,body {
 /* 공통 베이스 */
 .btn-base {
   @apply flex items-center justify-center 
-    h-[26px]
-    px-3  pt-[5px] pb-[6px;]
+    h-[26px] px-3  pt-[4px] pb-[6px]
     text-sm font-normal font-nanum 
     rounded 
     transition duration-150 ease-in-out;
@@ -377,6 +376,34 @@ html,body {
   @apply pr-4 w-[10px] ;
   margin: 0;
 }
+
+
+/* 팝업 전체 래퍼 */
+.popup-wrapper {
+  @apply w-full h-full flex flex-col bg-white border border-gray-300 rounded;
+}
+/* 상단 헤더 */
+.popup-header {
+  @apply flex items-center justify-between h-[37px] px-4 text-white bg-[#00509A];
+  font-size: 14px;
+  font-weight: 500;
+}
+/* 타이틀 텍스트 */
+.popup-title {
+  @apply truncate font-medium text-white;
+}
+/* 닫기 버튼 */
+.popup-close {
+  @apply text-white text-xl leading-none hover:opacity-80 cursor-pointer;
+  line-height: 1;
+  background: transparent;
+  border: none;
+}
+.popup-body {
+  @apply p-4 ;
+}
+
+
 
 
 

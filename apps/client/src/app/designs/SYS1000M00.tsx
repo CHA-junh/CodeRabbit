@@ -5,7 +5,7 @@ import './common.css';
 import PageTitle from './PageTitle';
 
 export default function SearchSection() {
-  
+  <PageTitle programId="SYS1000M00" title="프로그램관리" />
   const data = [
     {
       id: 'USR_0001',
@@ -23,7 +23,7 @@ export default function SearchSection() {
 
   return (
     <div className="mdi">
-      <PageTitle programId="SYS1000M00" title="프로그램관리" />
+      
       {/* 조회부 */}
       <div className="search-div mb-4">
         <table className="search-table w-full">
