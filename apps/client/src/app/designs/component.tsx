@@ -6,7 +6,7 @@ import './common.css';
 export default function Page() {
   return (
     <div className="relative w-full min-h-screen bg-white font-nanum overflow-hidden">
-      {/* 테이블 */}
+      {/* 인풋+버튼 */}
       <div className="form-table">
 
         {/* 1행: Input combo */}
@@ -133,8 +133,8 @@ export default function Page() {
 
 
       {/* 그리드 영역  --- 더미 데이터 필수*/}
-         {/*더미 데이터*/}
-        const data = [
+         {/*더미 데이터 상단 리턴 위에 넣기*/}
+        {/* const data = [
         {
           id: 'USR_0001',
           name: '사용자 관리',
@@ -145,9 +145,48 @@ export default function Page() {
           popupHeight: '600',
           popupTop: '100',
           popupLeft: '100',
-        },
+        }, */}
+        
+      {/* 그리드 영역 1줄 */}
+      <div className="gridbox-div mb-4">
+        <div className="grid-scroll-wrap max-h-[450px]">
+          <table className="grid-table">
+            <thead>
+              <tr>
+                <th className="grid-th" >No</th>
+                <th className="grid-th" >프로그램ID</th>
+                <th className="grid-th" >프로그램명</th>
+                <th className="grid-th" >프로그램구분</th>
+                <th className="grid-th" >업무구분</th>
+                <th className="grid-th" >사용여부</th>
+                <th className="grid-th" >팝업크기</th>
+                <th className="grid-th" >팝업위치</th>
+              </tr>
+            </thead>
 
-      {/*그리드*/}
+            <tbody>
+              {data.map((item, i) => (
+                <tr key={i} className="grid-tr even:bg-[#F9FCFF] hover:bg-blue-50">
+                  <td className="grid-td">{i + 1}</td>
+                  <td className="grid-td">{item.id}</td>
+                  <td className="grid-td">{item.name}</td>
+                  <td className="grid-td">{item.type}</td>
+                  <td className="grid-td">{item.category}</td>
+                  <td className="grid-td">{item.useYn}</td>
+                  <td className="grid-td">{item.popupWidth}</td>
+                  <td className="grid-td">{item.popupHeight}</td>
+                  <td className="grid-td">{item.popupTop}</td>
+                  <td className="grid-td">{item.popupLeft}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+      {/*그리드 2줄*/}
       <div className="gridbox-div mb-4 ">
         <div className="grid-scroll-wrap max-h-[450px]">
           <table className="grid-table">

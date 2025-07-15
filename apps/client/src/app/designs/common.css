@@ -63,7 +63,7 @@ html,body {
 .btn-base {
   @apply flex items-center justify-center 
     h-[26px]
-    px-3 py-[5px]
+    px-3  pt-[5px] pb-[6px;]
     text-sm font-normal font-nanum 
     rounded 
     transition duration-150 ease-in-out;
@@ -71,19 +71,18 @@ html,body {
 
 /* --- 기본 버튼 스타일 --- */
 .btn-etc {
-  @apply bg-[#58A5EE] h-[26px] text-white hover:opacity-80;
+  @apply bg-[#58A5EE] text-white hover:opacity-80;
 }
 .btn-act {
-  @apply bg-[#0071DB] h-[26px] text-white hover:opacity-80;
+  @apply bg-[#0071DB] text-white hover:opacity-80;
 }
 .btn-delete {
-  @apply bg-[#4B4B4B] h-[26px] text-white hover:opacity-80;
+  @apply bg-[#4B4B4B] text-white hover:opacity-80;
 }
 
 /* --- 검색 버튼 (아이콘 포함) --- */
 .btn-search {
   @apply bg-[#1784EA] text-white hover:opacity-80;
-  height: 26px;
   width:72px;
   display: inline-flex;
   align-items: center;
@@ -101,7 +100,6 @@ html,body {
 /* --- 엑셀 버튼 (아이콘 포함) --- */
 .btn-excel {
   @apply bg-[#00B846] text-white hover:opacity-80;
-  height: 26px;
   width:72px;
   display: inline-flex;
   align-items: center;
@@ -245,10 +243,10 @@ html,body {
   @apply h-[36px];
 }
 .search-th {
-  @apply text-right h-[30px] font-normal pr-2 pl-10 text-stone-600 bg-transparent whitespace-nowrap;
+  @apply text-right h-[30px] font-normal pl-10 text-stone-600 bg-transparent whitespace-nowrap;
 }
 .search-td {
-  @apply bg-transparent  h-[30px] text-ellipsis overflow-hidden;
+  @apply bg-transparent  h-[30px] text-ellipsis overflow-hidden px-2;
 }
 
 .tit_area {
@@ -279,7 +277,7 @@ html,body {
 
 /**페이지**/
 .mdi {
-  @apply min-w-[1510px] overflow-auto scroll-area ;
+  @apply min-w-[1510px] overflow-auto scroll-area h-[calc(100vh-100px)] flex flex-col ;
 
 }
 
@@ -342,9 +340,43 @@ html,body {
   @apply border border-gray-100 px-2 py-1 text-left;
 }
 
+/* * 필수표시 */
+.required::before {
+  content: '*';
+  color: #ff2fa0;
+  margin-right: 4px;
+  font-weight: bold;
+}
 
 
-
+/* 트리 전체 영역 */
+.menu-tree-wrap {
+  @apply w-full h-full flex flex-col border rounded border-stone-300 p-4 overflow-auto;
+}
+/* 트리 전체 ul */
+.menu-tree {
+  @apply text-sm pl-2;
+}
+/* 1차 메뉴 */
+.menu-tree > li {
+  @apply mb-1;
+}
+/* 1차 메뉴 타이틀 */
+.menu-title {
+  @apply font-semibold text-stone-700 cursor-pointer hover:text-blue-600;
+}
+/* 하위 메뉴 ul */
+.menu-children {
+  @apply ml-4 mt-1 list-disc;
+}
+/* 하위 메뉴 항목 */
+.menu-child {
+  @apply cursor-pointer hover:text-blue-600;
+}
+.menu-title span {
+  @apply pr-4 w-[10px] ;
+  margin: 0;
+}
 
 
 

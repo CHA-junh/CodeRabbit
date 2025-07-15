@@ -117,11 +117,11 @@ export default function SearchSection() {
         <tbody>
           {/* 1행 */}
           <tr className="form-tr">
-            <th className="form-th">✱ 프로그램ID</th>
+            <th className="form-th required">프로그램ID</th>
             <td className="form-td"><input type="text" className="input-base input-default w-full" /></td>
-            <th className="form-th">✱ 프로그램명</th>
+            <th className="form-th required">프로그램명</th>
             <td className="form-td"><input type="text" className="input-base input-default w-full" /></td>
-            <th className="form-th">✱ 프로그램구분</th>
+            <th className="form-th required">프로그램구분</th>
             <td className="form-td">
               <select className="combo-base w-full">
                 <option>선택</option>
@@ -137,11 +137,11 @@ export default function SearchSection() {
 
           {/* 2행 */}
           <tr className="form-tr">
-            <th className="form-th">✱ 파일경로</th>
+            <th className="form-th required">파일경로</th>
             <td className="form-td" colSpan={5}>
               <input type="text" className="input-base input-default w-full" />
             </td>
-            <th className="form-th">✱ 사용여부</th>
+            <th className="form-th required">사용여부</th>
             <td className="form-td">
               <select className="combo-base w-full">
                 <option>선택</option>
