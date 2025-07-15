@@ -96,3 +96,89 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# BIST_NEW Server - Swagger UI 연동 가이드
+
+## Swagger란?
+NestJS에서 API 문서를 자동으로 생성해주는 도구입니다. Swagger UI를 통해 API를 웹에서 쉽게 테스트하고 확인할 수 있습니다.
+
+---
+
+## 1. Swagger 패키지 설치
+
+```bash
+npm install @nestjs/swagger swagger-ui-express
+npm install --save-dev @types/swagger-ui-express
+```
+
+## 2. Validation 패키지 설치
+
+```bash
+npm install class-validator class-transformer
+```
+
+---
+
+## 3. main.ts에 Swagger 설정 추가 - 적용됨
+
+```ts
+// src/main.ts
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Swagger 설정
+  const config = new DocumentBuilder()
+    .setTitle('BIST API')
+    .setDescription('BIST 서버 API 문서')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document);
+
+  app.enableCors();
+  const port = process.env.PORT || 8080;
+  await app.listen(port);
+  console.log(`🚀 서버가 http://localhost:${port} 에서 실행 중입니다.`);
+}
+bootstrap();
+```
+
+---
+
+## 4. 서버 실행 및 Swagger UI 접속
+
+```bash
+npm run start:dev
+```
+
+- 브라우저에서 [http://localhost:8080/api-docs](http://localhost:8080/api-docs) 접속
+- API 명세 및 테스트 가능
+
+---
+
+## 5. 컨트롤러/DTO에 Swagger 데코레이터 추가 (선택)
+
+더 풍부한 문서화를 위해 아래와 같이 데코레이터를 추가할 수 있습니다.
+
+```ts
+import { ApiTags, ApiProperty } from '@nestjs/swagger';
+
+@ApiTags('auth')
+@Controller('auth')
+export class AuthController { ... }
+
+export class LoginDto {
+  @ApiProperty({ description: '사용자 아이디' })
+  username: string;
+  @ApiProperty({ description: '비밀번호' })
+  password: string;
+}
+```
+
+---
+
+## 참고
+- NestJS 공식 문서: https://docs.nestjs.com/openapi/introduction
+- Swagger 공식 문서: https://swagger.io/docs/
