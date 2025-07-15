@@ -239,7 +239,8 @@ export default function SearchSection() {
                 <th className="grid-th" >프로젝트명</th>
                 <th className="grid-th" >고객사</th>
                 <th className="grid-th" >담당업무</th>
-                <th className="grid-th" >개발환경/DBMS/언어</th>
+                <th className="grid-th flex justify-between items-center" >개발환경/DBMS/언어<button type="button" className="btn-base btn-etc ">추가</button>
+                </th>
               </tr>
             </thead>
 
