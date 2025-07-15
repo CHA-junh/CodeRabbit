@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './common.css';
+import PageTitle from './PageTitle';
 
 export default function SearchSection() {
   <PageTitle programId="SYS1000M00" title="프로그램관리" />
