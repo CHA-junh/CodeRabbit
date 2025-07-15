@@ -31,7 +31,7 @@ export default function TabFrame() {
           <div
             key={tab.id}
             className={`flex items-center px-3 h-8 mx-1 rounded-md cursor-pointer shrink-0
-              ${isActive ? 'bg-[#0057B8]' : 'bg-[#F0F7FF]'}`}
+              ${isActive ? 'bg-[#0057B8]' : 'bg-[#E2EFFF]'}`}
             onClick={() => setActiveTab(tab.id)}
           >
             <span

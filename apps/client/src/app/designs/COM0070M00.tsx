@@ -14,7 +14,7 @@ export default function Page() {
   ];
 
   return (
-    <div className="w-20 h-full flex flex-col bg-[#F6FBFF] border-r border-slate-200">
+    <div className="w-20 h-full flex flex-col bg-[#EFF8FF] border-r border-slate-200">
       {/* 상단 메뉴들 */}
       <div className="flex flex-col items-center gap-6 pt-6">
         {menuItems.map((item, idx) => (
