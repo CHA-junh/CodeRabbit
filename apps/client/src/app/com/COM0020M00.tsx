@@ -28,10 +28,12 @@ export default function COM0020M00() {
 	// 로그인 처리
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
+		console.log('로그인 시도! (1)')
 		setError(null)
 
 		if (!empNo || !password) {
 			setError('사원번호와 비밀번호를 입력해주세요.')
+			console.log('입력값 없음 (2)')
 			return
 		}
 
@@ -40,18 +42,19 @@ export default function COM0020M00() {
 				empNo,
 				password,
 			}
+			console.log('loginData:', loginData, '(3)')
 
 			const result = await login(loginData)
-			console.log('login result:', result)
+			console.log('login result:', result, '(4)')
 
 			// 1. 비밀번호 변경 필요 분기(최우선)
 			if (result.needsPasswordChange) {
-				console.log('needsPasswordChange:', result.needsPasswordChange)
+				console.log('needsPasswordChange:', result.needsPasswordChange, '(5)')
 				setPwdChangeUserId(empNo)
 				setPendingLogin({ empNo, password })
 				setPendingNeedsPwdChange(true)
 				setShowPwdChange(true) // 팝업이 반드시 뜨도록 직접 호출
-				console.log('setPendingNeedsPwdChange(true) 호출')
+				console.log('setPendingNeedsPwdChange(true) 호출 (6)')
 				setError(
 					result.message ||
 						'초기 비밀번호입니다. 비밀번호를 변경해야 로그인할 수 있습니다.'
@@ -61,6 +64,7 @@ export default function COM0020M00() {
 
 			// 2. 로그인 성공
 			if (result.success) {
+				console.log('로그인 성공! (7)')
 				window.location.reload()
 				return
 			}
@@ -75,6 +79,7 @@ export default function COM0020M00() {
 							? result
 							: JSON.stringify(result)
 			)
+			console.log('로그인 실패! (8)', result)
 		} catch (err) {
 			setError(
 				typeof (err as any)?.message === 'string'
@@ -85,6 +90,7 @@ export default function COM0020M00() {
 							? err
 							: JSON.stringify(err)
 			)
+			console.log('로그인 중 오류! (9)', err)
 		}
 	}
 
@@ -97,11 +103,14 @@ export default function COM0020M00() {
 
 	const handlePwdChangeSubmit = async (newPassword: string) => {
 		try {
-			const response = await fetch('/api/auth/change-password', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
-			})
+			const response = await fetch(
+				'http://localhost:8080/api/auth/change-password',
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
+				}
+			)
 			const data = await response.json()
 
 			if (data.success) {

@@ -18,7 +18,6 @@ export const useAuth = () => {
 		console.log('🍪 현재 쿠키:', document.cookie)
 
 		// session 쿠키 삭제
-		document.cookie = 'session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
 		document.cookie = 'empNo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
 		console.log('🧹 세션 쿠키 삭제 완료')
 		console.log('🍪 삭제 후 쿠키:', document.cookie)
@@ -47,7 +46,7 @@ export const useAuth = () => {
 			}
 
 			// 서버 응답에서 success 필드 확인 (추가 검증)
-			const response = await fetch('/api/auth/session', {
+			const response = await fetch('http://localhost:8080/api/auth/session', {
 				credentials: 'include',
 			})
 			const data = await response.json()

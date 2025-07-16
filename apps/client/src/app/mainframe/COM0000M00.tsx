@@ -43,6 +43,7 @@ export default function COM0000M00() {
 			<TopFrame
 				userName={user?.userName || user?.name}
 				userTeam={user?.deptNm || user?.department}
+				userPosition={user?.dutyNm || user?.position}
 			/>
 			{/* 하단 본문 영역 */}
 			<div className='flex flex-1 min-h-0 relative'>

@@ -2,7 +2,7 @@ import { LoginRequest, LoginResponse } from '../types'
 
 // 인증 서비스
 export class AuthService {
-	private static readonly API_BASE_URL = '/api/auth'
+	private static readonly API_BASE_URL = 'http://localhost:8080/api/auth'
 
 	// 서버 응답을 클라이언트 UserInfo로 변환
 	private static mapServerUserToClientUser(serverUser: any): any {

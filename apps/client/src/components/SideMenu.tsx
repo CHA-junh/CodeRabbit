@@ -20,7 +20,9 @@ export default function SideMenu() {
 
 	const handleLogout = async () => {
 		console.log('로그아웃 버튼 클릭됨')
-		const res = await fetch('/api/auth/logout', { method: 'POST' })
+		const res = await fetch('http://localhost:8080/api/auth/logout', {
+			method: 'POST',
+		})
 		const data = await res.json()
 		console.log('로그아웃 API 응답:', data)
 		window.location.href = '/signin'
