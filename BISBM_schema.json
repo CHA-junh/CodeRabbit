@@ -5,7 +5,7 @@
     "database_info": {
       "db_type": "Oracle",
       "schema_name": "BISBM",
-      "extracted_at": "2025-07-14T07:08:56.704Z"
+      "extracted_at": "2025-07-16T03:01:22.619Z"
     },
     "tables": [
       {
@@ -10089,16 +10089,6 @@
             "comments": "프로그램ID"
           },
           {
-            "column_name": "UP_MENU_ID",
-            "data_type": "VARCHAR2",
-            "data_length": 20,
-            "data_precision": null,
-            "data_scale": null,
-            "nullable": "Y",
-            "default_value": null,
-            "comments": "상위메뉴ID"
-          },
-          {
             "column_name": "HGRK_MENU_SEQ",
             "data_type": "NUMBER",
             "data_length": 22,
@@ -10107,16 +10097,6 @@
             "nullable": "Y",
             "default_value": null,
             "comments": "상위메뉴순번"
-          },
-          {
-            "column_name": "MENU_NM",
-            "data_type": "VARCHAR2",
-            "data_length": 100,
-            "data_precision": null,
-            "data_scale": null,
-            "nullable": "Y",
-            "default_value": null,
-            "comments": "메뉴명"
           },
           {
             "column_name": "MENU_DSP_NM",
@@ -10129,24 +10109,14 @@
             "comments": "메뉴표시명"
           },
           {
-            "column_name": "MENU_TYPE_CD",
+            "column_name": "MENU_SHP_DVCD",
             "data_type": "VARCHAR2",
             "data_length": 4,
             "data_precision": null,
             "data_scale": null,
             "nullable": "Y",
             "default_value": null,
-            "comments": "메뉴형태코드"
-          },
-          {
-            "column_name": "MENU_SHR_DIV_CD",
-            "data_type": "VARCHAR2",
-            "data_length": 4,
-            "data_precision": null,
-            "data_scale": null,
-            "nullable": "Y",
-            "default_value": null,
-            "comments": "메뉴공유구분코드"
+            "comments": "메뉴형태구분"
           },
           {
             "column_name": "SORT_SEQ",
@@ -10201,24 +10171,89 @@
         ],
         "constraints": [
           {
-            "constraint_name": "SYS_C006226",
+            "constraint_name": "SYS_C006288",
             "constraint_type": "C",
             "column_name": "MENU_SEQ",
             "r_table_name": null,
             "r_column_name": null
           },
           {
-            "constraint_name": "SYS_C006225",
+            "constraint_name": "SYS_C006287",
             "constraint_type": "C",
             "column_name": "MENU_ID",
             "r_table_name": null,
             "r_column_name": null
+          },
+          {
+            "constraint_name": "PK_TBL_MENU_DTL",
+            "constraint_type": "P",
+            "column_name": "MENU_ID",
+            "r_table_name": null,
+            "r_column_name": null
+          },
+          {
+            "constraint_name": "PK_TBL_MENU_DTL",
+            "constraint_type": "P",
+            "column_name": "MENU_SEQ",
+            "r_table_name": null,
+            "r_column_name": null
+          },
+          {
+            "constraint_name": "FK_TBL_MENU_DTL_PGM_ID",
+            "constraint_type": "R",
+            "column_name": "PGM_ID",
+            "r_table_name": "TBL_PGM_INF",
+            "r_column_name": "PGM_ID"
           }
         ],
         "indexes": [
-          "PKT_MENU_DTL"
+          "IDX_TBL_MENU_DTL_HGRK_MENU_SEQ",
+          "IDX_TBL_MENU_DTL_PGM_ID",
+          "IDX_TBL_MENU_DTL_SORT_SEQ",
+          "IDX_TBL_MENU_DTL_USE_YN",
+          "PK_TBL_MENU_DTL"
         ],
-        "sample_data": []
+        "sample_data": [
+          {
+            "MENU_ID": "M250716001",
+            "MENU_SEQ": 1,
+            "PGM_ID": null,
+            "HGRK_MENU_SEQ": 0,
+            "MENU_DSP_NM": "사업관리",
+            "MENU_SHP_DVCD": "M",
+            "SORT_SEQ": 1,
+            "USE_YN": "Y",
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          },
+          {
+            "MENU_ID": "M250716001",
+            "MENU_SEQ": 2,
+            "PGM_ID": null,
+            "HGRK_MENU_SEQ": 0,
+            "MENU_DSP_NM": "프로젝트관리",
+            "MENU_SHP_DVCD": "M",
+            "SORT_SEQ": 2,
+            "USE_YN": "Y",
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          },
+          {
+            "MENU_ID": "M250716001",
+            "MENU_SEQ": 3,
+            "PGM_ID": null,
+            "HGRK_MENU_SEQ": 0,
+            "MENU_DSP_NM": "업무추진비관리",
+            "MENU_SHP_DVCD": "M",
+            "SORT_SEQ": 3,
+            "USE_YN": "Y",
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          }
+        ]
       },
       {
         "table_name": "TBL_MENU_INF",
@@ -10295,7 +10330,16 @@
           }
         ],
         "indexes": [],
-        "sample_data": []
+        "sample_data": [
+          {
+            "MENU_ID": "M250716001",
+            "MENU_NM": "시스템관리자메뉴",
+            "USE_YN": "Y",
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          }
+        ]
       },
       {
         "table_name": "TBL_MMLY_EPCT_MM",
@@ -13601,6 +13645,46 @@
             "comments": "업무구분코드"
           },
           {
+            "column_name": "SORT_SEQ",
+            "data_type": "NUMBER",
+            "data_length": 22,
+            "data_precision": 8,
+            "data_scale": 0,
+            "nullable": "Y",
+            "default_value": null,
+            "comments": "정렬순번"
+          },
+          {
+            "column_name": "USE_YN",
+            "data_type": "CHAR",
+            "data_length": 1,
+            "data_precision": null,
+            "data_scale": null,
+            "nullable": "Y",
+            "default_value": null,
+            "comments": "사용여부"
+          },
+          {
+            "column_name": "UP_PGM_ID",
+            "data_type": "VARCHAR2",
+            "data_length": 20,
+            "data_precision": null,
+            "data_scale": null,
+            "nullable": "Y",
+            "default_value": null,
+            "comments": "상위프로그램ID"
+          },
+          {
+            "column_name": "LINK_PATH",
+            "data_type": "VARCHAR2",
+            "data_length": 200,
+            "data_precision": null,
+            "data_scale": null,
+            "nullable": "Y",
+            "default_value": null,
+            "comments": "연계경로명"
+          },
+          {
             "column_name": "PGM_WDTH",
             "data_type": "NUMBER",
             "data_length": 22,
@@ -13661,6 +13745,16 @@
             "comments": "대상MDI구분코드"
           },
           {
+            "column_name": "SZ_UPD_USE_YN",
+            "data_type": "CHAR",
+            "data_length": 1,
+            "data_precision": null,
+            "data_scale": null,
+            "nullable": "Y",
+            "default_value": null,
+            "comments": "크기변경사용여부"
+          },
+          {
             "column_name": "POPUP_SWT_USE_YN",
             "data_type": "CHAR",
             "data_length": 1,
@@ -13689,46 +13783,6 @@
             "nullable": "Y",
             "default_value": null,
             "comments": "링크서비스ID"
-          },
-          {
-            "column_name": "SORT_SEQ",
-            "data_type": "NUMBER",
-            "data_length": 22,
-            "data_precision": 8,
-            "data_scale": 0,
-            "nullable": "Y",
-            "default_value": null,
-            "comments": "정렬순번"
-          },
-          {
-            "column_name": "USE_YN",
-            "data_type": "CHAR",
-            "data_length": 1,
-            "data_precision": null,
-            "data_scale": null,
-            "nullable": "Y",
-            "default_value": null,
-            "comments": "사용여부"
-          },
-          {
-            "column_name": "UP_PGM_ID",
-            "data_type": "VARCHAR2",
-            "data_length": 20,
-            "data_precision": null,
-            "data_scale": null,
-            "nullable": "Y",
-            "default_value": null,
-            "comments": "상위프로그램ID"
-          },
-          {
-            "column_name": "LINK_PATH",
-            "data_type": "VARCHAR2",
-            "data_length": 200,
-            "data_precision": null,
-            "data_scale": null,
-            "nullable": "Y",
-            "default_value": null,
-            "comments": "링크경로"
           },
           {
             "column_name": "REG_DTTM",
@@ -13763,17 +13817,97 @@
         ],
         "constraints": [
           {
-            "constraint_name": "SYS_C006223",
+            "constraint_name": "SYS_C006285",
             "constraint_type": "C",
+            "column_name": "PGM_ID",
+            "r_table_name": null,
+            "r_column_name": null
+          },
+          {
+            "constraint_name": "PK_TBL_PGM_INF",
+            "constraint_type": "P",
             "column_name": "PGM_ID",
             "r_table_name": null,
             "r_column_name": null
           }
         ],
         "indexes": [
-          "PKT_PGM_INF"
+          "IDX_TBL_PGM_INF_BIZ_DIV_CD",
+          "IDX_TBL_PGM_INF_UP_PGM_ID",
+          "IDX_TBL_PGM_INF_USE_YN",
+          "PK_TBL_PGM_INF"
         ],
-        "sample_data": []
+        "sample_data": [
+          {
+            "PGM_ID": "COM0050",
+            "PGM_NM": "테스트로그인 화면",
+            "PGM_DIV_CD": "2",
+            "BIZ_DIV_CD": null,
+            "SORT_SEQ": null,
+            "USE_YN": "Y",
+            "UP_PGM_ID": null,
+            "LINK_PATH": "com/COM0050P00.tsx",
+            "PGM_WDTH": null,
+            "PGM_HGHT": null,
+            "PGM_PSN_TOP": null,
+            "PGM_PSN_LFT": null,
+            "POPUP_MONI": null,
+            "TGT_MDI_DIV_CD": null,
+            "SZ_UPD_USE_YN": "Y",
+            "POPUP_SWT_USE_YN": null,
+            "SVC_SRVR_ID": null,
+            "LINK_SVC_ID": null,
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          },
+          {
+            "PGM_ID": "COMZ010",
+            "PGM_NM": "(팝)시스템코드관리",
+            "PGM_DIV_CD": "1",
+            "BIZ_DIV_CD": null,
+            "SORT_SEQ": null,
+            "USE_YN": "Y",
+            "UP_PGM_ID": null,
+            "LINK_PATH": "com/COMZ010M00.tsx",
+            "PGM_WDTH": null,
+            "PGM_HGHT": null,
+            "PGM_PSN_TOP": null,
+            "PGM_PSN_LFT": null,
+            "POPUP_MONI": null,
+            "TGT_MDI_DIV_CD": null,
+            "SZ_UPD_USE_YN": "Y",
+            "POPUP_SWT_USE_YN": null,
+            "SVC_SRVR_ID": null,
+            "LINK_SVC_ID": null,
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          },
+          {
+            "PGM_ID": "COMZ020",
+            "PGM_NM": "(팝)등급별단가등록",
+            "PGM_DIV_CD": "1",
+            "BIZ_DIV_CD": null,
+            "SORT_SEQ": null,
+            "USE_YN": "Y",
+            "UP_PGM_ID": null,
+            "LINK_PATH": "com/COMZ020M00.tsx",
+            "PGM_WDTH": null,
+            "PGM_HGHT": null,
+            "PGM_PSN_TOP": null,
+            "PGM_PSN_LFT": null,
+            "POPUP_MONI": null,
+            "TGT_MDI_DIV_CD": null,
+            "SZ_UPD_USE_YN": "Y",
+            "POPUP_SWT_USE_YN": null,
+            "SVC_SRVR_ID": null,
+            "LINK_SVC_ID": null,
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          }
+        ]
       },
       {
         "table_name": "TBL_PPLCT_APV_APRV",
@@ -18155,7 +18289,7 @@
           {
             "column_name": "USER_PWD",
             "data_type": "VARCHAR2",
-            "data_length": 20,
+            "data_length": 255,
             "data_precision": null,
             "data_scale": null,
             "nullable": "Y",
@@ -18224,8 +18358,8 @@
             "WRK01_USE_YN": "N",
             "WRK02_USE_YN": "N",
             "APV_APOF_ID": "10080",
-            "USER_PWD": "10485",
-            "PWD_CHNG_DTTM": "20160316135453",
+            "USER_PWD": "7F2EFA3AA284D50A114D4F3615DD6D22E8920ED4BA013CD59EBEC258754CB61EFAB105E776610F332B62889A65C87E9862BED548C9837CC177A83FC3CC54FA95",
+            "PWD_CHNG_DTTM": "20250715112049",
             "EMAIL_ADDR": "Lgx1112@buttle.co.kr",
             "USR_ROLE_ID": null
           },
@@ -18239,8 +18373,8 @@
             "WRK01_USE_YN": "N",
             "WRK02_USE_YN": "N",
             "APV_APOF_ID": null,
-            "USER_PWD": "10500",
-            "PWD_CHNG_DTTM": "20160718114433",
+            "USER_PWD": "03091465798FB64DF182084202957B0B343835F790B4F0C043BF6BF8AB0F26C71112CC262318A86925A26439D54BF59DE06EFE2371372CCDA93CE30D1F679AA2",
+            "PWD_CHNG_DTTM": "20250715112049",
             "EMAIL_ADDR": "dearhs@buttle.co.kr",
             "USR_ROLE_ID": null
           },
@@ -18254,8 +18388,8 @@
             "WRK01_USE_YN": "N",
             "WRK02_USE_YN": "N",
             "APV_APOF_ID": null,
-            "USER_PWD": "10507",
-            "PWD_CHNG_DTTM": "20170403140939",
+            "USER_PWD": "5D27E9CA1E5B06907DD842927045DAACB024DE377604CCC67EEF5F27372C906216B0665317967375E9EE9C3407669436A20030DDDF1AC08A024D8ABDB48D0099",
+            "PWD_CHNG_DTTM": "20250715112049",
             "EMAIL_ADDR": "leebc92@buttle.co.kr",
             "USR_ROLE_ID": null
           }
@@ -18376,7 +18510,44 @@
           }
         ],
         "indexes": [],
-        "sample_data": []
+        "sample_data": [
+          {
+            "USR_ROLE_ID": "A250715003",
+            "MENU_ID": "MENU003",
+            "USR_ROLE_NM": "프로젝트관리자",
+            "ATHR_GRD_CD": "3",
+            "ORG_INQ_RNG_CD": "3",
+            "BASE_OUTPUT_SCRN_PGM_ID_CTT": "프로젝트관리",
+            "USE_YN": "Y",
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          },
+          {
+            "USR_ROLE_ID": "A250715004",
+            "MENU_ID": "MENU004",
+            "USR_ROLE_NM": "인사관리자",
+            "ATHR_GRD_CD": "4",
+            "ORG_INQ_RNG_CD": "4",
+            "BASE_OUTPUT_SCRN_PGM_ID_CTT": "인사관리, 사용자관리",
+            "USE_YN": "Y",
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          },
+          {
+            "USR_ROLE_ID": "A250715005",
+            "MENU_ID": "MENU005",
+            "USR_ROLE_NM": "시스템관리자",
+            "ATHR_GRD_CD": "5",
+            "ORG_INQ_RNG_CD": "5",
+            "BASE_OUTPUT_SCRN_PGM_ID_CTT": "시스템관리, 역할관리",
+            "USE_YN": "Y",
+            "REG_DTTM": "20250716100725",
+            "CHNG_DTTM": "20250716100725",
+            "CHNGR_ID": "SYSTEM"
+          }
+        ]
       },
       {
         "table_name": "TBL_USER_ROLE_PGM_GRP",
@@ -22203,14 +22374,14 @@
         "from_table": "TBL_BSN_NO_INF",
         "from_column": "BSN_YR",
         "to_table": "TBL_BSN_SEQ_NO",
-        "to_column": "BSN_YR",
+        "to_column": "SEQ_NO",
         "constraint_name": "SYS_C006187"
       },
       {
         "from_table": "TBL_BSN_NO_INF",
         "from_column": "BSN_YR",
         "to_table": "TBL_BSN_SEQ_NO",
-        "to_column": "SEQ_NO",
+        "to_column": "BSN_YR",
         "constraint_name": "SYS_C006187"
       },
       {
@@ -22231,7 +22402,21 @@
         "from_table": "TBL_BSN_PLAN_HTRY",
         "from_column": "BSN_YR",
         "to_table": "TBL_BSN_PLAN",
+        "to_column": "BSN_MN",
+        "constraint_name": "SYS_C006188"
+      },
+      {
+        "from_table": "TBL_BSN_PLAN_HTRY",
+        "from_column": "BSN_YR",
+        "to_table": "TBL_BSN_PLAN",
         "to_column": "BSN_DEPT",
+        "constraint_name": "SYS_C006188"
+      },
+      {
+        "from_table": "TBL_BSN_PLAN_HTRY",
+        "from_column": "BSN_YR",
+        "to_table": "TBL_BSN_PLAN",
+        "to_column": "SQNC",
         "constraint_name": "SYS_C006188"
       },
       {
@@ -22243,37 +22428,9 @@
       },
       {
         "from_table": "TBL_BSN_PLAN_HTRY",
-        "from_column": "BSN_YR",
-        "to_table": "TBL_BSN_PLAN",
-        "to_column": "SQNC",
-        "constraint_name": "SYS_C006188"
-      },
-      {
-        "from_table": "TBL_BSN_PLAN_HTRY",
-        "from_column": "BSN_YR",
-        "to_table": "TBL_BSN_PLAN",
-        "to_column": "BSN_MN",
-        "constraint_name": "SYS_C006188"
-      },
-      {
-        "from_table": "TBL_BSN_PLAN_HTRY",
-        "from_column": "BSN_DEPT",
-        "to_table": "TBL_BSN_PLAN",
-        "to_column": "BSN_DEPT",
-        "constraint_name": "SYS_C006188"
-      },
-      {
-        "from_table": "TBL_BSN_PLAN_HTRY",
         "from_column": "BSN_DEPT",
         "to_table": "TBL_BSN_PLAN",
         "to_column": "BSN_MN",
-        "constraint_name": "SYS_C006188"
-      },
-      {
-        "from_table": "TBL_BSN_PLAN_HTRY",
-        "from_column": "BSN_DEPT",
-        "to_table": "TBL_BSN_PLAN",
-        "to_column": "SQNC",
         "constraint_name": "SYS_C006188"
       },
       {
@@ -22285,16 +22442,23 @@
       },
       {
         "from_table": "TBL_BSN_PLAN_HTRY",
-        "from_column": "SQNC",
+        "from_column": "BSN_DEPT",
         "to_table": "TBL_BSN_PLAN",
-        "to_column": "BSN_YR",
+        "to_column": "SQNC",
+        "constraint_name": "SYS_C006188"
+      },
+      {
+        "from_table": "TBL_BSN_PLAN_HTRY",
+        "from_column": "BSN_DEPT",
+        "to_table": "TBL_BSN_PLAN",
+        "to_column": "BSN_DEPT",
         "constraint_name": "SYS_C006188"
       },
       {
         "from_table": "TBL_BSN_PLAN_HTRY",
         "from_column": "SQNC",
         "to_table": "TBL_BSN_PLAN",
-        "to_column": "BSN_DEPT",
+        "to_column": "BSN_MN",
         "constraint_name": "SYS_C006188"
       },
       {
@@ -22308,7 +22472,14 @@
         "from_table": "TBL_BSN_PLAN_HTRY",
         "from_column": "SQNC",
         "to_table": "TBL_BSN_PLAN",
-        "to_column": "BSN_MN",
+        "to_column": "BSN_YR",
+        "constraint_name": "SYS_C006188"
+      },
+      {
+        "from_table": "TBL_BSN_PLAN_HTRY",
+        "from_column": "SQNC",
+        "to_table": "TBL_BSN_PLAN",
+        "to_column": "BSN_DEPT",
         "constraint_name": "SYS_C006188"
       },
       {
@@ -22322,7 +22493,7 @@
         "from_table": "TBL_BSN_PLAN_HTRY",
         "from_column": "BSN_MN",
         "to_table": "TBL_BSN_PLAN",
-        "to_column": "SQNC",
+        "to_column": "BSN_DEPT",
         "constraint_name": "SYS_C006188"
       },
       {
@@ -22336,7 +22507,7 @@
         "from_table": "TBL_BSN_PLAN_HTRY",
         "from_column": "BSN_MN",
         "to_table": "TBL_BSN_PLAN",
-        "to_column": "BSN_DEPT",
+        "to_column": "SQNC",
         "constraint_name": "SYS_C006188"
       },
       {
@@ -22382,6 +22553,13 @@
         "constraint_name": "SYS_C006194"
       },
       {
+        "from_table": "TBL_MENU_DTL",
+        "from_column": "PGM_ID",
+        "to_table": "TBL_PGM_INF",
+        "to_column": "PGM_ID",
+        "constraint_name": "FK_TBL_MENU_DTL_PGM_ID"
+      },
+      {
         "from_table": "TBL_MMLY_EPCT_SALE_BUY",
         "from_column": "BSN_NO",
         "to_table": "TBL_BSN_NO_INF",
@@ -22411,6 +22589,20 @@
       },
       {
         "from_table": "TBL_OUTS_SORC_PGRS_SPEC",
+        "from_column": "ACPN_DT",
+        "to_table": "TBL_OUTS_MAN_SORC_INF",
+        "to_column": "ACPN_DT",
+        "constraint_name": "SYS_C006199"
+      },
+      {
+        "from_table": "TBL_OUTS_SORC_PGRS_SPEC",
+        "from_column": "ACPN_DT",
+        "to_table": "TBL_OUTS_MAN_SORC_INF",
+        "to_column": "ACPN_SEQ_NO",
+        "constraint_name": "SYS_C006199"
+      },
+      {
+        "from_table": "TBL_OUTS_SORC_PGRS_SPEC",
         "from_column": "IN_FIX_PRJT",
         "to_table": "TBL_BSN_SCDC",
         "to_column": "BSN_NO",
@@ -22418,14 +22610,7 @@
       },
       {
         "from_table": "TBL_OUTS_SORC_PGRS_SPEC",
-        "from_column": "ACPN_DT",
-        "to_table": "TBL_OUTS_MAN_SORC_INF",
-        "to_column": "ACPN_DT",
-        "constraint_name": "SYS_C006199"
-      },
-      {
-        "from_table": "TBL_OUTS_SORC_PGRS_SPEC",
-        "from_column": "ACPN_DT",
+        "from_column": "ACPN_SEQ_NO",
         "to_table": "TBL_OUTS_MAN_SORC_INF",
         "to_column": "ACPN_SEQ_NO",
         "constraint_name": "SYS_C006199"
@@ -22436,26 +22621,19 @@
         "to_table": "TBL_OUTS_MAN_SORC_INF",
         "to_column": "ACPN_DT",
         "constraint_name": "SYS_C006199"
-      },
-      {
-        "from_table": "TBL_OUTS_SORC_PGRS_SPEC",
-        "from_column": "ACPN_SEQ_NO",
-        "to_table": "TBL_OUTS_MAN_SORC_INF",
-        "to_column": "ACPN_SEQ_NO",
-        "constraint_name": "SYS_C006199"
-      },
-      {
-        "from_table": "TBL_PPLCT_APV_APRV",
-        "from_column": "RQ_DT",
-        "to_table": "TBL_PPLCT_APV_SPEC",
-        "to_column": "RQ_DT",
-        "constraint_name": "SYS_C006201"
       },
       {
         "from_table": "TBL_PPLCT_APV_APRV",
         "from_column": "RQ_DT",
         "to_table": "TBL_PPLCT_APV_SPEC",
         "to_column": "RQ_SEQ_NO",
+        "constraint_name": "SYS_C006201"
+      },
+      {
+        "from_table": "TBL_PPLCT_APV_APRV",
+        "from_column": "RQ_DT",
+        "to_table": "TBL_PPLCT_APV_SPEC",
+        "to_column": "RQ_DT",
         "constraint_name": "SYS_C006201"
       },
       {
@@ -22490,14 +22668,14 @@
         "from_table": "TBL_PPLCT_ASG_SPEC",
         "from_column": "DEPT_DIV_CD",
         "to_table": "TBL_MMLY_PPLCT_ASG_INF",
-        "to_column": "ASG_YM",
+        "to_column": "DEPT_DIV_CD",
         "constraint_name": "SYS_C006202"
       },
       {
         "from_table": "TBL_PPLCT_ASG_SPEC",
         "from_column": "DEPT_DIV_CD",
         "to_table": "TBL_MMLY_PPLCT_ASG_INF",
-        "to_column": "DEPT_DIV_CD",
+        "to_column": "ASG_YM",
         "constraint_name": "SYS_C006202"
       },
       {
@@ -22525,6 +22703,13 @@
         "from_table": "TBL_USE_LMT_CHNG_HTRY",
         "from_column": "ACT_SUBJ",
         "to_table": "TBL_USE_LMT_AMT",
+        "to_column": "HQ_DIV_CD",
+        "constraint_name": "SYS_C006205"
+      },
+      {
+        "from_table": "TBL_USE_LMT_CHNG_HTRY",
+        "from_column": "ACT_SUBJ",
+        "to_table": "TBL_USE_LMT_AMT",
         "to_column": "DUTY_CD",
         "constraint_name": "SYS_C006205"
       },
@@ -22537,30 +22722,9 @@
       },
       {
         "from_table": "TBL_USE_LMT_CHNG_HTRY",
-        "from_column": "ACT_SUBJ",
-        "to_table": "TBL_USE_LMT_AMT",
-        "to_column": "HQ_DIV_CD",
-        "constraint_name": "SYS_C006205"
-      },
-      {
-        "from_table": "TBL_USE_LMT_CHNG_HTRY",
-        "from_column": "HQ_DIV_CD",
-        "to_table": "TBL_USE_LMT_AMT",
-        "to_column": "HQ_DIV_CD",
-        "constraint_name": "SYS_C006205"
-      },
-      {
-        "from_table": "TBL_USE_LMT_CHNG_HTRY",
         "from_column": "HQ_DIV_CD",
         "to_table": "TBL_USE_LMT_AMT",
         "to_column": "ACT_SUBJ",
-        "constraint_name": "SYS_C006205"
-      },
-      {
-        "from_table": "TBL_USE_LMT_CHNG_HTRY",
-        "from_column": "HQ_DIV_CD",
-        "to_table": "TBL_USE_LMT_AMT",
-        "to_column": "DUTY_DIV_CD",
         "constraint_name": "SYS_C006205"
       },
       {
@@ -22572,9 +22736,16 @@
       },
       {
         "from_table": "TBL_USE_LMT_CHNG_HTRY",
-        "from_column": "DUTY_DIV_CD",
+        "from_column": "HQ_DIV_CD",
         "to_table": "TBL_USE_LMT_AMT",
         "to_column": "HQ_DIV_CD",
+        "constraint_name": "SYS_C006205"
+      },
+      {
+        "from_table": "TBL_USE_LMT_CHNG_HTRY",
+        "from_column": "HQ_DIV_CD",
+        "to_table": "TBL_USE_LMT_AMT",
+        "to_column": "DUTY_DIV_CD",
         "constraint_name": "SYS_C006205"
       },
       {
@@ -22600,16 +22771,9 @@
       },
       {
         "from_table": "TBL_USE_LMT_CHNG_HTRY",
-        "from_column": "DUTY_CD",
+        "from_column": "DUTY_DIV_CD",
         "to_table": "TBL_USE_LMT_AMT",
-        "to_column": "ACT_SUBJ",
-        "constraint_name": "SYS_C006205"
-      },
-      {
-        "from_table": "TBL_USE_LMT_CHNG_HTRY",
-        "from_column": "DUTY_CD",
-        "to_table": "TBL_USE_LMT_AMT",
-        "to_column": "DUTY_CD",
+        "to_column": "HQ_DIV_CD",
         "constraint_name": "SYS_C006205"
       },
       {
@@ -22623,7 +22787,21 @@
         "from_table": "TBL_USE_LMT_CHNG_HTRY",
         "from_column": "DUTY_CD",
         "to_table": "TBL_USE_LMT_AMT",
+        "to_column": "ACT_SUBJ",
+        "constraint_name": "SYS_C006205"
+      },
+      {
+        "from_table": "TBL_USE_LMT_CHNG_HTRY",
+        "from_column": "DUTY_CD",
+        "to_table": "TBL_USE_LMT_AMT",
         "to_column": "HQ_DIV_CD",
+        "constraint_name": "SYS_C006205"
+      },
+      {
+        "from_table": "TBL_USE_LMT_CHNG_HTRY",
+        "from_column": "DUTY_CD",
+        "to_table": "TBL_USE_LMT_AMT",
+        "to_column": "DUTY_CD",
         "constraint_name": "SYS_C006205"
       },
       {
@@ -22636,7 +22814,7 @@
     ],
     "ai_training_summary": {
       "total_tables": 83,
-      "total_relations": 64,
+      "total_relations": 65,
       "table_names": [
         "B_BSN_NO_INF",
         "B_BSN_SCDC",
