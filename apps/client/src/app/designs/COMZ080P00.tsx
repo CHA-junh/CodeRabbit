@@ -62,8 +62,8 @@ export default function EmployeeSearchPopupExtended() {
               <tr className="grid-tr">
                 <td className="grid-td text-center">1</td>
                 <td className="grid-td">자사</td>
-                <td className="grid-td">성지훈</td>
-                <td className="grid-td">차장</td>
+                <td className="grid-td">성부뜰</td>
+                <td className="grid-td">부장</td>
                 <td className="grid-td">특급</td>
                 <td className="grid-td">SI사업본부</td>
                 <td className="grid-td">2024/07/01</td>
