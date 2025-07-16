@@ -383,7 +383,7 @@ html,body {
 
 /* 팝업 전체 래퍼 */
 .popup-wrapper {
-  @apply w-full max-h-[90vh] flex flex-col bg-white border border-gray-300 rounded min-w-[600px] overflow-hidden;
+  @apply w-full max-h-[90vh] flex flex-col bg-white border border-gray-300 rounded min-w-[650px] overflow-hidden;
 }
 /* 상단 헤더 */
 .popup-header {
@@ -410,6 +410,15 @@ html,body {
 }
 
 
+/* 모든 라디오 버튼 라벨을 가로 정렬 유지 */
+td label:has(input[type='radio']),
+label:has(input[type='radio']) {
+  @apply inline-flex items-center gap-1 whitespace-nowrap text-sm;
+}
+/* 모든 라디오 버튼 */
+input[type='radio'] {
+  @apply align-middle;
+}
 
 
 
