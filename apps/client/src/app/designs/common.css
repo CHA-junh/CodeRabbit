@@ -189,7 +189,6 @@ html,body {
   height: 30px; /* 고정 높이 지정 */
   vertical-align: middle;
 }
-
 .form-td {
   @apply table-cell bg-white border border-stone-300 px-2 py-1 text-left align-middle;
   height: 30px; /* 고정 높이 지정 */
@@ -280,9 +279,9 @@ html,body {
 
 /**페이지**/
 .mdi {
-  @apply min-w-[1510px] overflow-auto scroll-area h-[calc(100vh-100px)] flex flex-col ;
-
+  @apply w-full overflow-auto scroll-area h-[calc(100vh-100px)] flex flex-col min-w-[1400px];
 }
+
 
 
 /**grid**/
