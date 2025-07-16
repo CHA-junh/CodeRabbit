@@ -59,12 +59,13 @@ export default function PSM1050M00() {
                 <td className="search-td">
                   <input type="date" className="input-base input-calender w-full" />
                 </td>
+                <td className="search-td float-right">
+                  <button className="btn-base btn-act">계산</button>
+                </td>
+                
               </tr>
             </tbody>
           </table>
-          <div className="flex justify-end mt-2">
-            <button className="btn-base btn-act">계산</button>
-          </div>
         </div>
 
         {/* 경력 테이블 */}
