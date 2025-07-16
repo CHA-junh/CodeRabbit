@@ -383,7 +383,7 @@ html,body {
 
 /* 팝업 전체 래퍼 */
 .popup-wrapper {
-  @apply w-full h-full flex flex-col bg-white border border-gray-300 rounded min-w-[600px];
+  @apply w-full max-h-[90vh] flex flex-col bg-white border border-gray-300 rounded min-w-[600px] overflow-hidden;
 }
 /* 상단 헤더 */
 .popup-header {
@@ -405,8 +405,10 @@ html,body {
   border: none;
 }
 .popup-body {
-  @apply p-4 ;
+  @apply p-4 overflow-y-auto scroll-area;
+  flex: 1 1 auto;
 }
+
 
 
 
