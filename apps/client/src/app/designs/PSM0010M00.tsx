@@ -6,7 +6,7 @@ import PageTitle from './PageTitle';
 
 export default function SearchSection() {
   return (
-    <div className="mdi">
+    <div className="mdi ">
       
       <div className="search-div">
         <table className="search-table w-full">
