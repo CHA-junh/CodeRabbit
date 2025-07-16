@@ -144,6 +144,11 @@ export default function PSM1050M00() {
               <button className="btn-base btn-delete">취소</button>
             </div>
           </div>
+
+
+          <PSM1051D00 />
+          <PSM1052D00 />
+
         </div>
       </div>
     </div>
