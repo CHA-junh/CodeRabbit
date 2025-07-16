@@ -51,7 +51,7 @@ export default function EmployeeMainPage() {
       </div>
 
       {/* 리스트 타이틀 */}
-      <div className="tit_area shrink-0">
+      <div className="tit_area mb-2 shrink-0">
         <h3>사원/외주 리스트</h3>
         <div>
           <button className="btn-base btn-etc">투입현황조회</button>

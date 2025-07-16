@@ -93,13 +93,13 @@ html,body {
 
 /* --- 검색 버튼 (아이콘 포함) --- */
 .btn-search {
-  @apply bg-[#1784EA] text-white hover:opacity-80;
+  @apply bg-[#1784EA] text-white hover:opacity-80 pt-[4px] pb-[6px];
   width:72px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding-left: 36px;
+  padding-left: 30px;
   padding-right: 10px;
   line-height: 1;
   background-image: url('/icon_search.svg');
@@ -264,6 +264,9 @@ html,body {
   justify-content: space-between;
   display: flex;
   align-items: center;
+}
+.tit_area h3 {
+  @apply text-[14px] font-medium m-0 leading-[37px];
 }
 
 /* ==== 투명 테이블 ==== */
