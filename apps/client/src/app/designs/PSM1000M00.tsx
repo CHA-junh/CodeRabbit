@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import './common.css';
 import PSM0010M00 from './PSM0010M00';
+import PSM1030M00 from './PSM1030M00';
+import PSM1040M00 from './PSM1040M00';
 
 export default function EmployeeMainPage() {
   const [activeTab, setActiveTab] = useState(0);
@@ -51,7 +53,7 @@ export default function EmployeeMainPage() {
       </div>
 
       {/* 리스트 타이틀 */}
-      <div className="tit_area mb-2 shrink-0">
+      <div className="tit_area shrink-0">
         <h3>사원/외주 리스트</h3>
         <div>
           <button className="btn-base btn-etc">투입현황조회</button>
@@ -59,7 +61,7 @@ export default function EmployeeMainPage() {
       </div>
 
       {/* 그리드 */}
-      <div className="gridbox-div mb-5 shrink-0">
+      <div className="gridbox-div mb-4 shrink-0">
         <table className="grid-table">
           <thead>
             <tr>
@@ -81,7 +83,7 @@ export default function EmployeeMainPage() {
             </tr>
           </thead>
           <tbody>
-            {Array.from({ length: 8 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <tr className="grid-tr" key={i}>
                 <td className="grid-td text-center">{i + 1}</td>
                 <td className="grid-td">EMP00{i + 1}</td>
@@ -122,10 +124,9 @@ export default function EmployeeMainPage() {
         {/* 탭 콘텐츠 */}
         <div className="tab-panel flex-1 min-h-0 overflow-auto">
           {activeTab === 0 && <PSM0010M00 />}
-          {activeTab === 1 && <div>사원정보 등록/수정</div>}
-          {activeTab === 2 && <div>인사발령내역</div>}
+          {activeTab === 1 && <PSM1030M00 />}
+          {activeTab === 2 && <PSM1040M00 />}
           {activeTab === 3 && <div>인사발령일괄</div>}
-          {activeTab === 4 && <div>경력개월수계산</div>}
         </div>
       </div>
     </div>

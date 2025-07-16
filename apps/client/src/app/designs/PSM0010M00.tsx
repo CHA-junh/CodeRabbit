@@ -84,13 +84,13 @@ export default function PSM0010M00() {
       {/* 정보 입력 폼 */}
       <div className="flex gap-4">
         {/* 개인 정보 */}
-        <div className="w-1/2">
+        <div className="w-2/5">
           <div className="tit_area"><h3>개인 정보</h3></div>
           <div className="clearbox-div">
             <table className="clear-table">
               <tbody>
                 <tr className="clear-tr">
-                  <th className="clear-th">성명</th>
+                  <th className="clear-th w-[110px]">성명</th>
                   <td className="clear-td"><input className="input-base input-default w-full" defaultValue="김부뜰" /></td>
                   <th className="clear-th">최종학력</th>
                   <td className="clear-td">
@@ -151,7 +151,7 @@ export default function PSM0010M00() {
         </div>
 
         {/* 프로젝트 정보 */}
-        <div className="w-1/2">
+        <div className="w-3/5">
           <div className="tit_area"><h3>프로젝트 정보</h3></div>
           <div className="clearbox-div">
             <table className="clear-table">
@@ -210,13 +210,13 @@ export default function PSM0010M00() {
                 </tr>
                 <tr className="clear-tr">
                   <th className="clear-th align-top pt-2">비고</th>
-                  <td className="clear-td" colSpan={3}><textarea className="textarea_def w-full" /></td>
+                  <td className="clear-td" colSpan={3}><textarea className="textarea_def w-full !h-[48px]" /></td>
                 </tr>
               </tbody>
             </table>
 
             <div className="flex justify-between items-center mt-2 px-1">
-              <p className="text-[13px] text-[#00509A]">※ 조회만 가능합니다. 프로젝트 정보 수정은 경영지원본부 인사담당자만 가능합니다.</p>
+              <p className="text-[13px] text-[#00509A]">※ 조회만 가능합니다.프로젝트 정보 수정은 경영지원본부 인사담당자만 가능합니다.</p>
               <div className="flex gap-2">
                 <button className="btn-base btn-delete">삭제</button>
                 <button className="btn-base btn-etc">신규</button>
