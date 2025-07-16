@@ -6,12 +6,14 @@ import '../common/common.css'
 interface TopFrameProps {
 	userName?: string
 	userTeam?: string
+	userPosition?: string // 추가: 직책(직급)
 	notice?: string
 }
 
 const TopFrame: React.FC<TopFrameProps> = ({
 	userName = '김부뜰',
 	userTeam = 'SI 3팀',
+	userPosition = '대리', // 기본값
 	notice = '공지사항내용이 표시됩니다.',
 }) => {
 	return (
@@ -28,7 +30,7 @@ const TopFrame: React.FC<TopFrameProps> = ({
 					<img src='/icon_user.svg' alt='user' className='w-4 h-4' />
 				</div>
 				<div className='text-white text-sm leading-8'>
-					{userTeam} {userName} 대리
+					{userTeam} {userName} {userPosition}
 				</div>
 			</div>
 			{/* 구분선 */}
