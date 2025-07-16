@@ -157,7 +157,7 @@ export default function PSM0010M00() {
             <table className="clear-table">
               <tbody>
                 <tr className="clear-tr">
-                  <th className="clear-th">기준 정보</th>
+                  <th className="clear-th w-[110px]">기준 정보</th>
                   <td className="clear-td" colSpan={3}>
                     <div className="flex gap-4">
                       <label><input type="radio" name="projType" /> 기술자격</label>
