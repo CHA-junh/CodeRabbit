@@ -189,7 +189,6 @@ html,body {
   height: 30px; /* 고정 높이 지정 */
   vertical-align: middle;
 }
-
 .form-td {
   @apply table-cell bg-white border border-stone-300 px-2 py-1 text-left align-middle;
   height: 30px; /* 고정 높이 지정 */
@@ -280,9 +279,9 @@ html,body {
 
 /**페이지**/
 .mdi {
-  @apply min-w-[1510px] overflow-auto scroll-area h-[calc(100vh-100px)] flex flex-col ;
-
+  @apply w-full overflow-auto scroll-area h-[calc(100vh-100px)] flex flex-col min-w-[1400px];
 }
+
 
 
 /**grid**/
@@ -384,7 +383,7 @@ html,body {
 
 /* 팝업 전체 래퍼 */
 .popup-wrapper {
-  @apply w-full h-full flex flex-col bg-white border border-gray-300 rounded min-w-[600px];
+  @apply w-full max-h-[90vh] flex flex-col bg-white border border-gray-300 rounded min-w-[650px] overflow-hidden;
 }
 /* 상단 헤더 */
 .popup-header {
@@ -406,9 +405,20 @@ html,body {
   border: none;
 }
 .popup-body {
-  @apply p-4 ;
+  @apply p-4 overflow-y-auto scroll-area;
+  flex: 1 1 auto;
 }
 
+
+/* 모든 라디오 버튼 라벨을 가로 정렬 유지 */
+td label:has(input[type='radio']),
+label:has(input[type='radio']) {
+  @apply inline-flex items-center gap-1 whitespace-nowrap text-sm;
+}
+/* 모든 라디오 버튼 */
+input[type='radio'] {
+  @apply align-middle;
+}
 
 
 
