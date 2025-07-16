@@ -15,15 +15,30 @@ import { UnitPriceService } from './unit-price.service';
 import { CodeController } from './code.controller';
 import { CodeService } from './code.service';
 import { ProcedureDbParser } from './utils/procedure-db-parser.util';
-import * as cookieParser from 'cookie-parser';
+import { MenuModule } from './menu/menu.module';
+import { MenuController } from './menu/menu.controller';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
-  imports: [AuthModule, UserModule],
-  controllers: [AppController, AuthController, EmployeeController, UsersController, UnitPriceController, CodeController],
-  providers: [AppService, AuthService, OracleService, EmployeeService, UsersService, UnitPriceService, CodeService, ProcedureDbParser],
+  imports: [AuthModule, UserModule, MenuModule, DatabaseModule],
+  controllers: [
+    AppController,
+    AuthController,
+    EmployeeController,
+    UsersController,
+    UnitPriceController,
+    CodeController,
+  ],
+  providers: [
+    AppService,
+    AuthService,
+    EmployeeService,
+    UsersService,
+    UnitPriceService,
+    CodeService,
+    ProcedureDbParser,
+  ],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(cookieParser()).forRoutes('*');
-  }
+  configure(consumer: MiddlewareConsumer) {}
 }

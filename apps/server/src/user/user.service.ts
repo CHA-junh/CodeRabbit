@@ -17,20 +17,20 @@ export class UserService {
 
       const result = await connection.execute(
         `SELECT 
-          A.USER_ID,
-          A.USER_NM,
-          A.DEPT_CD,
-          D.SML_CSF_NM AS DEPT_NM,
-          A.DUTY_CD,
-          P.SML_CSF_NM AS DUTY_NM,
-          A.DUTY_DIV_CD,
-          A.AUTH_CD,
-          A.EMAIL_ADDR,
-          A.USR_ROLE_ID
-        FROM TBL_USER_INF A
-        LEFT JOIN TBL_SML_CSF_CD D ON D.LRG_CSF_CD = '112' AND D.SML_CSF_CD = SUBSTR(A.DEPT_CD, -4)
-        LEFT JOIN TBL_SML_CSF_CD P ON P.LRG_CSF_CD = '116' AND P.SML_CSF_CD = A.DUTY_CD
-        WHERE A.USER_ID = :userId`,
+            U.USER_ID,
+            U.USER_NM,
+            U.DEPT_CD,
+            D.SML_CSF_NM AS DEPT_NM,
+            U.DUTY_CD,
+            P.SML_CSF_NM AS DUTY_NM,
+            U.DUTY_DIV_CD,
+            U.AUTH_CD,
+            U.EMAIL_ADDR,
+            U.USR_ROLE_ID
+          FROM TBL_USER_INF U
+          LEFT JOIN TBL_SML_CSF_CD D ON D.LRG_CSF_CD = '112' AND D.SML_CSF_CD = SUBSTR(U.DEPT_CD, -4)
+          LEFT JOIN TBL_SML_CSF_CD P ON P.LRG_CSF_CD = '116' AND P.SML_CSF_CD = U.DUTY_CD
+          WHERE U.USER_ID = :userId`,
         [userId],
       );
 
@@ -48,17 +48,17 @@ export class UserService {
         console.log('🟢 최종 dutyNm:', dutyNm);
 
         const userInfo = {
-          userId: userData[0], // USER_ID (10529, 사번)
-          name: userData[1], // USER_NM (성지훈, 이름)
-          userName: userData[1], // USER_NM (성지훈, 이름) - 클라이언트 호환용
-          deptCd: userData[2], // DEPT_CD (BIS01202, 부서코드)
-          department: userData[3], // DEPT_NM (SI 2팀(25), 부서명)
-          deptNm: userData[3], // DEPT_NM (SI 2팀(25), 부서명) - 클라이언트 호환용
-          dutyCd: dutyCd, // DUTY_CD (6, 직급코드)
-          position: dutyNm, // DUTY_NM (차장, 직급명)
-          dutyNm: dutyNm, // DUTY_NM (차장, 직급명) - 클라이언트 호환용
-          email: userData[8], // EMAIL_ADDR (이메일)
-          // 필요시 추가 필드
+          userId: userData[0],
+          name: userData[1],
+          userName: userData[1],
+          deptCd: userData[2],
+          department: userData[3],
+          deptNm: userData[3],
+          dutyCd: dutyCd,
+          position: dutyNm,
+          dutyNm: dutyNm,
+          email: userData[8],
+          usrRoleId: userData[9], // 권한ID
         };
         console.log('✅ 반환할 사용자 정보:', userInfo);
         return userInfo;

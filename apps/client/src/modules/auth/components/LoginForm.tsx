@@ -79,11 +79,14 @@ export default function LoginForm() {
 		setPwdChangeLoading(true)
 		setPwdChangeMsg(null)
 		try {
-			const res = await fetch('/api/auth/change-password', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
-			})
+			const res = await fetch(
+				'http://localhost:8080/api/auth/change-password',
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
+				}
+			)
 			const data = await res.json()
 			if (data.success) {
 				setPwdChangeMsg(
@@ -115,7 +118,7 @@ export default function LoginForm() {
 
 	const handleAutoLogin = async (empNo: string, password: string) => {
 		try {
-			const response = await fetch('/api/auth/login', {
+			const response = await fetch('http://localhost:8080/api/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ empNo, password }),

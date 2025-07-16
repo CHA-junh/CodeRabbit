@@ -1,10 +1,18 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+export default {
+	// experimental: {
+	// 	proxy: [
+	// 		{
+	// 			path: '/api/:path*',
+	// 			target: 'http://localhost:8080',
+	// 		},
+	// 	],
+	// },
 	async rewrites() {
 		return [
 			{
 				source: '/api/:path*',
-				destination: 'http://localhost:8080/:path*', // /api prefix 제거
+				destination: 'http://localhost:8080/api/:path*',
 			},
 		]
 	},
@@ -17,5 +25,3 @@ const nextConfig = {
 		'http://localhost:5173',
 	],
 }
-
-module.exports = nextConfig
