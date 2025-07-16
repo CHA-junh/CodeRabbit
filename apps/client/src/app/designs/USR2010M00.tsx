@@ -11,21 +11,21 @@ export default function UserRoleManagementPage() {
         <table className="search-table">
           <tbody>
             <tr className="search-tr">
-              <th className="search-th w-[80px]">본부</th>
+              <th className="search-th w-[70px]">본부</th>
               <td className="search-td w-[180px]">
-                <select className="combo-base !w-[150px]">
+                <select className="combo-base">
                   <option>전체</option>
                 </select>
               </td>
-              <th className="search-th w-[80px]">부서</th>
+              <th className="search-th w-[70px]">부서</th>
               <td className="search-td w-[180px]">
-                <select className="combo-base !w-[150px]">
+                <select className="combo-base">
                   <option>전체</option>
                 </select>
               </td>
-              <th className="search-th w-[80px]">사용자명</th>
+              <th className="search-th w-[90px]">사용자명</th>
               <td className="search-td w-[180px]">
-                <input type="text" className="input-base input-default w-[150px]" />
+                <input type="text" className="input-base input-default" />
               </td>
               <td className="search-td text-right" colSpan={2}>
                 <button className="btn-base btn-search">조회</button>
