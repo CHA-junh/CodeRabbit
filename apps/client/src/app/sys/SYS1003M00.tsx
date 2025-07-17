@@ -55,6 +55,10 @@ export default function RoleManagementPage() {
 	const [isPgmSearchPopupOpen, setIsPgmSearchPopupOpen] = useState(false); // 팝업 상태 추가
 	const [menuList, setMenuList] = useState<TblMenuInf[]>([]); // 메뉴 목록 상태 추가
 
+	// 버튼 활성화/비활성화 상태 추가
+	const [isNewMode, setIsNewMode] = useState(false); // 신규 모드 상태
+	const [isCopyButtonEnabled, setIsCopyButtonEnabled] = useState(false); // 역할복사 버튼 활성화 상태
+
 	// 조회 조건 상태 추가
 	const [searchConditions, setSearchConditions] = useState({
 		usrRoleId: "",
@@ -112,6 +116,15 @@ export default function RoleManagementPage() {
 		try {
 			const data = await fetchUserRoles(searchConditions);
 			setRowData(data);
+
+			// 기존 시스템과 동일하게 조회 시에도 프로그램 그룹 목록 조회
+			try {
+				const allPgmGrps = await fetchAllProgramGroups();
+				setPgmGrpRowData(allPgmGrps);
+			} catch (error) {
+				console.error(error);
+				setPgmGrpRowData([]);
+			}
 		} catch (error) {
 			console.error(error);
 			alert("데이터를 불러오는 중 오류가 발생했습니다.");
@@ -170,6 +183,11 @@ export default function RoleManagementPage() {
 			return;
 		}
 
+		// 저장 확인 메시지
+		if (!window.confirm("저장하시겠습니까?")) {
+			return;
+		}
+
 		// 역할 정보와 프로그램 그룹 정보를 함께 저장
 		try {
 			// 디버깅: 저장할 데이터 로그 출력
@@ -218,11 +236,63 @@ export default function RoleManagementPage() {
 			}
 
 			alert("성공적으로 저장되었습니다.");
-			loadData(); // 데이터 재조회
+
+			// 저장 후 버튼 상태 업데이트
+			setIsNewMode(false);
+			setIsCopyButtonEnabled(false);
+
+			// 기존 시스템과 동일하게 전체 화면 초기화 (프로그램 그룹 목록도 재조회)
+			handleSaveInitialize();
 		} catch (error) {
 			console.error(error);
 			alert((error as Error).message);
 		}
+	};
+
+	// 전체 화면 초기화 함수 (기존 시스템의 fn_init과 동일)
+	const handleInitialize = () => {
+		// 좌측 그리드 선택 해제
+		if (userRoleGridRef.current?.api) {
+			userRoleGridRef.current.api.deselectAll();
+		}
+
+		// 우측 영역 완전 초기화
+		setSelectedRole(null);
+		setPgmGrpRowData([]);
+
+		// 버튼 상태 초기화
+		setIsNewMode(false);
+		setIsCopyButtonEnabled(false);
+
+		// 데이터 재조회
+		loadData();
+	};
+
+	// 저장 후 초기화 함수 (기존 시스템의 fn_srch와 동일)
+	const handleSaveInitialize = async () => {
+		// 좌측 그리드 선택 해제
+		if (userRoleGridRef.current?.api) {
+			userRoleGridRef.current.api.deselectAll();
+		}
+
+		// 우측 영역 완전 초기화
+		setSelectedRole(null);
+
+		// 버튼 상태 초기화
+		setIsNewMode(false);
+		setIsCopyButtonEnabled(false);
+
+		// 기존 시스템과 동일하게 프로그램 그룹 목록도 재조회
+		try {
+			const allPgmGrps = await fetchAllProgramGroups();
+			setPgmGrpRowData(allPgmGrps);
+		} catch (error) {
+			console.error(error);
+			setPgmGrpRowData([]);
+		}
+
+		// 데이터 재조회
+		loadData();
 	};
 
 	const handleNew = async () => {
@@ -231,17 +301,16 @@ export default function RoleManagementPage() {
 			userRoleGridRef.current.api.deselectAll();
 		}
 
-		// 우측 영역 초기화
+		// 기존 시스템과 동일하게 신규 버튼 클릭 시 사용여부는 "사용"으로 기본 설정
 		const newRole: TblUserRole = {
-			usrRoleId: "", // 신규 시에는 빈 값
-			menuId: "",
+			usrRoleId: "",
 			usrRoleNm: "",
-			athrGrdCd: "1",
-			orgInqRngCd: "ALL",
+			useYn: "Y", // 기본값을 "사용"으로 설정
+			athrGrdCd: "",
+			orgInqRngCd: "",
+			menuId: "",
 			baseOutputScrnPgmIdCtt: "",
-			useYn: "Y",
 		};
-		setSelectedRole(newRole);
 
 		// 모든 프로그램 그룹 목록 조회 (체크박스로 선택 가능한 상태)
 		try {
@@ -251,6 +320,11 @@ export default function RoleManagementPage() {
 			console.error(error);
 			alert("프로그램 그룹 목록을 불러오는 중 오류가 발생했습니다.");
 		}
+
+		// 상태를 마지막에 업데이트 (다른 함수 호출 후)
+		setSelectedRole(newRole);
+		setIsNewMode(true); // 신규 모드로 설정
+		setIsCopyButtonEnabled(false); // 신규 모드에서는 역할복사 버튼 비활성화
 	};
 
 	// 역할 선택 시 프로그램 그룹 조회
@@ -277,6 +351,9 @@ export default function RoleManagementPage() {
 			console.log("키명 매핑 후:", roleWithDefaults);
 
 			setSelectedRole(roleWithDefaults);
+			setIsNewMode(false); // 기존 역할 선택 시 신규 모드 해제
+			setIsCopyButtonEnabled(true); // 기존 역할 선택 시 역할복사 버튼 활성화
+
 			try {
 				const pgmGrps = await fetchProgramGroups(role.usrRoleId);
 				setPgmGrpRowData(pgmGrps); // 변환 없이 그대로 할당
@@ -287,6 +364,8 @@ export default function RoleManagementPage() {
 		} else {
 			setSelectedRole(null);
 			setPgmGrpRowData([]);
+			setIsNewMode(false);
+			setIsCopyButtonEnabled(false);
 		}
 	};
 
@@ -294,15 +373,15 @@ export default function RoleManagementPage() {
 	const handleFormChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
-		// selectedRole이 null이면 기본값으로 초기화
+		// selectedRole이 null이면 빈 객체로 초기화 (기본값 설정하지 않음)
 		const currentRole = selectedRole || {
 			usrRoleId: "",
 			menuId: "",
 			usrRoleNm: "",
-			athrGrdCd: "1",
-			orgInqRngCd: "ALL",
+			athrGrdCd: "",
+			orgInqRngCd: "",
 			baseOutputScrnPgmIdCtt: "",
-			useYn: "Y",
+			useYn: "",
 		};
 
 		setSelectedRole({
@@ -456,7 +535,7 @@ export default function RoleManagementPage() {
 								<td className='form-td'>
 									<select
 										name='useYn'
-										value={selectedRole?.useYn || ""}
+										value={selectedRole ? selectedRole.useYn : "Y"}
 										onChange={handleFormChange}
 										className='combo-base w-full'
 										aria-label='상세 사용여부'
@@ -472,7 +551,7 @@ export default function RoleManagementPage() {
 								<td className='form-td'>
 									<select
 										name='athrGrdCd'
-										value={selectedRole?.athrGrdCd || ""}
+										value={selectedRole ? selectedRole.athrGrdCd : ""}
 										onChange={handleFormChange}
 										className='combo-base w-full'
 										aria-label='상세 등급'
@@ -487,11 +566,11 @@ export default function RoleManagementPage() {
 								</td>
 							</tr>
 							<tr className='form-tr'>
-								<th className='form-th'>조직조회범위</th>
+								<th className='form-th required'>조직조회범위</th>
 								<td className='form-td'>
 									<select
 										name='orgInqRngCd'
-										value={selectedRole?.orgInqRngCd || ""}
+										value={selectedRole ? selectedRole.orgInqRngCd : ""}
 										onChange={handleFormChange}
 										className='combo-base w-full'
 										aria-label='상세 조직조회범위'
@@ -508,7 +587,7 @@ export default function RoleManagementPage() {
 								<td className='form-td' colSpan={3}>
 									<select
 										name='menuId'
-										value={selectedRole?.menuId || ""}
+										value={selectedRole ? selectedRole.menuId : ""}
 										onChange={handleFormChange}
 										className='combo-base w-full'
 										aria-label='상세 메뉴'
@@ -607,13 +686,19 @@ export default function RoleManagementPage() {
 					type='button'
 					className='btn-base btn-etc'
 					onClick={handleCopyRole}
+					disabled={!isCopyButtonEnabled}
 				>
 					역할복사
 				</button>
 				<button type='button' className='btn-base btn-etc' onClick={handleNew}>
 					신규
 				</button>
-				<button type='button' className='btn-base btn-act' onClick={handleSave}>
+				<button
+					type='button'
+					className='btn-base btn-act'
+					onClick={handleSave}
+					disabled={!isNewMode && !selectedRole}
+				>
 					저장
 				</button>
 			</div>
