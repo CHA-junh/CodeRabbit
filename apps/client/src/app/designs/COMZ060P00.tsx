@@ -38,6 +38,7 @@ export default function DeptNumberSearchPopup() {
 
         {/* 그리드 영역 */}
         <div className="gridbox-div mb-4">
+          <div className="grid-scroll">
           <table className="grid-table">
             <thead>
               <tr>
@@ -70,6 +71,7 @@ export default function DeptNumberSearchPopup() {
               {/* ... 추가 row map 가능 */}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* 종료 버튼 (우측 정렬) */}

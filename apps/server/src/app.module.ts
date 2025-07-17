@@ -22,6 +22,17 @@ import { MenuController } from './menu/menu.controller';
 import { DatabaseModule } from './database/database.module';
 import { SysModule } from './sys/sys.module';
 
+import { COMZ010M00Controller } from './com/COMZ010M00.controller';
+import { COMZ010M00Service } from './com/COMZ010M00.service';
+import { COMZ050P00Controller } from './com/COMZ050P00.controller';
+import { COMZ050P00Service } from './com/COMZ050P00.service';
+import { COMZ060P00Controller } from './com/COMZ060P00.controller';
+import { COMZ060P00Service } from './com/COMZ060P00.service';
+// 공통 서비스/컨트롤러
+import { CommonService } from './common/common.service';
+import { CommonController } from './common/common.controller';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -51,6 +62,10 @@ import { SysModule } from './sys/sys.module';
     UsersController,
     UnitPriceController,
     CodeController,
+    COMZ010M00Controller,
+    COMZ050P00Controller,
+    COMZ060P00Controller,
+    CommonController,
   ],
   providers: [
     AppService,
@@ -60,6 +75,10 @@ import { SysModule } from './sys/sys.module';
     UnitPriceService,
     CodeService,
     ProcedureDbParser,
+    COMZ010M00Service,
+    COMZ050P00Service,
+    COMZ060P00Service,
+    CommonService,
   ],
 })
 export class AppModule implements NestModule {
