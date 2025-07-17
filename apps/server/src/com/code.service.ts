@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { OracleService } from './database/database.provider'
+import { OracleService } from '../database/database.provider'
 import * as oracledb from 'oracledb'
-import { Code, CodeSearchResponseDto } from './code/dto/code.dto'
-import { ProcedureDbParser } from './utils/procedure-db-parser.util'
+import { Code, CodeSearchResponseDto } from './dto/code.dto'
+import { ProcedureDbParser } from '../utils/procedure-db-parser.util'
 
 /**
  * 코드 조회 서비스

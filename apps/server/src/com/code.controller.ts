@@ -1,7 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { CodeService } from './code.service'
-import { CodeSearchParams, CodeSearchResponseDto } from './code/dto/code.dto'
+import { CodeSearchParams, CodeSearchResponseDto } from './dto/code.dto'
 
 /**
  * 코드 조회 컨트롤러
@@ -9,7 +9,7 @@ import { CodeSearchParams, CodeSearchResponseDto } from './code/dto/code.dto'
  * 기존 Flex/ActionScript의 COM_03_0100.mxml 컴포넌트와 동일한 기능
  * COM_03_0101_S 프로시저를 호출하여 대분류코드에 해당하는 소분류 코드들을 조회
  */
-@Controller('api/code')
+@Controller('code')
 export class CodeController {
   constructor(private readonly codeService: CodeService) {}
 

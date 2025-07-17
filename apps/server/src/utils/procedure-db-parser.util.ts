@@ -141,14 +141,14 @@ export class ProcedureDbParser {
   async getProcedureInfoFromDb(procedureName: string): Promise<ProcedureInfo> {
     try {
       const sourceCode = await this.getProcedureSource(procedureName)
-      console.log(`=== ${procedureName} 소스 코드 (처음 1000자) ===`)
-      console.log(sourceCode.substring(0, 1000))
-      console.log('==========================================')
+      // console.log(`=== ${procedureName} 소스 코드 (처음 1000자) ===`)
+      // console.log(sourceCode.substring(0, 1000))
+      // console.log('==========================================')
       
       const originalComment = this.extractComment(sourceCode)
-      console.log(`=== ${procedureName} 추출된 주석 ===`)
-      console.log(originalComment)
-      console.log('==========================================')
+      // console.log(`=== ${procedureName} 추출된 주석 ===`)
+      // console.log(originalComment)
+      // console.log('==========================================')
       
       const formattedComment = this.formatCommentForDisplay(originalComment)
       
