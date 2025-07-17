@@ -282,7 +282,7 @@ body {
 /**grid**/
 /* === 공통 그리드 박스 === */
 .gridbox-div {
-	@apply border border-gray-200 rounded-md overflow-hidden;
+	@apply border border-gray-200 rounded-md overflow-auto;
 }
 
 /* === 테이블 전체 === */
