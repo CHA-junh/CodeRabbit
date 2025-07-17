@@ -31,6 +31,8 @@ export class AuthService {
 			emailAddr: plainUser.emailAddr ?? '',
 			usrRoleId: plainUser.usrRoleId ?? '',
 			needsPasswordChange: plainUser.needsPasswordChange ?? false,
+			menuList: plainUser.menuList ?? [],
+			programList: plainUser.programList ?? [],
 		}
 		console.log('🟢 변환 후 클라이언트 user:', userInfo)
 		return userInfo

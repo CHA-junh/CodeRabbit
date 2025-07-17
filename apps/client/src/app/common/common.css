@@ -4,7 +4,7 @@
 
 @font-face {
 	font-family: 'NanumGothic';
-	src: url('/fonts/NanumGothic.ttf') format('truetype');
+	src: url('/fonts/NanumGothic.otf') format('opentype');
 	font-weight: normal;
 	font-style: normal;
 }
@@ -403,4 +403,27 @@ body {
 
 .m-0 {
 	margin: 0;
+}
+
+/* 공통 에러 메시지 박스 스타일 */
+.error-message-box {
+  color: #fff;
+  background: #e53e3e;
+  padding: 32px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin: 40px auto;
+  max-width: 400px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.error-message-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+.error-message-desc {
+  font-size: 1rem;
+  margin-top: 12px;
+  font-weight: normal;
 }

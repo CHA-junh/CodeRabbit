@@ -11,6 +11,8 @@ import { Response, Request } from 'express';
 import { UserService } from '../user/user.service';
 import { LoginResponseDto } from '../user/dto/user-info.dto';
 import session from 'express-session';
+import { MenuService } from '../menu/menu.service';
+import { ProgramService } from '../entities/program.service';
 
 // express-session 타입 확장
 interface RequestWithSession extends Request {
@@ -19,7 +21,11 @@ interface RequestWithSession extends Request {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly menuService: MenuService,
+    private readonly programService: ProgramService,
+  ) {}
 
   @Post('login')
   async login(
@@ -92,12 +98,24 @@ export class AuthController {
         };
       }
 
-      // express-session 기반 세션에 사용자 정보 저장
-      req.session.user = { ...userInfo, needsPasswordChange };
+      // menuList, programList 조회
+      const menuList = await this.menuService.getMenuListByRole(
+        userInfo.usrRoleId,
+      );
+      const programList = await this.programService.getProgramListByRole(
+        userInfo.usrRoleId,
+      );
+      // express-session 기반 세션에 사용자 정보 + 메뉴/프로그램 저장
+      req.session.user = {
+        ...userInfo,
+        needsPasswordChange,
+        menuList,
+        programList,
+      };
       return {
         success: true,
         message: '로그인 성공',
-        user: { ...userInfo, needsPasswordChange },
+        user: { ...userInfo, needsPasswordChange, menuList, programList },
       };
     } catch (error) {
       console.error('로그인 API 오류:', error);

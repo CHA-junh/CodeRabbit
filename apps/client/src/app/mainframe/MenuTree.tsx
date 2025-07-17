@@ -88,49 +88,36 @@ function getInitials(str: string) {
 		.join('')
 }
 
-const MenuTree: React.FC<{ onLockChange?: (locked: boolean) => void }> = ({
+interface MenuTreeProps {
+	menuList: MenuNode[]
+	onMenuClick?: (pgmId: string) => void
+	onLockChange?: (locked: boolean) => void
+}
+
+const MenuTree: React.FC<MenuTreeProps> = ({
+	menuList,
+	onMenuClick,
 	onLockChange,
 }) => {
 	const [menuTree, setMenuTree] = useState<MenuNode[]>([])
 	const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({})
 	const [selectedMenu, setSelectedMenu] = useState<string>('')
 	const [locked, setLocked] = useState(false)
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
 	const [search, setSearch] = useState('')
 	const [searching, setSearching] = useState(false)
 	const [allMenus, setAllMenus] = useState<MenuNode[]>([])
 
-	// 최초 메뉴 로딩 시 allMenus도 세팅
+	// menuList가 변경될 때마다 트리 구조로 변환
 	useEffect(() => {
-		const fetchMenuTree = async () => {
-			setLoading(true)
-			setError(null)
-			try {
-				const res = await fetch('http://localhost:8080/api/menu/tree', {
-					credentials: 'include',
-				})
-				const data = await res.json()
-				if (data.success) {
-					const menuArr = Array.isArray(data.data) ? data.data : [data.data]
-					const camelMenus = menuArr.map(toCamelCaseMenu)
-					setAllMenus(camelMenus) // 전체 메뉴 저장
-					const isFlat = camelMenus.every(
-						(item: any) => !item.children || item.children.length === 0
-					)
-					const tree = isFlat ? buildMenuTree(camelMenus) : camelMenus
-					setMenuTree(tree)
-				} else {
-					setError(data.message || '메뉴 트리 로딩 실패')
-				}
-			} catch (e: any) {
-				setError(e.message || '메뉴 트리 로딩 오류')
-			} finally {
-				setLoading(false)
-			}
+		if (menuList && Array.isArray(menuList)) {
+			setAllMenus(menuList)
+			const isFlat = menuList.every(
+				(item: any) => !item.children || item.children.length === 0
+			)
+			const tree = isFlat ? buildMenuTree(menuList) : menuList
+			setMenuTree(tree)
 		}
-		fetchMenuTree()
-	}, [])
+	}, [menuList])
 
 	// toggleMenu 함수 수정
 	const toggleMenu = (menuSeq: string | number) => {
@@ -165,14 +152,12 @@ const MenuTree: React.FC<{ onLockChange?: (locked: boolean) => void }> = ({
 		setOpenMenus({})
 	}
 
-	// handleSearchChange: API 호출 없이 allMenus에서 직접 필터링
+	// handleSearchChange: allMenus에서 직접 필터링
 	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value
 		setSearch(value)
 		if (value.length >= 2) {
 			setSearching(true)
-			setLoading(true)
-			setError(null)
 			const keywordInitials = getInitials(value)
 			const filtered = allMenus.filter((menu: any) => {
 				const name = menu.menuDspNm || ''
@@ -188,55 +173,70 @@ const MenuTree: React.FC<{ onLockChange?: (locked: boolean) => void }> = ({
 			)
 			const tree = isFlat ? buildMenuTree(filtered) : filtered
 			setMenuTree(tree)
-			setLoading(false)
+			setSearching(false)
 		} else if (value.length === 0) {
 			// 검색어가 지워지면 전체 트리 복원
 			setSearching(false)
-			setLoading(true)
-			setError(null)
 			const isFlat = allMenus.every(
 				(item: any) => !item.children || item.children.length === 0
 			)
 			const tree = isFlat ? buildMenuTree(allMenus) : allMenus
 			setMenuTree(tree)
-			setLoading(false)
 		}
 	}
 
 	// 트리 렌더링 함수
 	const renderTree = (nodes: MenuNode[]) => {
-		console.log('renderTree nodes:', nodes)
 		return Array.isArray(nodes)
 			? nodes
 					.filter((node) => node.menuSeq !== undefined && node.menuSeq !== null)
-					.map((node) => (
-						<div key={`${node.menuPath || ''}-${node.menuSeq}`}>
-							{/* 1차/상위 메뉴 */}
-							<div
-								className='flex items-center gap-2 px-2 pt-[4px] pb-[6px] cursor-pointer rounded border-b border-dashed text-stone-700 hover:text-[#0071DB]'
-								onClick={() => toggleMenu(node.menuSeq)}
-							>
-								{node.children && node.children.length > 0 && (
-									<img
-										src='/icon_plus.svg'
-										alt='expand'
-										className='w-4 h-4 pl-1 shrink-0'
-									/>
-								)}
-								<span className='leading-none inline-block m-2'>
-									{node.menuDspNm}
-								</span>
+					.map((node) => {
+						// leaf(업무화면) 메뉴
+						if (!node.children || node.children.length === 0) {
+							return node.pgmId ? (
+								<div
+									key={`${node.menuPath || ''}-${node.menuSeq}`}
+									className={`flex items-center gap-2 px-2 py-1 rounded pl-6 cursor-pointer ${selectedMenu === node.pgmId ? 'text-[#0071DB] font-bold bg-blue-50' : 'text-stone-700 hover:text-[#0071DB]'}`}
+									onClick={() => {
+										setSelectedMenu(String(node.menuSeq))
+										console.log('[MenuTree 내부 클릭]', node)
+										onMenuClick && onMenuClick(String(node.pgmId))
+									}}
+								>
+									<span className='leading-none inline-block m-2'>
+										{node.menuDspNm}
+									</span>
+								</div>
+							) : null
+						}
+						// 폴더(상위) 메뉴
+						return (
+							<div key={`${node.menuPath || ''}-${node.menuSeq}`}>
+								<div
+									className='flex items-center gap-2 px-2 pt-[4px] pb-[6px] cursor-pointer rounded border-b border-dashed text-stone-700 hover:text-[#0071DB]'
+									onClick={() => toggleMenu(node.menuSeq)}
+								>
+									{node.children && node.children.length > 0 && (
+										<img
+											src='/icon_plus.svg'
+											alt='expand'
+											className='w-4 h-4 pl-1 shrink-0'
+										/>
+									)}
+									<span className='leading-none inline-block m-2'>
+										{node.menuDspNm}
+									</span>
+								</div>
+								{openMenus[String(node.menuSeq)] &&
+									Array.isArray(node.children) &&
+									node.children.length > 0 && (
+										<div className='space-y-1 pl-4'>
+											{renderTree(node.children)}
+										</div>
+									)}
 							</div>
-							{/* 하위 메뉴 */}
-							{openMenus[String(node.menuSeq)] &&
-								Array.isArray(node.children) &&
-								node.children.length > 0 && (
-									<div className='space-y-1 pl-4'>
-										{renderTree(node.children)}
-									</div>
-								)}
-						</div>
-					))
+						)
+					})
 			: null
 	}
 
@@ -285,11 +285,7 @@ const MenuTree: React.FC<{ onLockChange?: (locked: boolean) => void }> = ({
 			</div>
 			{/* 메뉴 리스트: 스크롤 대상 영역 */}
 			<div className='flex-1 overflow-y-auto py-1 space-y-1 scroll-area'>
-				{loading ? (
-					<div className='text-center text-gray-400 py-8'>메뉴 로딩 중...</div>
-				) : error ? (
-					<div className='text-center text-red-500 py-8'>{error}</div>
-				) : menuTree.length === 0 ? (
+				{menuTree.length === 0 ? (
 					<div className='text-center text-gray-400 py-8'>메뉴가 없습니다.</div>
 				) : (
 					renderTree(menuTree)

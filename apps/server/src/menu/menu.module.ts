@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { MenuController } from './menu.controller';
-import { DatabaseModule } from '../database/database.module';
+import { MenuEntity } from './entities/menu.entity';
+import { MenuService } from './menu.service';
+import { ProgramEntity } from '../entities/program.entity';
+import { ProgramService } from '../entities/program.service';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [TypeOrmModule.forFeature([MenuEntity, ProgramEntity])],
   controllers: [MenuController],
-  // providers: [MenuService], // MenuService 제거
+  providers: [MenuService, ProgramService],
+  exports: [MenuService, ProgramService],
 })
 export class MenuModule {}

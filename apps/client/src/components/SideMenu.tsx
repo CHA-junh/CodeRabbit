@@ -1,22 +1,29 @@
 'use client'
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
-type NavShortcutProps = { icon: string; label: string }
-function NavShortcut({ icon, label }: NavShortcutProps) {
-	return (
-		<button className='flex items-center w-full h-12 mb-2 px-3 bg-[#f5faff] hover:bg-blue-100 rounded-lg shadow transition border border-blue-200 text-blue-700'>
-			<span className='text-2xl mr-2 flex-shrink-0'>{icon}</span>
-			<span className='text-sm font-medium truncate hidden sm:inline'>
-				{label}
-			</span>
-		</button>
-	)
+export interface ProgramMenuItem {
+	programId: string
+	title: string
 }
 
-export default function SideMenu() {
+export interface MenuGroup {
+	title: string
+	children: ProgramMenuItem[]
+}
+
+type SideMenuProps = {
+	menuData: MenuGroup[]
+	onMenuClick?: (programId: string, title: string) => void
+}
+
+export default function SideMenu({ menuData, onMenuClick }: SideMenuProps) {
 	const [menuOpen, setMenuOpen] = useState(false)
-	const router = useRouter()
+	const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({})
+	const [selectedMenu, setSelectedMenu] = useState('')
+
+	const toggleMenu = (title: string) => {
+		setOpenMenus((prev) => ({ ...prev, [title]: !prev[title] }))
+	}
 
 	const handleLogout = async () => {
 		console.log('로그아웃 버튼 클릭됨')
@@ -26,6 +33,47 @@ export default function SideMenu() {
 		const data = await res.json()
 		console.log('로그아웃 API 응답:', data)
 		window.location.href = '/signin'
+	}
+
+	function renderMenuItems(items: any[]) {
+		return items.map((item) => {
+			if (item.children && item.children.length > 0) {
+				// 폴더/그룹 메뉴
+				return (
+					<div key={item.menuSeq}>
+						<div
+							className='flex items-center gap-2 px-2 pt-[4px] pb-[6px] cursor-pointer rounded border-b border-dashed text-stone-700 hover:text-[#0071DB]'
+							onClick={() => toggleMenu(item.menuDspNm)}
+						>
+							<span className='leading-none inline-block m-2'>
+								{item.menuDspNm}
+							</span>
+						</div>
+						{openMenus[item.menuDspNm] && (
+							<div className='pl-4'>{renderMenuItems(item.children)}</div>
+						)}
+					</div>
+				)
+			} else if (item.pgmId) {
+				// 실제 업무화면 메뉴
+				return (
+					<div
+						key={item.menuSeq}
+						className={`flex items-center gap-2 px-2 py-1 rounded pl-6 cursor-pointer ${selectedMenu === item.pgmId ? 'text-[#0071DB] font-bold bg-blue-50' : 'text-stone-700 hover:text-[#0071DB]'}`}
+						onClick={() => {
+							setSelectedMenu(item.pgmId)
+							console.log('SideMenu onMenuClick', item.pgmId, item.menuDspNm)
+							onMenuClick && onMenuClick(item.pgmId, item.menuDspNm)
+						}}
+					>
+						<span className='leading-none inline-block m-2'>
+							{item.menuDspNm}
+						</span>
+					</div>
+				)
+			}
+			return null
+		})
 	}
 
 	return (
@@ -64,7 +112,7 @@ export default function SideMenu() {
 					</button>
 				</div>
 			</aside>
-			{/* 슬라이드 메뉴 (좌측 바로가기 옆에 등장, flex row의 두 번째 자식) */}
+			{/* 슬라이드 메뉴 */}
 			<div
 				className={`h-full transition-all duration-300 ease-in-out ${menuOpen ? 'w-80' : 'w-0'} overflow-hidden bg-white shadow-xl border-r border-blue-200`}
 				style={{ minWidth: menuOpen ? 320 : 0 }}
@@ -86,27 +134,22 @@ export default function SideMenu() {
 					</div>
 					<div className='flex-1 overflow-y-auto'>
 						<div className='text-blue-900 font-bold mb-2'>프로그램 목록</div>
-						{/* 임시 더미 메뉴 트리 */}
-						<ul className='space-y-2'>
-							<li className='text-gray-700 hover:bg-blue-50 rounded px-2 py-1 cursor-pointer'>
-								업무관리
-							</li>
-							<li className='text-gray-700 hover:bg-blue-50 rounded px-2 py-1 cursor-pointer'>
-								프로젝트관리
-							</li>
-							<li className='text-gray-700 hover:bg-blue-50 rounded px-2 py-1 cursor-pointer'>
-								추진비관리
-							</li>
-							<li className='text-gray-700 hover:bg-blue-50 rounded px-2 py-1 cursor-pointer'>
-								인사관리
-							</li>
-							<li className='text-gray-700 hover:bg-blue-50 rounded px-2 py-1 cursor-pointer'>
-								시스템관리
-							</li>
-						</ul>
+						{renderMenuItems(menuData)}
 					</div>
 				</div>
 			</div>
 		</div>
+	)
+}
+
+type NavShortcutProps = { icon: string; label: string }
+function NavShortcut({ icon, label }: NavShortcutProps) {
+	return (
+		<button className='flex items-center w-full h-12 mb-2 px-3 bg-[#f5faff] hover:bg-blue-100 rounded-lg shadow transition border border-blue-200 text-blue-700'>
+			<span className='text-2xl mr-2 flex-shrink-0'>{icon}</span>
+			<span className='text-sm font-medium truncate hidden sm:inline'>
+				{label}
+			</span>
+		</button>
 	)
 }

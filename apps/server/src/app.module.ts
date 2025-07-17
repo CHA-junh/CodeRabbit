@@ -1,4 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthController } from './auth.controller';
@@ -20,7 +22,23 @@ import { MenuController } from './menu/menu.controller';
 import { DatabaseModule } from './database/database.module';
 
 @Module({
-  imports: [AuthModule, UserModule, MenuModule, DatabaseModule],
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRoot({
+      type: 'oracle',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      sid: process.env.DB_SERVICE,
+      entities: [__dirname + '/**/*.entity.{js,ts}'],
+      synchronize: false,
+    }),
+    AuthModule,
+    UserModule,
+    MenuModule,
+    DatabaseModule,
+  ],
   controllers: [
     AppController,
     AuthController,

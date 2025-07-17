@@ -34,6 +34,8 @@ export interface UserInfo {
 	permissions?: string[]
 	lastLoginAt?: string
 	needsPasswordChange?: boolean
+	menuList?: any[] // 권한 기반 메뉴 리스트
+	programList?: any[] // 권한 기반 프로그램 리스트
 }
 
 // 로그인 응답 타입
@@ -50,4 +52,6 @@ export interface SessionInfo {
 	user?: UserInfo
 	token?: string
 	expiresAt?: number
+	menuList?: any[] // 권한 기반 메뉴 리스트
+	programList?: any[] // 권한 기반 프로그램 리스트
 }

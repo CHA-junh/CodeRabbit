@@ -63,10 +63,13 @@ export const useAuth = () => {
 			}
 
 			// 사용자 정보가 있으면 인증 성공
-			console.log('✅ 세션 확인 성공 - 사용자:', user.name)
+			console.log('user.menuList:', user.menuList)
+			console.log('user.programList:', user.programList)
 			setSession({
 				isAuthenticated: true,
-				user,
+				user: user,
+				menuList: user.menuList || [],
+				programList: user.programList || [],
 			})
 		} catch (error) {
 			console.error('❌ 세션 확인 오류:', error)
@@ -118,6 +121,8 @@ export const useAuth = () => {
 						isAuthenticated: true,
 						user: response.user,
 						token: response.token,
+						menuList: response.user.menuList || [],
+						programList: response.user.programList || [],
 					})
 					router.push('/mainframe')
 					return { success: true }
