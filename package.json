@@ -21,6 +21,6 @@
 	"devDependencies": {
 		"@types/node-fetch": "^2.6.12",
 		"@types/oracledb": "^6.6.1",
-		"concurrently": "^8.0.0"
+		"concurrently": "^8.2.2"
 	}
 }

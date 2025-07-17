@@ -5,7 +5,6 @@ import './common.css';
 import PSM0010M00 from './PSM0010M00';
 import PSM1030M00 from './PSM1030M00';
 import PSM1040M00 from './PSM1040M00';
-import PSM1050M00 from './PSM1050M00';
 
 export default function EmployeeMainPage() {
   const [activeTab, setActiveTab] = useState(0);
@@ -127,7 +126,7 @@ export default function EmployeeMainPage() {
           {activeTab === 0 && <PSM0010M00 />}
           {activeTab === 1 && <PSM1030M00 />}
           {activeTab === 2 && <PSM1040M00 />}
-          {activeTab === 3 && <PSM1050M00 />}
+          {activeTab === 3 && <div>인사발령일괄</div>}
         </div>
       </div>
     </div>
