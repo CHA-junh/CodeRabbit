@@ -31,23 +31,26 @@ export default function COM0000M00() {
 	if (!isAuthenticated) return null
 
 	const handleMenuClick = (pgmId: string) => {
+		console.log('[handleMenuClick] 호출됨, pgmId:', pgmId)
 		// 클릭한 메뉴의 pgmId로 programList에서 찾기
 		const program = (session.programList || []).find(
 			(p: any) => p.PGM_ID === pgmId
 		)
 		console.log('programList에서 찾은 프로그램:', program)
 		// 화면ID 타입 체크 (공통 유틸 사용)
-		if (getProgramType(pgmId) !== 'main') return
+		if (getProgramType(pgmId, session.programList) !== 'main') {
+			console.log('[handleMenuClick] getProgramType이 main이 아님, return')
+			return
+		}
 		// 이미 열린 탭이면 포커스만 이동
 		if (tabs.some((tab) => tab.programId === pgmId)) {
+			console.log('[handleMenuClick] 이미 열린 탭, setActiveTab 후 return')
 			setActiveTab(pgmId)
 			return
 		}
 		if (!program) {
-			console.warn(
-				`[MenuTree 클릭] programList에 해당 PGM_ID(${pgmId})가 없습니다.`
-			)
-			alert('프로그램 정보가 존재하지 않습니다. 관리자에게 문의하세요.')
+			console.log('[handleMenuClick] program이 없음, return')
+			// 경고/alert
 			return
 		}
 		const menuPath = program.LINK_PATH
@@ -56,10 +59,20 @@ export default function COM0000M00() {
 		const title = program.PGM_NM ? `${program.PGM_NM} [${pgmId}]` : pgmId
 		// 로그로 데이터 추적
 		console.log('[MenuTree 클릭]', { pgmId, program, menuPath, title })
+		console.log('[handleMenuClick] tabs(before):', tabs)
 		// 새 탭 추가
 		const newTab: TabItem = { programId: pgmId, title, menuPath }
-		setTabs((prev) => [...prev, newTab])
+		setTabs((prev) => {
+			const next = [...prev, newTab]
+			setTimeout(() => {
+				console.log('[handleMenuClick] tabs(after, async):', next)
+			}, 0)
+			return next
+		})
 		setActiveTab(pgmId)
+		setTimeout(() => {
+			console.log('[handleMenuClick] setActiveTab(async):', pgmId)
+		}, 0)
 	}
 
 	const handleTabClick = (programId: string) => setActiveTab(programId)
@@ -126,20 +139,6 @@ export default function COM0000M00() {
 					<div
 						className={`flex-1 flex flex-col transition-all duration-300 ${showMenuTree ? 'ml-[300px]' : 'ml-0'}`}
 					>
-						{tabs.length > 0 &&
-							activeTab &&
-							(() => {
-								const currentTab = tabs.find(
-									(tab) => tab.programId === activeTab
-								)
-								console.log('[COM0000M00] ContentFrame props:', {
-									activeTab,
-									tabs,
-									menuPath: currentTab?.menuPath,
-									title: currentTab?.title,
-								})
-								return null
-							})()}
 						{tabs.length > 0 && activeTab && (
 							<>
 								<Maintab
