@@ -4,6 +4,11 @@
 | ----------- | -------- | ---------- | ------------------------- |
 | COM0020M00  | 로그인   | /signin    | com/COM0020M00.tsx        |
 | DASH0001M00 | 대시보드 | /dashboard | dashboard/DASH0001M00.tsx |
+| COMZ020M00  | 등급별 단가 등록 | - | com/COMZ020M00.tsx        |
+| COMZ030M00  | 등급별 단가 조회 팝업 | - | com/COMZ030M00.tsx        |
+| COMZ070P00  | 직원 검색 팝업 | - | com/COMZ070P00.tsx        |
+| COMZ080P00  | 직원 검색 팝업(확장) | - | com/COMZ080P00.tsx        |
+| COMZ100P00  | 사용자명 검색 팝업 | - | com/COMZ100P00.tsx        |
 
 ## 파일 구조
 
@@ -15,7 +20,12 @@ src/app/
 │   ├── DASH0001M00.tsx       # 대시보드 컴포넌트
 │   └── page.tsx              # /dashboard (DASH0001M00 사용)
 ├── com/
-│   └── COM0020M00.tsx        # 로그인 컴포넌트 (내부용)
+│   ├── COM0020M00.tsx        # 로그인 컴포넌트 (내부용)
+│   ├── COMZ020M00.tsx        # 등급별 단가 등록 컴포넌트
+│   ├── COMZ030M00.tsx        # 등급별 단가 조회 팝업 컴포넌트
+│   ├── COMZ070P00.tsx        # 직원 검색 팝업 컴포넌트
+│   ├── COMZ080P00.tsx        # 직원 검색 팝업(확장) 컴포넌트
+│   └── COMZ100P00.tsx        # 사용자명 검색 팝업 컴포넌트
 └── login/
     └── page.tsx              # /login → /signin 리다이렉트
 ```

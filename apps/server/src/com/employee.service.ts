@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { OracleService } from './database/database.provider'
+import { OracleService } from '../database/database.provider'
 import * as oracledb from 'oracledb'
-import { Employee, EmployeeSearchParams, EmployeeSearchResponseDto } from './employee/dto/employee.dto'
-import { ProcedureDbParser } from './utils/procedure-db-parser.util'
+import { Employee, EmployeeSearchParams, EmployeeSearchResponseDto } from './dto/employee.dto'
+import { ProcedureDbParser } from '../utils/procedure-db-parser.util'
 
 /**
  * 직원 검색 관련 상수

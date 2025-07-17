@@ -1,13 +1,13 @@
 import { Controller, Post, Body } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { EmployeeService } from './employee.service'
-import { EmployeeSearchParams, Employee, EmployeeSearchResponseDto } from './employee/dto/employee.dto'
+import { EmployeeSearchParams, Employee, EmployeeSearchResponseDto } from './dto/employee.dto'
 
 /**
  * 직원 관련 API 컨트롤러
  * 직원 검색 기능을 제공합니다.
  */
-@Controller('api/employee')
+@Controller('employee')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 

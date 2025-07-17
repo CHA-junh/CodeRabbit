@@ -1,13 +1,13 @@
 import { Controller, Post, Body } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { UsersService } from './users.service'
-import { User, UserSearchParams, UserSearchResponseDto } from './users/dto/users.dto'
+import { User, UserSearchParams, UserSearchResponseDto } from './dto/users.dto'
 
 /**
  * 사용자 관련 API 컨트롤러
  * 사용자 검색 기능을 제공합니다.
  */
-@Controller('api/users')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { OracleService } from './database/database.provider'
+import { OracleService } from '../database/database.provider'
 import * as oracledb from 'oracledb'
 import { 
   UnitPrice, 
@@ -7,8 +7,8 @@ import {
   UnitPriceSaveParams, 
   UnitPriceDeleteParams,
   UnitPriceSearchResponseDto
-} from './unit-price/dto/unit-price.dto'
-import { ProcedureDbParser } from './utils/procedure-db-parser.util'
+} from './dto/unit-price.dto'
+import { ProcedureDbParser } from '../utils/procedure-db-parser.util'
 
 /**
  * 단가 관련 상수

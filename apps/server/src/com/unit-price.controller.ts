@@ -7,13 +7,13 @@ import {
   UnitPriceDeleteParams, 
   UnitPrice,
   UnitPriceSearchResponseDto
-} from './unit-price/dto/unit-price.dto'
+} from './dto/unit-price.dto'
 
 /**
  * 단가 관련 API 컨트롤러
  * 단가 검색, 저장, 삭제 기능을 제공합니다.
  */
-@Controller('api/unit-price')
+@Controller('unit-price')
 export class UnitPriceController {
   constructor(private readonly unitPriceService: UnitPriceService) {}
 
