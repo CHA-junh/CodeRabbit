@@ -1,0 +1,640 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { AgGridReact } from "ag-grid-react";
+import { ColDef, SelectionChangedEvent } from "ag-grid-community"; // ColDef 타입 import
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import "@/app/common/common.css"; // 공통 CSS 경로로 수정
+import {
+	TblUserRole,
+	TblUserRolePgmGrp,
+	TblMenuInf,
+	ProgramGroupData,
+} from "../../modules/sys/types"; // 타입 import
+import {
+	fetchUserRoles,
+	saveUserRoles,
+	fetchProgramGroups,
+	fetchAllProgramGroups,
+	saveProgramGroups,
+	copyUserRole,
+	fetchMenus,
+} from "../../modules/sys/services"; // 서비스 import
+import PgmSearchPopup from "@/app/designs/SYS1010D00"; // 프로그램 찾기 팝업 컴포넌트
+
+// --- 공통코드 정의 ---
+const useYnCodes = [
+	{ code: "Y", name: "사용" },
+	{ code: "N", name: "미사용" },
+];
+
+const athrGrdCodes = [
+	{ code: "1", name: "1등급" },
+	{ code: "2", name: "2등급" },
+	{ code: "3", name: "3등급" },
+	{ code: "4", name: "4등급" },
+	{ code: "5", name: "5등급" },
+];
+
+const orgInqRngCodes = [
+	{ code: "ALL", name: "전체" },
+	{ code: "DEPT", name: "부서" },
+	{ code: "TEAM", name: "팀" },
+	{ code: "SELF", name: "본인" },
+];
+// --------------------
+
+// 백엔드에서 camelCase로 변환된 데이터 구조에 맞는 타입 정의
+type PgmGrpRow = ProgramGroupData;
+
+export default function RoleManagementPage() {
+	const [rowData, setRowData] = useState<TblUserRole[]>([]);
+	const [selectedRole, setSelectedRole] = useState<TblUserRole | null>(null);
+	const [pgmGrpRowData, setPgmGrpRowData] = useState<PgmGrpRow[]>([]);
+	const [isPgmSearchPopupOpen, setIsPgmSearchPopupOpen] = useState(false); // 팝업 상태 추가
+	const [menuList, setMenuList] = useState<TblMenuInf[]>([]); // 메뉴 목록 상태 추가
+
+	// 조회 조건 상태 추가
+	const [searchConditions, setSearchConditions] = useState({
+		usrRoleId: "",
+		useYn: "",
+	});
+
+	// 조회 조건 변경 핸들러
+	const handleSearchChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+	) => {
+		setSearchConditions((prev) => ({
+			...prev,
+			[e.target.name]: e.target.value,
+		}));
+	};
+
+	// 엔터키 입력 시 자동조회
+	const handleKeyPress = (
+		e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>
+	) => {
+		if (e.key === "Enter") {
+			loadData();
+		}
+	};
+
+	const userRoleGridRef = useRef<AgGridReact<TblUserRole>>(null);
+	const pgmGrpGridRef = useRef<AgGridReact<PgmGrpRow>>(null);
+
+	const [colDefs] = useState<ColDef[]>([
+		// ColDef 타입 명시
+		{ headerName: "사용자역할코드", field: "usrRoleId", width: 150 },
+		{ headerName: "사용자역할명", field: "usrRoleNm", width: 150 },
+		{ headerName: "메뉴", field: "menuNm", width: 120 },
+		{ headerName: "사용여부", field: "useYn", width: 100 },
+		{ headerName: "사용자수", field: "cnt", width: 100, type: "numericColumn" },
+	]);
+
+	const [pgmGrpColDefs] = useState<ColDef[]>([
+		{
+			headerName: " ",
+			checkboxSelection: true,
+			headerCheckboxSelection: true,
+			width: 50,
+			suppressMenu: true,
+			sortable: false,
+			filter: false,
+		},
+		{ headerName: "프로그램그룹 코드", field: "pgmGrpId", width: 150 },
+		{ headerName: "프로그램그룹명", field: "pgmGrpNm", width: 200 },
+		{ headerName: "사용여부", field: "pgmGrpUseYn", width: 100 },
+		{ headerName: "사용자수", field: "cnt", width: 100, type: "numericColumn" },
+	]);
+
+	const loadData = async () => {
+		try {
+			const data = await fetchUserRoles(searchConditions);
+			setRowData(data);
+		} catch (error) {
+			console.error(error);
+			alert("데이터를 불러오는 중 오류가 발생했습니다.");
+		}
+	};
+
+	useEffect(() => {
+		loadData();
+		// 메뉴 목록 조회
+		const loadMenus = async () => {
+			try {
+				const menus = await fetchMenus();
+				setMenuList(menus);
+			} catch (error) {
+				console.error(error);
+				alert("메뉴 목록을 불러오는 중 오류가 발생했습니다.");
+			}
+		};
+		loadMenus();
+	}, []);
+
+	useEffect(() => {
+		if (pgmGrpGridRef.current && pgmGrpGridRef.current.api) {
+			pgmGrpGridRef.current.api.forEachNode((node) => {
+				if (node.data && node.data.usrRoleId) node.setSelected(true);
+				else node.setSelected(false);
+			});
+		}
+	}, [pgmGrpRowData]);
+
+	const handleSave = async () => {
+		if (!selectedRole) {
+			alert("저장할 역할을 선택해주세요.");
+			return;
+		}
+
+		// 유효성 검사
+		if (!selectedRole.usrRoleNm) {
+			alert("사용자역할명을 입력해주세요.");
+			return;
+		}
+		if (!selectedRole.useYn) {
+			alert("사용여부를 선택해주세요.");
+			return;
+		}
+		if (!selectedRole.menuId) {
+			alert("메뉴를 선택해주세요.");
+			return;
+		}
+		if (!selectedRole.athrGrdCd) {
+			alert("등급을 선택해주세요.");
+			return;
+		}
+		if (!selectedRole.orgInqRngCd) {
+			alert("조직조회범위를 선택해주세요.");
+			return;
+		}
+
+		// 역할 정보와 프로그램 그룹 정보를 함께 저장
+		try {
+			// 디버깅: 저장할 데이터 로그 출력
+			console.log("=== 저장할 역할 데이터 ===");
+			console.log("selectedRole:", selectedRole);
+			console.log("usrRoleId:", selectedRole.usrRoleId);
+			console.log("usrRoleNm:", selectedRole.usrRoleNm);
+			console.log("athrGrdCd:", selectedRole.athrGrdCd);
+			console.log("orgInqRngCd:", selectedRole.orgInqRngCd);
+			console.log("menuId:", selectedRole.menuId);
+			console.log("useYn:", selectedRole.useYn);
+
+			// 1. 역할 상세 정보 저장
+			// usrRoleId가 빈 문자열이면 신규 저장, 아니면 수정
+			const isNewRole =
+				!selectedRole.usrRoleId || selectedRole.usrRoleId.trim() === "";
+
+			console.log("isNewRole:", isNewRole);
+
+			const saveResult = await saveUserRoles({
+				createdRows: isNewRole ? [selectedRole] : [],
+				updatedRows: isNewRole ? [] : [selectedRole],
+				deletedRows: [],
+			});
+
+			// 2. 프로그램 그룹 정보 저장
+			if (pgmGrpGridRef.current?.api) {
+				const selectedPgmGrps = pgmGrpGridRef.current.api
+					.getSelectedRows()
+					.map((row) => ({
+						usrRoleId: selectedRole.usrRoleId || "", // 신규 시에는 빈 문자열
+						pgmGrpId: row.pgmGrpId,
+						useYn: row.useYn || "Y", // 기본값 설정
+					}));
+
+				// 신규 저장 시에는 저장 후 반환된 역할 ID를 사용
+				const roleIdToUse =
+					isNewRole && saveResult.savedRoles.length > 0
+						? saveResult.savedRoles[0].usrRoleId
+						: selectedRole.usrRoleId;
+
+				// 선택된 프로그램 그룹이 있는 경우에만 저장
+				if (selectedPgmGrps.length > 0) {
+					await saveProgramGroups(roleIdToUse, selectedPgmGrps);
+				}
+			}
+
+			alert("성공적으로 저장되었습니다.");
+			loadData(); // 데이터 재조회
+		} catch (error) {
+			console.error(error);
+			alert((error as Error).message);
+		}
+	};
+
+	const handleNew = async () => {
+		// 좌측 그리드 선택 해제
+		if (userRoleGridRef.current?.api) {
+			userRoleGridRef.current.api.deselectAll();
+		}
+
+		// 우측 영역 초기화
+		const newRole: TblUserRole = {
+			usrRoleId: "", // 신규 시에는 빈 값
+			menuId: "",
+			usrRoleNm: "",
+			athrGrdCd: "1",
+			orgInqRngCd: "ALL",
+			baseOutputScrnPgmIdCtt: "",
+			useYn: "Y",
+		};
+		setSelectedRole(newRole);
+
+		// 모든 프로그램 그룹 목록 조회 (체크박스로 선택 가능한 상태)
+		try {
+			const allPgmGrps = await fetchAllProgramGroups();
+			setPgmGrpRowData(allPgmGrps);
+		} catch (error) {
+			console.error(error);
+			alert("프로그램 그룹 목록을 불러오는 중 오류가 발생했습니다.");
+		}
+	};
+
+	// 역할 선택 시 프로그램 그룹 조회
+	const onSelectionChanged = async (event: SelectionChangedEvent) => {
+		const selectedRows = event.api.getSelectedRows();
+		if (selectedRows.length > 0) {
+			const role = selectedRows[0];
+
+			// 백엔드 키명을 프론트엔드 키명으로 매핑
+			const roleWithDefaults = {
+				...role,
+				// 백엔드: athtGrdCd -> 프론트엔드: athrGrdCd
+				athrGrdCd: role.athtGrdCd || role.athrGrdCd || "1",
+				// 백엔드: orgInqRangCd -> 프론트엔드: orgInqRngCd
+				orgInqRngCd: role.orgInqRangCd || role.orgInqRngCd || "ALL",
+				useYn: role.useYn || "Y",
+				menuId: role.menuId || "",
+				usrRoleNm: role.usrRoleNm || "",
+				baseOutputScrnPgmIdCtt: role.baseOutputScrnPgmIdCtt || "",
+			};
+
+			console.log("=== 선택된 역할 데이터 ===");
+			console.log("원본 데이터:", role);
+			console.log("키명 매핑 후:", roleWithDefaults);
+
+			setSelectedRole(roleWithDefaults);
+			try {
+				const pgmGrps = await fetchProgramGroups(role.usrRoleId);
+				setPgmGrpRowData(pgmGrps); // 변환 없이 그대로 할당
+			} catch (error) {
+				console.error(error);
+				alert("프로그램 그룹을 불러오는 중 오류가 발생했습니다.");
+			}
+		} else {
+			setSelectedRole(null);
+			setPgmGrpRowData([]);
+		}
+	};
+
+	// 상세 폼 입력 변경 핸들러
+	const handleFormChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+	) => {
+		// selectedRole이 null이면 기본값으로 초기화
+		const currentRole = selectedRole || {
+			usrRoleId: "",
+			menuId: "",
+			usrRoleNm: "",
+			athrGrdCd: "1",
+			orgInqRngCd: "ALL",
+			baseOutputScrnPgmIdCtt: "",
+			useYn: "Y",
+		};
+
+		setSelectedRole({
+			...currentRole,
+			[e.target.name]: e.target.value,
+		});
+	};
+
+	// 기본출력화면 필드 초기화 핸들러
+	const handleClearBaseOutput = () => {
+		if (!selectedRole) return;
+		setSelectedRole({
+			...selectedRole,
+			baseOutputScrnPgmIdCtt: "",
+			// baseOutputScrnPgmNmCtt 필드가 있다면 같이 초기화해야 합니다.
+			// 현재 타입 정의에 없어 우선 ID 필드만 초기화합니다.
+		});
+	};
+
+	// 프로그램 그룹 삭제 핸들러
+	const handleDeletePgmGrp = () => {
+		if (!pgmGrpGridRef.current) return;
+		const selectedNodes = pgmGrpGridRef.current.api.getSelectedNodes();
+		if (selectedNodes.length === 0) {
+			alert("삭제할 프로그램 그룹을 선택해주세요.");
+			return;
+		}
+		const selectedIds = selectedNodes
+			.map((node) => node.data?.pgmGrpId)
+			.filter(Boolean); // undefined나 null인 경우 제거
+		setPgmGrpRowData((prevData) =>
+			prevData.filter((row) => !selectedIds.includes(row.pgmGrpId))
+		);
+	};
+
+	// 역할 복사 핸들러
+	const handleCopyRole = async () => {
+		if (!selectedRole) {
+			alert("복사할 역할을 선택해주세요.");
+			return;
+		}
+		if (
+			window.confirm(`'${selectedRole.usrRoleNm}' 역할을 복사하시겠습니까?`)
+		) {
+			try {
+				await copyUserRole(selectedRole.usrRoleId);
+				alert("역할이 복사되었습니다.");
+				loadData(); // 목록 새로고침
+			} catch (error) {
+				console.error(error);
+				alert((error as Error).message);
+			}
+		}
+	};
+
+	return (
+		<div className='mdi'>
+			{/* 🔍 조회 영역 */}
+			<div className='search-div mb-4'>
+				<table className='search-table w-full'>
+					<tbody>
+						<tr className='search-tr'>
+							<th className='search-th w-[130px]'>사용자역할코드명</th>
+							<td className='search-td w-[20%]'>
+								<input
+									type='text'
+									name='usrRoleId'
+									value={searchConditions.usrRoleId}
+									onChange={handleSearchChange}
+									onKeyPress={handleKeyPress}
+									className='input-base input-default w-full'
+									aria-label='사용자역할코드명 입력'
+									placeholder='코드 또는 명 입력'
+								/>
+							</td>
+							<th className='search-th w-[100px]'>사용여부</th>
+							<td className='search-td w-[10%]'>
+								<select
+									name='useYn'
+									value={searchConditions.useYn}
+									onChange={handleSearchChange}
+									onKeyPress={handleKeyPress}
+									className='combo-base w-full min-w-[80px]'
+									aria-label='사용여부 선택'
+								>
+									<option value=''>전체</option>
+									{useYnCodes.map((item) => (
+										<option key={item.code} value={item.code}>
+											{item.name}
+										</option>
+									))}
+								</select>
+							</td>
+							<td className='search-td text-right' colSpan={1}>
+								<button
+									type='button'
+									className='btn-base btn-search'
+									onClick={loadData}
+								>
+									조회
+								</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			{/* 📋 좌우 2단 */}
+			<div className='flex gap-4 flex-1 overflow-auto'>
+				{/* ◀ 좌측 */}
+				<div className='w-1/2 flex flex-col'>
+					<div className='tit_area mb-2'>
+						<h3>사용자역할 목록</h3>
+					</div>
+					<div className='gridbox-div flex-1 overflow-auto ag-theme-alpine'>
+						<AgGridReact
+							ref={userRoleGridRef}
+							rowData={rowData}
+							columnDefs={colDefs}
+							defaultColDef={{
+								resizable: true,
+								sortable: true,
+								filter: true,
+							}}
+							rowSelection='single'
+							onSelectionChanged={onSelectionChanged}
+						/>
+					</div>
+				</div>
+
+				{/* ▶ 우측 상세 폼 */}
+				<div className='w-1/2 flex flex-col'>
+					<div className='tit_area mb-2'>
+						<h3>사용자역할 정보</h3>
+					</div>
+					<table className='form-table mb-2'>
+						<tbody>
+							<tr className='form-tr'>
+								<th className='form-th required w-[120px]'>사용자역할명</th>
+								<td className='form-td'>
+									<input
+										type='text'
+										name='usrRoleNm'
+										value={selectedRole?.usrRoleNm || ""}
+										onChange={handleFormChange}
+										className='input-base input-default w-full'
+										aria-label='상세 사용자역할명'
+									/>
+								</td>
+								<th className='form-th required w-[100px]'>사용여부</th>
+								<td className='form-td'>
+									<select
+										name='useYn'
+										value={selectedRole?.useYn || ""}
+										onChange={handleFormChange}
+										className='combo-base w-full'
+										aria-label='상세 사용여부'
+									>
+										{useYnCodes.map((item) => (
+											<option key={item.code} value={item.code}>
+												{item.name}
+											</option>
+										))}
+									</select>
+								</td>
+								<th className='form-th w-[80px]'>등급</th>
+								<td className='form-td'>
+									<select
+										name='athrGrdCd'
+										value={selectedRole?.athrGrdCd || ""}
+										onChange={handleFormChange}
+										className='combo-base w-full'
+										aria-label='상세 등급'
+									>
+										<option value=''>선택</option>
+										{athrGrdCodes.map((item) => (
+											<option key={item.code} value={item.code}>
+												{item.name}
+											</option>
+										))}
+									</select>
+								</td>
+							</tr>
+							<tr className='form-tr'>
+								<th className='form-th'>조직조회범위</th>
+								<td className='form-td'>
+									<select
+										name='orgInqRngCd'
+										value={selectedRole?.orgInqRngCd || ""}
+										onChange={handleFormChange}
+										className='combo-base w-full'
+										aria-label='상세 조직조회범위'
+									>
+										<option value=''>선택</option>
+										{orgInqRngCodes.map((item) => (
+											<option key={item.code} value={item.code}>
+												{item.name}
+											</option>
+										))}
+									</select>
+								</td>
+								<th className='form-th required'>메뉴</th>
+								<td className='form-td' colSpan={3}>
+									<select
+										name='menuId'
+										value={selectedRole?.menuId || ""}
+										onChange={handleFormChange}
+										className='combo-base w-full'
+										aria-label='상세 메뉴'
+									>
+										<option value=''>선택</option>
+										{menuList.map((menu) => (
+											<option key={menu.menuId} value={menu.menuId}>
+												{menu.menuNm}
+											</option>
+										))}
+									</select>
+								</td>
+							</tr>
+							<tr className='form-tr'>
+								<th className='form-th'>기본출력화면</th>
+								<td className='form-td' colSpan={4}>
+									<input
+										type='text'
+										name='baseOutputScrnPgmIdCtt'
+										value={selectedRole?.baseOutputScrnPgmIdCtt || ""}
+										onChange={handleFormChange}
+										className='input-base input-default w-full'
+										aria-label='상세 기본출력화면'
+										readOnly
+									/>
+								</td>
+								<td className='form-td'>
+									<div className='flex gap-1'>
+										<button
+											type='button'
+											className='btn-base btn-etc text-xs px-3 py-1'
+											onClick={() => setIsPgmSearchPopupOpen(true)}
+										>
+											+ 추가
+										</button>
+										<button
+											type='button'
+											className='text-xl text-gray-400 px-2'
+											onClick={handleClearBaseOutput}
+										>
+											×
+										</button>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					{/* ➕ 버튼 영역 - 원본에 없으므로 제거 */}
+					{/*
+					<div className='flex justify-between items-center mb-2 px-1'>
+						<div></div>
+						<div className='flex gap-1'>
+							<button
+								type='button'
+								className='btn-base btn-etc text-xs px-3 py-1'
+							>
+								+ 추가
+							</button>
+							<button
+								type='button'
+								className='text-xl text-gray-400 px-2'
+								onClick={handleDeletePgmGrp}
+							>
+								×
+							</button>
+						</div>
+					</div>
+					*/}
+
+					{/* 프로그램 그룹 목록 */}
+					<div className='tit_area mb-2'>
+						<h3>사용자역할 프로그램그룹 목록</h3>
+					</div>
+					<div className='gridbox-div flex-1 overflow-auto ag-theme-alpine'>
+						<AgGridReact
+							ref={pgmGrpGridRef}
+							rowData={pgmGrpRowData}
+							columnDefs={pgmGrpColDefs}
+							rowSelection='multiple'
+							suppressRowClickSelection={true} // 행 클릭으로 선택되는 것 방지
+							getRowId={(params) => params.data.pgmGrpId}
+							onGridReady={(params) => {
+								params.api.forEachNode((node) => {
+									if (node.data.isSelected) node.setSelected(true);
+								});
+							}}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* ⬇ 하단 버튼 */}
+			<div className='flex justify-end gap-2 mt-4'>
+				<button
+					type='button'
+					className='btn-base btn-etc'
+					onClick={handleCopyRole}
+				>
+					역할복사
+				</button>
+				<button type='button' className='btn-base btn-etc' onClick={handleNew}>
+					신규
+				</button>
+				<button type='button' className='btn-base btn-act' onClick={handleSave}>
+					저장
+				</button>
+			</div>
+
+			{/* 프로그램 찾기 팝업 */}
+			{isPgmSearchPopupOpen && (
+				<div className='popup-overlay'>
+					<div className='popup-content w-[800px] bg-white rounded-lg shadow-xl'>
+						<PgmSearchPopup />
+						<div className='flex justify-end p-4'>
+							<button
+								type='button'
+								className='btn-base btn-cancel'
+								onClick={() => setIsPgmSearchPopupOpen(false)}
+							>
+								닫기
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}

@@ -1,4 +1,5 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthController } from './auth.controller';
@@ -18,9 +19,22 @@ import { ProcedureDbParser } from './utils/procedure-db-parser.util';
 import { MenuModule } from './menu/menu.module';
 import { MenuController } from './menu/menu.controller';
 import { DatabaseModule } from './database/database.module';
+import { SysModule } from './sys/sys.module';
 
 @Module({
-  imports: [AuthModule, UserModule, MenuModule, DatabaseModule],
+  imports: [
+    ConfigModule.forRoot({
+      // .env 파일을 전역 모듈로 설정
+      isGlobal: true,
+      // .env 파일의 경로를 프로젝트 루트로 지정
+      envFilePath: '../../.env',
+    }),
+    AuthModule,
+    UserModule,
+    MenuModule,
+    DatabaseModule,
+    SysModule,
+  ],
   controllers: [
     AppController,
     AuthController,
