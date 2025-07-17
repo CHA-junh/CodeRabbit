@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import '../designs/common.css'
-import dynamic from 'next/dynamic'
-import { useEffect } from 'react'
+import { createDynamicComponent } from '@/utils/componentMapping'
 
 interface ContentFrameProps {
 	programId: string
@@ -26,33 +25,20 @@ export default function ContentFrame({
 			setDynamicComponent(null)
 			return
 		}
-		setDynamicComponent(null)
+
 		setError(null)
-		const importPath = menuPath.endsWith('.tsx')
-			? menuPath.slice(0, -4)
-			: menuPath
-		console.log('[ContentFrame] importPath:', importPath)
-		import(`src/app/${importPath}`)
-			.then((mod) => {
-				console.log('[ContentFrame] import 결과:', mod)
-				if (!mod || !mod.default) {
-					throw new Error('동적 import 성공했으나 default export가 없음')
-				}
-				setDynamicComponent(() => mod.default)
-			})
-			.catch((err) => {
-				console.error('ContentFrame 동적 import 실패:', importPath, err)
-				setError('해당 화면이 존재하지 않습니다.')
-				setDynamicComponent(() => () => (
-					<div className='error-message-box'>
-						<div className='error-message-icon'>⚠️</div>
-						해당 화면이 존재하지 않습니다.
-						<div className='error-message-desc'>관리자에게 문의하세요.</div>
-					</div>
-				))
-			})
+		console.log('[ContentFrame] menuPath:', menuPath)
+
+		// 동적 컴포넌트 생성 및 즉시 설정
+		const component = createDynamicComponent(menuPath)
+		if (component) {
+			setDynamicComponent(() => component)
+		} else {
+			setError('해당 화면이 존재하지 않습니다.')
+		}
 	}, [menuPath])
 
+	// 에러가 있으면 에러 메시지 표시
 	if (error) {
 		return (
 			<div className='error-message-box'>
@@ -62,14 +48,12 @@ export default function ContentFrame({
 			</div>
 		)
 	}
+
+	// 컴포넌트가 없으면 빈 div 반환 (로딩 중)
 	if (!DynamicComponent) {
-		return (
-			<div className='error-message-box'>
-				<div className='error-message-icon'>⚠️</div>
-				해당 화면이 존재하지 않습니다.
-				<div className='error-message-desc'>관리자에게 문의하세요.</div>
-			</div>
-		)
+		return <div style={{ display: 'none' }} />
 	}
+
+	// 컴포넌트 렌더링
 	return <DynamicComponent title={title} />
 }

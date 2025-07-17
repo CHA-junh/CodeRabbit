@@ -1,17 +1,32 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-	res.status(200).json([
-		{
-			title: '업무관리',
-			children: [
-				{ programId: 'EMP_MGMT', title: '사원관리' },
-				{ programId: 'USR_EDIT', title: '개인정보수정' },
-			],
-		},
-		{
-			title: '시스템관리',
-			children: [{ programId: 'SYS_MGMT', title: '프로그램관리' }],
-		},
-	])
+export default async function handler(
+	req: NextApiRequest,
+	res: NextApiResponse
+) {
+	try {
+		// 백엔드 API 호출
+		const response = await fetch('http://localhost:3001/menu/tree', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'include', // 세션 쿠키 포함
+		})
+
+		if (!response.ok) {
+			throw new Error(`Backend API error: ${response.status}`)
+		}
+
+		const data = await response.json()
+
+		if (data.success) {
+			res.status(200).json(data.data)
+		} else {
+			res.status(400).json({ error: data.message })
+		}
+	} catch (error) {
+		console.error('Menu API error:', error)
+		res.status(500).json({ error: '메뉴 데이터를 가져오는데 실패했습니다.' })
+	}
 }

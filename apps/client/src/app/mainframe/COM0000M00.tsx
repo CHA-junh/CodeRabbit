@@ -56,7 +56,7 @@ export default function COM0000M00() {
 		const menuPath = program.LINK_PATH
 			? program.LINK_PATH.replace(/\.tsx$/i, '')
 			: ''
-		const title = program.PGM_NM ? `${program.PGM_NM} [${pgmId}]` : pgmId
+		const title = program.PGM_NM ? program.PGM_NM : pgmId
 		// 로그로 데이터 추적
 		console.log('[MenuTree 클릭]', { pgmId, program, menuPath, title })
 		console.log('[handleMenuClick] tabs(before):', tabs)
