@@ -1,8 +1,5 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
-<<<<<<< HEAD
 import { TypeOrmModule } from '@nestjs/typeorm';
-=======
->>>>>>> f7e058b8666a60208329caba739e9643c4479079
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -27,8 +24,10 @@ import { SysModule } from './sys/sys.module';
 
 @Module({
   imports: [
-<<<<<<< HEAD
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '../../.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'oracle',
       host: process.env.DB_HOST,
@@ -38,22 +37,12 @@ import { SysModule } from './sys/sys.module';
       sid: process.env.DB_SERVICE,
       entities: [__dirname + '/**/*.entity.{js,ts}'],
       synchronize: false,
-=======
-    ConfigModule.forRoot({
-      // .env 파일을 전역 모듈로 설정
-      isGlobal: true,
-      // .env 파일의 경로를 프로젝트 루트로 지정
-      envFilePath: '../../.env',
->>>>>>> f7e058b8666a60208329caba739e9643c4479079
     }),
     AuthModule,
     UserModule,
     MenuModule,
     DatabaseModule,
-<<<<<<< HEAD
-=======
     SysModule,
->>>>>>> f7e058b8666a60208329caba739e9643c4479079
   ],
   controllers: [
     AppController,
