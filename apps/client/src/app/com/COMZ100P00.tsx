@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
 /**
@@ -114,6 +115,7 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
   const [empNm, setEmpNm] = useState(defaultEmpNm)
   // 입력 필드 참조 (ASIS: txtEmpNm)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { showToast } = useToast()
 
   /**
    * init_Complete 함수
@@ -173,17 +175,17 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
         
         // 검색 결과가 없고 검색어가 있는 경우 알림 (ASIS: Alert.show("해당 사용자명은 존재하지 않습니다."))
         if (empList.length === 0 && empNm.trim()) {
-          alert('해당 직원명은 존재하지 않습니다.')
+          showToast('해당 직원명은 존재하지 않습니다.', 'warning')
         }
       } else {
         const errorData = await res.json()
         const errorMessage = errorData.message || '검색 중 오류가 발생했습니다.'
-        alert(errorMessage)
+        showToast(errorMessage, 'error')
         setEmps([])
       }
     } catch (e) {
       console.error('검색 실패:', e)
-      alert('검색 중 오류가 발생했습니다.')
+      showToast('검색 중 오류가 발생했습니다.', 'error')
       setEmps([])
     } finally {
       setLoading(false)

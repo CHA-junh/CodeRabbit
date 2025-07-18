@@ -3,37 +3,52 @@
 import React, { useState, useEffect } from 'react'
 import '@/app/common/common.css'
 import { useAuth } from '@/modules/auth/hooks/useAuth'
+import { useToast } from '@/contexts/ToastContext'
 import { useSearchParams } from 'next/navigation'
+
+/**
+ * COMZ050P00 - (팝)사업명검색화면
+ * 
+ * 주요 기능:
+ * - 사업명 검색 및 선택
+ * - 진행상태별 필터링
+ * - 연도별 사업 조회
+ * - 부모창 데이터 전달
+ * 
+ * 연관 테이블:
+ * - TBL_BSN_NO_INF (사업번호 정보)
+ * - TBL_BSN_SCDC (사업품의서)
+ */
 
 // DB 컬럼명 기준 타입 정의
 interface BusinessNameSearchResult {
-	BSN_NO: string
-	BSN_DIV: string
-	BSN_DIV_NM: string
-	BSN_NM: string
-	ORD_PLC: string
-	DEPT_NO: string
-	SALE_DIV: string
-	SALE_DIV_NM: string
-	BSN_YR: string
-	SEQ_NO: string
-	PGRS_ST_DIV: string
-	PGRS_ST_DIV_NM: string
-	BSN_STRT_DT: string
-	BSN_END_DT: string
-	BIZ_REPNM: string
-	PM_NM: string
-	CTR_DT: string
-	PPLS_DEPT_NM: string
-	PPLS_DEPT_CD: string
-	PPLS_HQ_CD: string
-	EXEC_DEPT_NM: string
-	EXEC_DEPT_CD: string
-	EXEC_HQ_CD: string
-	RMK: string
-	REG_DTTM: string
-	CHNG_DTTM: string
-	CHNGR_ID: string
+	bsnNo: string
+	bsnDiv: string
+	bsnDivNm: string
+	bsnNm: string
+	ordPlc: string
+	deptNo: string
+	saleDiv: string
+	saleDivNm: string
+	bsnYr: string
+	seqNo: string
+	pgrsStDiv: string
+	pgrsStDivNm: string
+	bsnStrtDt: string
+	bsnEndDt: string
+	bizRepNm: string
+	pmNm: string
+	ctrDt: string
+	pplsDeptNm: string
+	pplsDeptCd: string
+	pplsHqCd: string
+	execDeptNm: string
+	execDeptCd: string
+	execHqCd: string
+	rmk: string
+	regDttm: string
+	chngDttm: string
+	chngrId: string
 	[key: string]: any // 대소문자 혼용 대응
 }
 
@@ -74,6 +89,7 @@ const BusinessNameSearchPopup: React.FC = () => {
 	const [data, setData] = useState<BusinessNameSearchResult[]>([])
 	const [loading, setLoading] = useState(false)
 	const { session } = useAuth()
+	const { showToast } = useToast()
 
 	// 세션에서 로그인ID 가져오기 (우선순위: userId > empNo > name)
 	const loginId =
@@ -160,9 +176,9 @@ const BusinessNameSearchPopup: React.FC = () => {
 			if (!res.ok) throw new Error('API 요청 실패')
 			const result = await res.json()
 			setData(result.data || [])
-		} catch (e) {
-			// eslint-disable-next-line no-console
+		} catch (e: any) {
 			console.error(e)
+			showToast(e.message || '조회 중 오류가 발생했습니다.', 'error')
 			setData([])
 		} finally {
 			setLoading(false)
@@ -174,15 +190,15 @@ const BusinessNameSearchPopup: React.FC = () => {
 		window.close() // 팝업 닫기(실제 환경에 맞게 수정)
 	}
 
-	// 그리드 더블클릭 시 부모창에 값 반환
+		// 그리드 더블클릭 시 부모창에 값 반환
 	const handleRowDoubleClick = (item: BusinessNameSearchResult) => {
 		if (window.opener) {
 			window.opener.postMessage(
 				{
 					type: 'BSN_SELECT',
 					payload: {
-						BSN_NO: item.BSN_NO,
-						BSN_NM: item.BSN_NM,
+						bsnNo: item.bsnNo,
+						bsnNm: item.bsnNm,
 						// 필요시 추가 필드
 					},
 				},
@@ -341,65 +357,65 @@ const BusinessNameSearchPopup: React.FC = () => {
 								data.map((item, idx) => (
 									<tr
 										className='grid-tr'
-										key={item.BSN_NO || item.bsnNo || idx}
+										key={item.bsnNo || item.bsnNo || idx}
 										onDoubleClick={() => handleRowDoubleClick(item)}
 										tabIndex={0}
-										aria-label={`사업번호 ${item.BSN_NO || item.bsnNo}`}
+										aria-label={`사업번호 ${item.bsnNo || item.bsnNo}`}
 									>
 										<td className='grid-td text-center w-[40px]'>{idx + 1}</td>
 										<td
 											className='grid-td truncate max-w-[120px]'
-											title={item.BSN_NO || item.bsnNo}
+											title={item.bsnNo || item.bsnNo}
 										>
-											{item.BSN_NO || item.bsnNo}
+											{item.bsnNo || item.bsnNo}
 										</td>
 										<td
 											className='grid-td truncate max-w-[320px]'
-											title={item.BSN_NM || item.bsnNm}
+											title={item.bsnNm || item.bsnNm}
 										>
-											{item.BSN_NM || item.bsnNm}
+											{item.bsnNm || item.bsnNm}
 										</td>
 										<td
 											className='grid-td truncate max-w-[100px]'
-											title={item.BSN_STRT_DT || item.bsnStrtDt}
+											title={item.bsnStrtDt || item.bsnStrtDt}
 										>
-											{item.BSN_STRT_DT || item.bsnStrtDt}
+											{item.bsnStrtDt || item.bsnStrtDt}
 										</td>
 										<td
 											className='grid-td truncate max-w-[100px]'
-											title={item.BSN_END_DT || item.bsnEndDt}
+											title={item.bsnEndDt || item.bsnEndDt}
 										>
-											{item.BSN_END_DT || item.bsnEndDt}
+											{item.bsnEndDt || item.bsnEndDt}
 										</td>
 										<td
 											className='grid-td truncate max-w-[120px]'
-											title={item.PPLS_DEPT_NM || item.pplsDeptNm}
+											title={item.pplsDeptNm || item.pplsDeptNm}
 										>
-											{item.PPLS_DEPT_NM || item.pplsDeptNm}
+											{item.pplsDeptNm || item.pplsDeptNm}
 										</td>
 										<td
 											className='grid-td truncate max-w-[120px]'
-											title={item.BIZ_REPNM || item.bizRepnm}
+											title={item.bizRepNm || item.bizRepNm}
 										>
-											{item.BIZ_REPNM || item.bizRepnm}
+											{item.bizRepNm || item.bizRepNm}
 										</td>
 										<td
 											className='grid-td truncate max-w-[120px]'
-											title={item.EXEC_DEPT_NM || item.execDeptNm}
+											title={item.execDeptNm || item.execDeptNm}
 										>
-											{item.EXEC_DEPT_NM || item.execDeptNm}
+											{item.execDeptNm || item.execDeptNm}
 										</td>
 										<td
 											className='grid-td truncate max-w-[80px]'
-											title={item.PM_NM || item.pmNm}
+											title={item.pmNm || item.pmNm}
 										>
-											{item.PM_NM || item.pmNm}
+											{item.pmNm || item.pmNm}
 										</td>
 										<td
 											className='grid-td truncate max-w-[100px]'
-											title={item.PGRS_ST_DIV_NM || item.pgrsStDivNm}
+											title={item.pgrsStDivNm || item.pgrsStDivNm}
 										>
-											{item.PGRS_ST_DIV_NM || item.pgrsStDivNm}
+											{item.pgrsStDivNm || item.pgrsStDivNm}
 										</td>
 									</tr>
 								))

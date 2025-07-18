@@ -2,7 +2,22 @@
 import React, { useState, useEffect } from 'react'
 import { useDeptDivCodes } from '@/modules/com/hooks/useCommonCodes'
 import { useSearchParams } from 'next/navigation'
+import { useToast } from '@/contexts/ToastContext'
 import '@/app/common/common.css'
+
+/**
+ * COMZ060P00 - (팝)부서번호검색화면
+ * 
+ * 주요 기능:
+ * - 부서번호 검색 및 선택
+ * - 부서구분별 필터링
+ * - 연도별 부서 조회
+ * - 부모창 데이터 전달
+ * 
+ * 연관 테이블:
+ * - TBL_DEPT (부서 정보)
+ * - TBL_DEPT_NO (부서번호)
+ */
 
 interface DeptNoSearchResult {
 	deptNo: string
@@ -23,7 +38,8 @@ const apiUrl =
 
 export default function DeptNumberSearchPopup() {
 	const params = useSearchParams()
-	const initialDeptNo = params.get('deptNo') || ''
+	const initialDeptNo = params?.get('deptNo') || ''
+	const { showToast } = useToast()
 	const [form, setForm] = useState({
 		deptNo: initialDeptNo,
 		year: new Date().getFullYear().toString(),
@@ -45,18 +61,20 @@ export default function DeptNumberSearchPopup() {
 		setError('')
 		setResults([])
 		try {
-			const params = new URLSearchParams({
+			const searchParams = new URLSearchParams({
 				deptNo: form.deptNo,
 				year: form.year,
 				...(form.deptDivCd ? { deptDivCd: form.deptDivCd } : {}),
 			})
-			const url = `${apiUrl}?${params.toString()}`
+			const url = `${apiUrl}?${searchParams.toString()}`
 			const res = await fetch(url)
 			const data = await res.json()
 			const results = Array.isArray(data) ? data : (data.data ?? [])
 			setResults(results)
 		} catch (err: any) {
-			setError(err.message || '오류 발생')
+			const errorMessage = err.message || '오류 발생'
+			setError(errorMessage)
+			showToast(errorMessage, 'error')
 		} finally {
 			setLoading(false)
 		}
@@ -169,53 +187,46 @@ export default function DeptNumberSearchPopup() {
 								</tr>
 							)}
 							{results.map((item, idx) => (
-								// @ts-ignore: DB 응답이 대문자 속성일 수 있음
 								<tr
 									key={idx}
 									className='grid-tr'
 									onDoubleClick={() => handleRowDoubleClick(item)}
 								>
-									{/* @ts-ignore */}
 									<td
 										className='grid-td truncate max-w-[100px]'
-										title={item.deptNo || item.DEPT_NO}
+										title={item.deptNo}
 									>
-										{item.deptNo || item.DEPT_NO}
+										{item.deptNo}
 									</td>
-									{/* @ts-ignore */}
 									<td
 										className='grid-td truncate max-w-[180px]'
-										title={item.deptNm || item.DEPT_NM}
+										title={item.deptNm}
 									>
-										{item.deptNm || item.DEPT_NM}
+										{item.deptNm}
 									</td>
-									{/* @ts-ignore */}
 									<td
 										className='grid-td truncate max-w-[100px]'
-										title={item.strtDt || item.STRT_DT}
+										title={item.strtDt}
 									>
-										{item.strtDt || item.STRT_DT}
+										{item.strtDt}
 									</td>
-									{/* @ts-ignore */}
 									<td
 										className='grid-td truncate max-w-[100px]'
-										title={item.endDt || item.END_DT}
+										title={item.endDt}
 									>
-										{item.endDt || item.END_DT}
+										{item.endDt}
 									</td>
-									{/* @ts-ignore */}
 									<td
-										className='grid-td truncate max-w-[120px]'
-										title={item.hqDivNm || item.HQ_DIV_NM}
+										className='grid-td truncate max-w-[100px]'
+										title={item.hqDivNm}
 									>
-										{item.hqDivNm || item.HQ_DIV_NM}
+										{item.hqDivNm}
 									</td>
-									{/* @ts-ignore */}
 									<td
-										className='grid-td truncate max-w-[120px]'
-										title={item.deptDivNm || item.DEPT_DIV_NM}
+										className='grid-td truncate max-w-[100px]'
+										title={item.deptDivNm}
 									>
-										{item.deptDivNm || item.DEPT_DIV_NM}
+										{item.deptDivNm}
 									</td>
 								</tr>
 							))}

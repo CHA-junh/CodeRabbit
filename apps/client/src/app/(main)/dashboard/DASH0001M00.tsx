@@ -2,6 +2,21 @@
 
 import React from 'react'
 
+/**
+ * DASH0001M00 - 대시보드 메인 화면
+ * 
+ * 주요 기능:
+ * - 사업 현황 요약 표시
+ * - 프로젝트 진행 상황 표시
+ * - 추진비 사용 현황 표시
+ * - 권한별 대시보드 구성
+ * 
+ * 연관 테이블:
+ * - TBL_BSN_NO_INF (사업번호 정보)
+ * - TBL_BSN_PLAN (사업계획)
+ * - TBL_PPLCT_USE_SPEC (업무추진비 사용 내역)
+ */
+
 export default function DASH0001M00() {
 	return (
 		<div className='p-6'>

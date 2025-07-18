@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
 /**
@@ -79,6 +80,8 @@ export default function MainPage() {
    */
   const [gradeOptions, setGradeOptions] = useState<Array<{data: string, label: string}>>([]);
   const [positionOptions, setPositionOptions] = useState<Array<{data: string, label: string}>>([]);
+
+  const { showToast, showConfirm } = useToast();
 
   /**
    * 컴포넌트 초기화
@@ -164,7 +167,7 @@ export default function MainPage() {
   const handleSearch = async () => {
     // ASIS: validation check
     if (!searchCondition.year) {
-      alert('년도를 입력하세요.');
+      showToast('년도를 입력하세요.', 'warning');
       return;
     }
 
@@ -200,11 +203,11 @@ export default function MainPage() {
           handleRowClick(0);
         }
       } else {
-        alert('조회 중 오류가 발생했습니다.');
+        showToast('조회 중 오류가 발생했습니다.', 'error');
       }
     } catch (error) {
       console.error('검색 오류:', error);
-      alert('조회 중 오류가 발생했습니다.');
+      showToast('조회 중 오류가 발생했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -247,7 +250,7 @@ export default function MainPage() {
     }
 
     if (!formData.price) {
-      alert('단가를 입력하세요.');
+      showToast('단가를 입력하세요.', 'warning');
       return;
     }
 
@@ -271,20 +274,20 @@ export default function MainPage() {
         const data = await response.json();
         if (data.success || data.rtn === 'SUCCESS' || data.rtn === '1') {
           // ASIS: 저장 성공 후 메시지 표시
-          alert('저장되었습니다.');
+          showToast('저장되었습니다.', 'info');
           handleSearch(); // ASIS: 다시 조회
           clearForm(); // ASIS: 폼 초기화
         } else {
           // 실패 시 Oracle 에러 메시지 표시
           const errorMessage = data.message || data.rtn || '저장 중 오류가 발생했습니다.';
-          alert(`저장 실패: ${errorMessage}`);
+          showToast(`저장 실패: ${errorMessage}`, 'error');
         }
       } else {
-        alert('저장 중 오류가 발생했습니다.');
+        showToast('저장 중 오류가 발생했습니다.', 'error');
       }
     } catch (error) {
       console.error('저장 오류:', error);
-      alert('저장 중 오류가 발생했습니다.');
+      showToast('저장 중 오류가 발생했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -304,46 +307,48 @@ export default function MainPage() {
     }
 
     // ASIS: 사용자 확인
-    if (!confirm('선택한 항목을 삭제하시겠습니까?')) {
-      return;
-    }
+    showConfirm({
+      message: '선택한 항목을 삭제하시겠습니까?',
+      type: 'warning',
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          const response = await fetch('/api/unit-price/delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              ownOutsDiv: formData.type, // 자사/외주 구분
+              year: formData.year, // 년도
+              tcnGrd: formData.grade, // 기술등급
+              dutyCd: formData.position, // 직책
+            }),
+          });
 
-    setLoading(true);
-    try {
-      const response = await fetch('/api/unit-price/delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ownOutsDiv: formData.type, // 자사/외주 구분
-          year: formData.year, // 년도
-          tcnGrd: formData.grade, // 기술등급
-          dutyCd: formData.position, // 직책
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success || data.rtn === 'SUCCESS' || data.rtn === '1') {
-          // ASIS: 삭제 성공 후 메시지 표시
-          alert('삭제되었습니다.');
-          handleSearch(); // ASIS: 다시 조회
-          clearForm(); // ASIS: 폼 초기화
-        } else {
-          // 실패 시 Oracle 에러 메시지 표시
-          const errorMessage = data.message || data.rtn || '삭제 중 오류가 발생했습니다.';
-          alert(`삭제 실패: ${errorMessage}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success || data.rtn === 'SUCCESS' || data.rtn === '1') {
+              // ASIS: 삭제 성공 후 메시지 표시
+              showToast('삭제되었습니다.', 'info');
+              handleSearch(); // ASIS: 다시 조회
+              clearForm(); // ASIS: 폼 초기화
+            } else {
+              // 실패 시 Oracle 에러 메시지 표시
+              const errorMessage = data.message || data.rtn || '삭제 중 오류가 발생했습니다.';
+              showToast(`삭제 실패: ${errorMessage}`, 'error');
+            }
+          } else {
+            showToast('삭제 중 오류가 발생했습니다.', 'error');
+          }
+        } catch (error) {
+          console.error('삭제 오류:', error);
+          showToast('삭제 중 오류가 발생했습니다.', 'error');
+        } finally {
+          setLoading(false);
         }
-      } else {
-        alert('삭제 중 오류가 발생했습니다.');
       }
-    } catch (error) {
-      console.error('삭제 오류:', error);
-      alert('삭제 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   /**
@@ -355,19 +360,19 @@ export default function MainPage() {
   const validateForm = (): boolean => {
     // ASIS: 년도 필수 입력 체크
     if (!formData.year) {
-      alert('년도를 입력하세요.');
+      showToast('년도를 입력하세요.', 'warning');
       return false;
     }
 
     // ASIS: 기술등급 필수 입력 체크
     if (!formData.grade) {
-      alert('기술등급을 입력하세요.');
+      showToast('기술등급을 입력하세요.', 'warning');
       return false;
     }
 
     // ASIS: 자사인 경우 직책 필수 입력 체크
     if (formData.type === '1' && !formData.position) {
-      alert('직책을 입력하세요.');
+      showToast('직책을 입력하세요.', 'warning');
       return false;
     }
 

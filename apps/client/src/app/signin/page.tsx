@@ -5,6 +5,18 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import COM0020M00 from '../com/COM0020M00'
 
+/**
+ * Signin Page - 로그인 페이지
+ * 
+ * 주요 기능:
+ * - 인증 상태 확인
+ * - 로그인 화면 렌더링
+ * - 인증된 사용자 리다이렉트
+ * 
+ * 연관 컴포넌트:
+ * - COM0020M00 (로그인 Main 화면)
+ */
+
 export default function SigninPage() {
 	const { isAuthenticated, loading } = useAuth()
 	const router = useRouter()

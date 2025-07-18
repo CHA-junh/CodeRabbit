@@ -5,6 +5,18 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import COM0000M00 from './COM0000M00'
 
+/**
+ * Mainframe Page - 메인프레임 페이지
+ * 
+ * 주요 기능:
+ * - 인증 상태 확인
+ * - 메인프레임 화면 렌더링
+ * - 미인증 사용자 리다이렉트
+ * 
+ * 연관 컴포넌트:
+ * - COM0000M00 (메인프레임 화면)
+ */
+
 export default function MainframePage() {
 	const { isAuthenticated, loading } = useAuth()
 	const router = useRouter()

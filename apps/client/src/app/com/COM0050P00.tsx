@@ -1,13 +1,28 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import '@/app/common/common.css'
+
+/**
+ * COM0050P00 - 테스트 로그인 화면
+ * 
+ * 주요 기능:
+ * - 테스트용 사용자 로그인 처리
+ * - 팝업 윈도우 형태로 동작
+ * - 부모 윈도우 새로고침 연동
+ * 
+ * 연관 테이블:
+ * - TBL_USER_INF (사용자 정보)
+ * - TBL_EMP_INF (직원 정보)
+ * - TBL_DEPT (부서 정보)
+ * - TBL_LOGIN_LOG (로그인 로그)
+ */
 
 export default function TestLoginPopup() {
 	const [userId, setUserId] = useState('')
 	const [loading, setLoading] = useState(false)
-	const [error, setError] = useState<string | null>(null)
-	const [success, setSuccess] = useState<string | null>(null)
+	const { showToast } = useToast()
 
 	// API URL 환경변수 기반 설정
 	const apiUrl =
@@ -24,15 +39,11 @@ export default function TestLoginPopup() {
 	// 테스트 로그인 처리
 	const handleTestLogin = async () => {
 		if (!userId) {
-			setError('테스트 사용자ID를 입력해주세요.')
-			// 3초 후 에러 메시지 자동 제거
-			setTimeout(() => setError(null), 3000)
+			showToast('테스트 사용자ID를 입력해주세요.', 'warning')
 			return
 		}
 
 		setLoading(true)
-		setError(null)
-		setSuccess(null)
 
 		try {
 			const response = await fetch(apiUrl, {
@@ -47,21 +58,16 @@ export default function TestLoginPopup() {
 			const data = await response.json()
 
 			if (data.success) {
-				// 부모창 리프레시 후 팝업 닫기
 				if (window.opener) {
 					window.opener.location.reload()
 				}
 				window.close()
 			} else {
-				setError(data.message || '테스트 로그인에 실패했습니다.')
-				// 3초 후 에러 메시지 자동 제거
-				setTimeout(() => setError(null), 3000)
+				showToast(data.message || '테스트 로그인에 실패했습니다.', 'error')
 			}
 		} catch (err) {
-			setError('서버 연결에 실패했습니다.')
+			showToast('서버 연결에 실패했습니다.', 'error')
 			console.error('Test login error:', err)
-			// 3초 후 에러 메시지 자동 제거
-			setTimeout(() => setError(null), 3000)
 		} finally {
 			setLoading(false)
 		}
@@ -131,26 +137,6 @@ export default function TestLoginPopup() {
 						</tr>
 					</tbody>
 				</table>
-
-				{/* 에러 메시지 토스트 */}
-				{error && (
-					<div className='fixed top-4 right-4 z-50'>
-						<div className='bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center max-w-xs'>
-							<span className='mr-2 text-sm'>⚠</span>
-							<span className='text-sm'>{error}</span>
-						</div>
-					</div>
-				)}
-
-				{/* 성공 메시지 토스트 */}
-				{success && (
-					<div className='fixed top-4 right-4 z-50'>
-						<div className='bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center max-w-xs'>
-							<span className='mr-2 text-sm'>✓</span>
-							<span className='text-sm'>{success}</span>
-						</div>
-					</div>
-				)}
 
 				{/* 안내 문구 */}
 				<div className='px-3'>

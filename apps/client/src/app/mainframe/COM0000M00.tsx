@@ -9,7 +9,24 @@ import Maintab from './Maintab'
 import PageTitle from './PageTitle'
 import ContentFrame from './ContentFrame'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
-import Toast from '../../components/Toast'
+import { useToast } from '@/contexts/ToastContext'
+
+/**
+ * COM0000M00 - 메인프레임 화면
+ * 
+ * 주요 기능:
+ * - 메뉴 트리 표시 및 네비게이션
+ * - 탭 기반 화면 관리 (최대 5개)
+ * - 사용자 정보 표시
+ * - 로그아웃 처리
+ * 
+ * 연관 컴포넌트:
+ * - TopFrame (상단 헤더)
+ * - LeftFrame (좌측 아이콘바)
+ * - MenuTree (메뉴 트리)
+ * - Maintab (탭 관리)
+ * - ContentFrame (콘텐츠 영역)
+ */
 
 interface TabItem {
 	programId: string
@@ -19,6 +36,7 @@ interface TabItem {
 
 export default function COM0000M00() {
 	const { user, session, logout, isAuthenticated } = useAuth()
+	const { showToast } = useToast()
 	// 메뉴트리 show/hide 상태 (기본값을 false로 변경)
 	const [showMenuTree, setShowMenuTree] = useState(false)
 	// 메뉴트리 lock 상태
@@ -26,16 +44,6 @@ export default function COM0000M00() {
 	// 탭 배열 및 활성 탭 상태 추가
 	const [tabs, setTabs] = useState<TabItem[]>([])
 	const [activeTab, setActiveTab] = useState<string>('')
-	// 토스트 상태
-	const [toast, setToast] = useState<{
-		message: string
-		type: 'info' | 'warning' | 'error'
-		isVisible: boolean
-	}>({
-		message: '',
-		type: 'info',
-		isVisible: false,
-	})
 
 	// 인증되지 않은 경우 아무것도 렌더링하지 않음 (상위 컴포넌트에서 처리)
 	if (!isAuthenticated || !user) return null
@@ -74,12 +82,7 @@ export default function COM0000M00() {
 
 		// 탭 개수 제한 체크 (5개)
 		if (tabs.length >= 5) {
-			setToast({
-				message:
-					'최대 5개의 화면만 열 수 있습니다. 다른 화면을 닫고 다시 시도해주세요.',
-				type: 'warning',
-				isVisible: true,
-			})
+			showToast('최대 5개의 화면만 열 수 있습니다. 다른 화면을 닫고 다시 시도해주세요.', 'warning')
 			return
 		}
 		const menuPath = program.LINK_PATH
@@ -158,13 +161,6 @@ export default function COM0000M00() {
 
 	return (
 		<div className='w-screen h-screen flex flex-col overflow-hidden'>
-			{/* 토스트 알림 */}
-			<Toast
-				message={toast.message}
-				type={toast.type}
-				isVisible={toast.isVisible}
-				onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
-			/>
 			{/* 상단 고정 헤더 */}
 			<TopFrame
 				userName={user?.name}

@@ -1,6 +1,7 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { OracleService } from '../database/database.provider';
 import { COMZ050P00RequestDto, COMZ050P00ResponseDto, COMZ050P00ResultDto } from './dto/COMZ050P00.dto';
+import { toCamelCase } from '../utils/toCamelCase';
 
 @Injectable()
 export class COMZ050P00Service {
@@ -27,7 +28,8 @@ export class COMZ050P00Service {
         loginId ?? null,
       ]);
       
-      return result;
+      // 결과를 카멜케이스로 변환하여 반환
+      return toCamelCase(result);
     } catch (error) {
       this.logger.error('사업명 검색 중 오류', error);
       throw new InternalServerErrorException('사업명 검색 중 오류가 발생했습니다.');

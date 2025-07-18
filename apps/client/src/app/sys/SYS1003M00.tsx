@@ -22,6 +22,23 @@ import {
 	fetchMenus,
 } from "../../modules/sys/services"; // 서비스 import
 import PgmSearchPopup from "@/app/designs/SYS1010D00"; // 프로그램 찾기 팝업 컴포넌트
+import { useToast } from '@/contexts/ToastContext';
+
+/**
+ * SYS1003M00 - 사용자역할 관리 화면
+ * 
+ * 주요 기능:
+ * - 사용자 역할 등록/수정/삭제
+ * - 프로그램 그룹 권한 관리
+ * - 역할 복사 기능
+ * - 메뉴별 권한 설정
+ * 
+ * 연관 테이블:
+ * - TBL_USER_ROLE (사용자 역할)
+ * - TBL_USER_ROLE_PGM_GRP (사용자 역할 프로그램 그룹)
+ * - TBL_MENU_INF (메뉴 정보)
+ * - TBL_PGM_GRP (프로그램 그룹)
+ */
 
 // --- 공통코드 정의 ---
 const useYnCodes = [
@@ -49,6 +66,7 @@ const orgInqRngCodes = [
 type PgmGrpRow = ProgramGroupData;
 
 export default function RoleManagementPage() {
+	const { showToast, showConfirm } = useToast();
 	const [rowData, setRowData] = useState<TblUserRole[]>([]);
 	const [selectedRole, setSelectedRole] = useState<TblUserRole | null>(null);
 	const [pgmGrpRowData, setPgmGrpRowData] = useState<PgmGrpRow[]>([]);
@@ -127,7 +145,7 @@ export default function RoleManagementPage() {
 			}
 		} catch (error) {
 			console.error(error);
-			alert("데이터를 불러오는 중 오류가 발생했습니다.");
+			showToast("데이터를 불러오는 중 오류가 발생했습니다.", "error");
 		}
 	};
 
@@ -140,7 +158,7 @@ export default function RoleManagementPage() {
 				setMenuList(menus);
 			} catch (error) {
 				console.error(error);
-				alert("메뉴 목록을 불러오는 중 오류가 발생했습니다.");
+				showToast("메뉴 목록을 불러오는 중 오류가 발생했습니다.", "error");
 			}
 		};
 		loadMenus();
@@ -157,36 +175,101 @@ export default function RoleManagementPage() {
 
 	const handleSave = async () => {
 		if (!selectedRole) {
-			alert("저장할 역할을 선택해주세요.");
+			showToast("저장할 역할을 선택해주세요.", "warning");
 			return;
 		}
 
 		// 유효성 검사
 		if (!selectedRole.usrRoleNm) {
-			alert("사용자역할명을 입력해주세요.");
+			showToast("사용자역할명을 입력해주세요.", "warning");
 			return;
 		}
 		if (!selectedRole.useYn) {
-			alert("사용여부를 선택해주세요.");
+			showToast("사용여부를 선택해주세요.", "warning");
 			return;
 		}
 		if (!selectedRole.menuId) {
-			alert("메뉴를 선택해주세요.");
+			showToast("메뉴를 선택해주세요.", "warning");
 			return;
 		}
 		if (!selectedRole.athrGrdCd) {
-			alert("등급을 선택해주세요.");
+			showToast("등급을 선택해주세요.", "warning");
 			return;
 		}
 		if (!selectedRole.orgInqRngCd) {
-			alert("조직조회범위를 선택해주세요.");
+			showToast("조직조회범위를 선택해주세요.", "warning");
 			return;
 		}
 
 		// 저장 확인 메시지
-		if (!window.confirm("저장하시겠습니까?")) {
-			return;
-		}
+		showConfirm({
+			message: "저장하시겠습니까?",
+			type: "info",
+			onConfirm: async () => {
+				// 저장 로직을 여기로 이동
+				if (!selectedRole) return;
+				
+				try {
+					// 디버깅: 저장할 데이터 로그 출력
+					console.log("=== 저장할 역할 데이터 ===");
+					console.log("selectedRole:", selectedRole);
+					console.log("usrRoleId:", selectedRole.usrRoleId);
+					console.log("usrRoleNm:", selectedRole.usrRoleNm);
+					console.log("athrGrdCd:", selectedRole.athrGrdCd);
+					console.log("orgInqRngCd:", selectedRole.orgInqRngCd);
+					console.log("menuId:", selectedRole.menuId);
+					console.log("useYn:", selectedRole.useYn);
+
+					// 1. 역할 상세 정보 저장
+					// usrRoleId가 빈 문자열이면 신규 저장, 아니면 수정
+					const isNewRole =
+						!selectedRole.usrRoleId || selectedRole.usrRoleId.trim() === "";
+
+					console.log("isNewRole:", isNewRole);
+
+					const saveResult = await saveUserRoles({
+						createdRows: isNewRole ? [selectedRole] : [],
+						updatedRows: isNewRole ? [] : [selectedRole],
+						deletedRows: [],
+					});
+
+					// 2. 프로그램 그룹 정보 저장
+					if (pgmGrpGridRef.current?.api) {
+						const selectedPgmGrps = pgmGrpGridRef.current.api
+							.getSelectedRows()
+							.map((row) => ({
+								usrRoleId: selectedRole.usrRoleId || "", // 신규 시에는 빈 문자열
+								pgmGrpId: row.pgmGrpId,
+								useYn: row.useYn || "Y", // 기본값 설정
+							}));
+
+						// 신규 저장 시에는 저장 후 반환된 역할 ID를 사용
+						const roleIdToUse =
+							isNewRole && saveResult.savedRoles.length > 0
+								? saveResult.savedRoles[0].usrRoleId
+								: selectedRole.usrRoleId;
+
+						// 선택된 프로그램 그룹이 있는 경우에만 저장
+						if (selectedPgmGrps.length > 0) {
+							await saveProgramGroups(roleIdToUse, selectedPgmGrps);
+						}
+					}
+
+					showToast("성공적으로 저장되었습니다.", "info");
+
+					// 저장 후 버튼 상태 업데이트
+					setIsNewMode(false);
+					setIsCopyButtonEnabled(false);
+
+					// 기존 시스템과 동일하게 전체 화면 초기화 (프로그램 그룹 목록도 재조회)
+					handleSaveInitialize();
+				} catch (error) {
+					console.error(error);
+					showToast((error as Error).message, "error");
+				}
+			}
+		});
+		return;
 
 		// 역할 정보와 프로그램 그룹 정보를 함께 저장
 		try {
@@ -235,7 +318,7 @@ export default function RoleManagementPage() {
 				}
 			}
 
-			alert("성공적으로 저장되었습니다.");
+			showToast("성공적으로 저장되었습니다.", "success");
 
 			// 저장 후 버튼 상태 업데이트
 			setIsNewMode(false);
@@ -245,7 +328,7 @@ export default function RoleManagementPage() {
 			handleSaveInitialize();
 		} catch (error) {
 			console.error(error);
-			alert((error as Error).message);
+			showToast((error as Error).message, "error");
 		}
 	};
 
@@ -318,7 +401,7 @@ export default function RoleManagementPage() {
 			setPgmGrpRowData(allPgmGrps);
 		} catch (error) {
 			console.error(error);
-			alert("프로그램 그룹 목록을 불러오는 중 오류가 발생했습니다.");
+			showToast("프로그램 그룹 목록을 불러오는 중 오류가 발생했습니다.", "error");
 		}
 
 		// 상태를 마지막에 업데이트 (다른 함수 호출 후)
@@ -359,7 +442,7 @@ export default function RoleManagementPage() {
 				setPgmGrpRowData(pgmGrps); // 변환 없이 그대로 할당
 			} catch (error) {
 				console.error(error);
-				alert("프로그램 그룹을 불러오는 중 오류가 발생했습니다.");
+				showToast("프로그램 그룹을 불러오는 중 오류가 발생했습니다.", "error");
 			}
 		} else {
 			setSelectedRole(null);
@@ -406,7 +489,7 @@ export default function RoleManagementPage() {
 		if (!pgmGrpGridRef.current) return;
 		const selectedNodes = pgmGrpGridRef.current.api.getSelectedNodes();
 		if (selectedNodes.length === 0) {
-			alert("삭제할 프로그램 그룹을 선택해주세요.");
+			showToast("삭제할 프로그램 그룹을 선택해주세요.", "warning");
 			return;
 		}
 		const selectedIds = selectedNodes
@@ -420,21 +503,23 @@ export default function RoleManagementPage() {
 	// 역할 복사 핸들러
 	const handleCopyRole = async () => {
 		if (!selectedRole) {
-			alert("복사할 역할을 선택해주세요.");
+			showToast("복사할 역할을 선택해주세요.", "warning");
 			return;
 		}
-		if (
-			window.confirm(`'${selectedRole.usrRoleNm}' 역할을 복사하시겠습니까?`)
-		) {
-			try {
-				await copyUserRole(selectedRole.usrRoleId);
-				alert("역할이 복사되었습니다.");
-				loadData(); // 목록 새로고침
-			} catch (error) {
-				console.error(error);
-				alert((error as Error).message);
+		showConfirm({
+			message: `'${selectedRole.usrRoleNm}' 역할을 복사하시겠습니까?`,
+			type: "info",
+			onConfirm: async () => {
+				try {
+					await copyUserRole(selectedRole.usrRoleId);
+					showToast("역할이 복사되었습니다.", "info");
+					loadData(); // 목록 새로고침
+				} catch (error) {
+					console.error(error);
+					showToast((error as Error).message, "error");
+				}
 			}
-		}
+		});
 	};
 
 	return (

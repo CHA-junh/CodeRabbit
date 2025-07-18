@@ -28,14 +28,8 @@ export class COMZ040P00Controller {
     try {
       console.log('📥 사업번호 검색 요청 받음');
       console.log('📋 요청 본문:', body);
-
-      // 세션에서 로그인 사용자 정보 가져오기
-      const loginId = req.session.user?.userId || req.session.user?.empNo || '';
-
-      const result = await this.comz040p00Service.searchBusiness({
-        ...body,
-        loginId,
-      });
+      
+      const result = await this.comz040p00Service.searchBusiness(body);
 
       return {
         success: true,

@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { OracleService } from '../database/database.provider';
+import { toCamelCase } from '../utils/toCamelCase';
 
 @Injectable()
 export class COMZ010M00Service {
@@ -18,7 +19,8 @@ export class COMZ010M00Service {
       // OracleService의 executeProcedure 메서드 사용
       const result = await this.oracleService.executeProcedure(procName, params);
       
-      return result;
+      // 결과를 카멜케이스로 변환하여 반환
+      return toCamelCase(result);
     } catch (error) {
       this.logger.error('시스템코드관리 프로시저 호출 오류:', error);
       throw new InternalServerErrorException('시스템코드관리 프로시저 호출 오류');

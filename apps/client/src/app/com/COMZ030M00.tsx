@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
 /**
@@ -57,6 +58,7 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
   initialYear,
   autoSearch = false
 }, ref) => {
+  const { showToast } = useToast();
   /**
    * 자사/외주 구분 상태 관리
    * ASIS: rdIODiv.selectedValue
@@ -125,7 +127,7 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
   const handleSearch = async () => {
     // ASIS: validation check
     if (!year.trim()) {
-      alert('년도를 입력하세요.');
+      showToast('안내', '년도를 입력하세요.', 'info');
       return;
     }
 
@@ -147,12 +149,12 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
       } else {
         const errorData = await res.json();
         const errorMessage = errorData.message || '등급별 단가 조회 중 오류가 발생했습니다.';
-        alert(errorMessage);
+        showToast('경고', errorMessage, 'warning');
         setGridData([]);
       }
     } catch (error) {
       console.error('등급별 단가 조회 오류:', error);
-      alert('등급별 단가 조회 중 오류가 발생했습니다.');
+      showToast('오류', '등급별 단가 조회 중 오류가 발생했습니다.', 'error');
       setGridData([]);
     } finally {
       setLoading(false);

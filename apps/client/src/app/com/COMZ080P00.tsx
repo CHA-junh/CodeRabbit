@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
 /**
@@ -154,6 +155,8 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
    */
   const [retirYn, setRetirYn] = useState(true)
 
+  const { showToast } = useToast()
+
   /**
    * 직원 검색 함수 (API 호출)
    * ASIS: onSearchClick() 함수와 동일한 역할
@@ -164,7 +167,7 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
   const handleSearch = async () => {
     // ASIS: validation check
     if (!empNm.trim()) {
-      alert('사원명을 입력해주세요.')
+      showToast('사원명을 입력해주세요.', 'warning')
       return
     }
 
@@ -188,17 +191,17 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
         
         // ASIS: 검색 결과가 없고 검색어가 있는 경우 알림
         if (empData.data.length === 0 && empNm.trim()) {
-          alert('해당 직원명은 존재하지 않습니다.')
+          showToast('해당 직원명은 존재하지 않습니다.', 'warning')
         }
       } else {
         const errorData = await res.json()
         const errorMessage = errorData.message || '검색 중 오류가 발생했습니다.'
-        alert(errorMessage)
+        showToast(errorMessage, 'error')
         setEmployees([])
       }
     } catch (e) {
       console.error('검색 실패:', e)
-      alert('검색 중 오류가 발생했습니다.')
+      showToast('검색 중 오류가 발생했습니다.', 'error')
       setEmployees([])
     } finally {
       setLoading(false)

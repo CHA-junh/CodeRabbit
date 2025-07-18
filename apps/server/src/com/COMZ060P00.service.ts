@@ -1,6 +1,7 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { OracleService } from '../database/database.provider';
 import { COMZ060P00ResultDto, COMZ060P00ResponseDto } from './dto/COMZ060P00.dto';
+import { toCamelCase } from '../utils/toCamelCase';
 
 const DEPT_NO_SEARCH_CONSTANTS = {
   MAX_ROWS: 100,
@@ -30,7 +31,8 @@ export class COMZ060P00Service {
         deptDivCd ?? null,
       ]);
       
-      return result;
+      // 결과를 카멜케이스로 변환하여 반환
+      return toCamelCase(result);
     } catch (error) {
       this.logger.error('부서번호 검색 중 오류:', error);
       throw new InternalServerErrorException('부서번호 검색 중 오류가 발생했습니다.');

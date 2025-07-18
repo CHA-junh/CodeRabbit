@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
 /**
@@ -168,6 +169,8 @@ const EmployeeSearchPopup = forwardRef<EmployeeSearchPopupRef, EmployeeSearchPop
    */
   const [loading, setLoading] = useState(false)
 
+  const { showToast } = useToast();
+
   /**
    * 초기화 및 자동 조회
    * ASIS: initialize="init()"
@@ -259,36 +262,32 @@ const EmployeeSearchPopup = forwardRef<EmployeeSearchPopupRef, EmployeeSearchPop
    * - 응답: 직원 목록 (EmployeeInfo[])
    */
   const handleSearch = async () => {
-    // TODO: 실제 API 호출 구현
-    console.log('직원 검색:', empNm)
+    if (!empNm.trim()) {
+      showToast('직원명을 입력해주세요.', 'warning');
+      return;
+    }
     setLoading(true);
     try {
-      // 임시로 샘플 데이터 사용 (실제로는 API 호출)
-      // const response = await fetch('/api/employee/search', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ empNm })
-      // });
-      // if (response.ok) {
-      //   const data = await response.json();
-      //   setEmployees(data.data || []);
-      // } else {
-      //   alert('검색 중 오류가 발생했습니다.');
-      //   setEmployees([]);
-      // }
-      
-      // 임시 구현: 검색어가 있으면 필터링된 결과 반환
-      if (empNm.trim()) {
-        const filteredEmployees = initialEmpList.filter(emp => 
-          emp.EMP_NM.includes(empNm.trim())
-        );
-        setEmployees(filteredEmployees);
+      const res = await fetch('/api/employee/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empNm: empNm.trim() })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEmployees(data.data);
+        if (data.data.length === 0 && empNm.trim()) {
+          showToast('해당 직원명은 존재하지 않습니다.', 'warning');
+        }
       } else {
-        setEmployees(initialEmpList);
+        const errorData = await res.json();
+        const errorMessage = errorData.message || '검색 중 오류가 발생했습니다.';
+        showToast(errorMessage, 'error');
+        setEmployees([]);
       }
-    } catch (error) {
-      console.error('검색 오류:', error);
-      alert('검색 중 오류가 발생했습니다.');
+    } catch (e) {
+      console.error('검색 실패:', e);
+      showToast('검색 중 오류가 발생했습니다.', 'error');
       setEmployees([]);
     } finally {
       setLoading(false);

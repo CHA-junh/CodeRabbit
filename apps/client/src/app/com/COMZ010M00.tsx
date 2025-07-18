@@ -2,76 +2,68 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/modules/auth/hooks/useAuth'
+import { useToast } from '@/contexts/ToastContext'
 import '@/app/common/common.css'
+
+/**
+ * COMZ010M00 - (팝)시스템코드관리 화면
+ * 
+ * 주요 기능:
+ * - 대분류 코드 관리 (등록/수정/삭제)
+ * - 소분류 코드 관리 (등록/수정/삭제)
+ * - 코드 중복 체크 및 유효성 검증
+ * - 권한별 접근 제어
+ * 
+ * 연관 테이블:
+ * - TBL_LRG_CSF_CD (대분류 코드)
+ * - TBL_SML_CSF_CD (소분류 코드)
+ * - TBL_SYS_CODE (시스템 코드)
+ */
 
 // 대분류 코드 타입
 interface LargeCode {
-	LRG_CSF_CD: string
-	LRG_CSF_NM: string
-	USE_YN: string
-	EXPL: string
+	lrgCsfCd: string
+	lrgCsfNm: string
+	useYn: string
+	expl: string
 }
 
 // 소분류 코드 타입
 interface SmallCode {
-	SML_CSF_CD: string
-	SML_CSF_NM: string
-	SORT_ORD: number
-	USE_YN: string
-	EXPL: string
-	LINK_CD1: string
-	LINK_CD2: string
-	LINK_CD3: string // 추가, 화면에는 숨김
-	LRG_CSF_CD: string
+	smlCsfCd: string
+	smlCsfNm: string
+	sortOrd: number
+	useYn: string
+	expl: string
+	linkCd1: string
+	linkCd2: string
+	linkCd3: string // 추가, 화면에는 숨김
+	lrgCsfCd: string
 }
 
 const defaultLargeCode: LargeCode = {
-	LRG_CSF_CD: '',
-	LRG_CSF_NM: '',
-	USE_YN: 'Y',
-	EXPL: '',
+	lrgCsfCd: '',
+	lrgCsfNm: '',
+	useYn: 'Y',
+	expl: '',
 }
 
 const defaultSmallCode: SmallCode = {
-	SML_CSF_CD: '',
-	SML_CSF_NM: '',
-	SORT_ORD: 1,
-	USE_YN: 'Y',
-	EXPL: '',
-	LINK_CD1: '',
-	LINK_CD2: '',
-	LINK_CD3: '', // 추가, 화면에는 숨김
-	LRG_CSF_CD: '',
-}
-
-// 토스트 알림 컴포넌트
-const Toast: React.FC<{
-	message: string
-	type?: 'success' | 'error'
-	onClose: () => void
-}> = ({ message, type = 'success', onClose }) => {
-	useEffect(() => {
-		if (message) {
-			const timer = setTimeout(onClose, 2000)
-			return () => clearTimeout(timer)
-		}
-	}, [message, onClose])
-	if (!message) return null
-	return (
-		<div
-			className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-2 rounded shadow-lg text-white text-sm font-semibold ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
-			role='alert'
-			aria-live='assertive'
-		>
-			{message}
-		</div>
-	)
+	smlCsfCd: '',
+	smlCsfNm: '',
+	sortOrd: 1,
+	useYn: 'Y',
+	expl: '',
+	linkCd1: '',
+	linkCd2: '',
+	linkCd3: '', // 추가, 화면에는 숨김
+	lrgCsfCd: '',
 }
 
 const COMZ010M00Page = () => {
 	// 검색 상태
-	const [searchLRG_CSF_CD, setSearchLRG_CSF_CD] = useState('')
-	const [searchLRG_CSF_NM, setSearchLRG_CSF_NM] = useState('')
+	const [searchLrgCsfCd, setSearchLrgCsfCd] = useState('')
+	const [searchLrgCsfNm, setSearchLrgCsfNm] = useState('')
 
 	// 목록 상태
 	const [largeCodes, setLargeCodes] = useState<LargeCode[]>([])
@@ -82,15 +74,16 @@ const COMZ010M00Page = () => {
 	const [largeForm, setLargeForm] = useState<LargeCode>(defaultLargeCode)
 	const [smallForm, setSmallForm] = useState<SmallCode>(defaultSmallCode)
 
+	// 원본 데이터 저장 (변경사항 체크용)
+	const [originalLargeForm, setOriginalLargeForm] = useState<LargeCode>(defaultLargeCode)
+	const [originalSmallForm, setOriginalSmallForm] = useState<SmallCode>(defaultSmallCode)
+
 	// 로딩/에러 상태
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [toast, setToast] = useState<{
-		message: string
-		type: 'success' | 'error'
-	}>({ message: '', type: 'success' })
 
 	const { session } = useAuth()
+	const { showToast, showConfirm } = useToast()
 	const USER_ID = session.user?.userId || session.user?.empNo || 'SYSTEM'
 
 	const apiUrl =
@@ -98,8 +91,39 @@ const COMZ010M00Page = () => {
 			? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/COMZ010M00`
 			: '/api/COMZ010M00'
 
+	// 입력값 제한 정규식
+	const codeRegex = /^[A-Z0-9]{1,4}$/ // 대분류/소분류 코드: 영문대문자+숫자 1-4자
+	const nameRegex = /^[가-힣A-Za-z0-9\s]{1,50}$/ // 명칭: 한글+영문+숫자+공백 1-50자
+	const numberRegex = /^[0-9]{1,3}$/ // 정렬순서: 숫자 1-3자
+	const linkCodeRegex = /^[A-Z0-9]{0,10}$/ // 연결코드: 영문대문자+숫자 0-10자
+
+	// 입력값 검증 함수
+	const validateInput = (name: string, value: string): boolean => {
+		switch (name) {
+			case 'lrgCsfCd':
+			case 'smlCsfCd':
+				return codeRegex.test(value) || value === ''
+			case 'lrgCsfNm':
+			case 'smlCsfNm':
+				return nameRegex.test(value) || value === ''
+			case 'sortOrd':
+				return numberRegex.test(value) || value === ''
+			case 'linkCd1':
+			case 'linkCd2':
+			case 'linkCd3':
+				return linkCodeRegex.test(value) || value === ''
+			default:
+				return true
+		}
+	}
+
+	// 변경사항 체크 함수
+	const hasChanges = (current: any, original: any): boolean => {
+		return JSON.stringify(current) !== JSON.stringify(original)
+	}
+
 	// 대분류 코드 목록 조회 함수
-	const fetchLargeCodes = async (LRG_CSF_CD = '', LRG_CSF_NM = '') => {
+	const fetchLargeCodes = async (lrgCsfCd = '', lrgCsfNm = '') => {
 		setLoading(true)
 		setError(null)
 		try {
@@ -108,7 +132,7 @@ const COMZ010M00Page = () => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					SP: 'COM_01_0101_S(?,?)',
-					PARAM: `${LRG_CSF_CD}|${LRG_CSF_NM}`,
+					PARAM: `${lrgCsfCd}|${lrgCsfNm}`,
 				}),
 			})
 			if (!res.ok) throw new Error('조회 실패')
@@ -116,6 +140,7 @@ const COMZ010M00Page = () => {
 			setLargeCodes(data.data || [])
 		} catch (e: any) {
 			setError(e.message || '에러 발생')
+			showToast(e.message || '에러 발생', 'error')
 		} finally {
 			setLoading(false)
 		}
@@ -139,6 +164,7 @@ const COMZ010M00Page = () => {
 			setSmallCodes(data.data || [])
 		} catch (e: any) {
 			setError(e.message || '에러 발생')
+			showToast(e.message || '에러 발생', 'error')
 		} finally {
 			setLoading(false)
 		}
@@ -146,36 +172,41 @@ const COMZ010M00Page = () => {
 
 	// 검색 핸들러
 	const handleSearch = () => {
-		fetchLargeCodes(searchLRG_CSF_CD, searchLRG_CSF_NM)
+		fetchLargeCodes(searchLrgCsfCd, searchLrgCsfNm)
 		setLargeForm(defaultLargeCode) // 대분류 등록 폼 초기화
 		setSmallForm(defaultSmallCode) // 소분류 등록 폼 초기화
 		setSmallCodes([]) // 소분류 그리드 초기화
 		setSelectedLarge(null) // 대분류 선택 해제
+		setOriginalLargeForm(defaultLargeCode)
+		setOriginalSmallForm(defaultSmallCode)
 	}
 
 	// 대분류 행 클릭 시 소분류 목록 조회
 	const handleLargeRowClick = (row: LargeCode) => {
 		setSelectedLarge(row)
 		setLargeForm(row)
-		fetchSmallCodes(row.LRG_CSF_CD)
+		setOriginalLargeForm(row) // 원본 데이터 저장
+		fetchSmallCodes(row.lrgCsfCd)
 	}
 
 	// 대분류 행 더블클릭 시 폼 포커스
 	const handleLargeRowDoubleClick = (row: LargeCode) => {
 		setSelectedLarge(row)
 		setLargeForm(row)
+		setOriginalLargeForm(row) // 원본 데이터 저장
 		setTimeout(() => {
 			document
-				.querySelector<HTMLInputElement>('input[name="LRG_CSF_CD"]')
+				.querySelector<HTMLInputElement>('input[name="lrgCsfCd"]')
 				?.focus()
 		}, 0)
 	}
 	// 소분류 행 더블클릭 시 폼 포커스
 	const handleSmallRowDoubleClick = (row: SmallCode) => {
 		setSmallForm(row)
+		setOriginalSmallForm(row) // 원본 데이터 저장
 		setTimeout(() => {
 			document
-				.querySelector<HTMLInputElement>('input[name="SML_CSF_CD"]')
+				.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
 				?.focus()
 		}, 0)
 	}
@@ -184,59 +215,78 @@ const COMZ010M00Page = () => {
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
 		const { name, value } = e.target
+		
+		// 입력값 검증
+		if (!validateInput(name, value)) {
+			return
+		}
+		
 		setLargeForm((prev) => ({ ...prev, [name]: value }))
 	}
 
 	const handleLargeNew = () => {
 		setLargeForm(defaultLargeCode)
+		setOriginalLargeForm(defaultLargeCode)
 		setSelectedLarge(null)
 	}
 
 	// 대분류 코드 중복 체크
 	const isLargeCodeDuplicate = (code: string) => {
-		return largeCodes.some((item) => item.LRG_CSF_CD === code)
+		return largeCodes.some((item) => item.lrgCsfCd === code)
 	}
 	// 소분류 코드 중복 체크
 	const isSmallCodeDuplicate = (code: string) => {
-		return smallCodes.some((item) => item.SML_CSF_CD === code)
+		return smallCodes.some((item) => item.smlCsfCd === code)
 	}
 
 	// 대분류 저장(등록/수정)
 	const handleLargeSave = async () => {
-		// 필수값 체크
-		if (!largeForm.LRG_CSF_CD) {
-			setError('대분류코드를 입력하세요.')
-			setToast({ message: '대분류코드를 입력하세요.', type: 'error' })
-			document
-				.querySelector<HTMLInputElement>('input[name="LRG_CSF_CD"]')
-				?.focus()
+		// 변경사항 체크
+		if (!hasChanges(largeForm, originalLargeForm)) {
+			showToast('변경된 내용이 없습니다.', 'warning')
 			return
 		}
-		if (!largeForm.LRG_CSF_NM) {
+
+		// 필수값 체크
+		if (!largeForm.lrgCsfCd) {
+			setError('대분류코드를 입력하세요.')
+			showToast('대분류코드를 입력하세요.', 'error')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="lrgCsfCd"]')
+					?.focus()
+			}, 100)
+			return
+		}
+		if (!largeForm.lrgCsfNm) {
 			setError('대분류명을 입력하세요.')
-			setToast({ message: '대분류명을 입력하세요.', type: 'error' })
-			document
-				.querySelector<HTMLInputElement>('input[name="LRG_CSF_NM"]')
-				?.focus()
+			showToast('대분류명을 입력하세요.', 'error')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="lrgCsfNm"]')
+					?.focus()
+			}, 100)
 			return
 		}
 		// 신규 등록 시 중복 체크 (수정은 허용)
-		if (!selectedLarge && isLargeCodeDuplicate(largeForm.LRG_CSF_CD)) {
+		if (!selectedLarge && isLargeCodeDuplicate(largeForm.lrgCsfCd)) {
 			setError('이미 존재하는 대분류코드입니다.')
-			setToast({ message: '이미 존재하는 대분류코드입니다.', type: 'error' })
-			document
-				.querySelector<HTMLInputElement>('input[name="LRG_CSF_CD"]')
-				?.focus()
+			showToast('이미 존재하는 대분류코드입니다.', 'error')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="lrgCsfCd"]')
+					?.focus()
+			}, 100)
 			return
 		}
 		setLoading(true)
 		setError(null)
 		try {
 			const param = [
-				largeForm.LRG_CSF_CD,
-				largeForm.LRG_CSF_NM,
-				largeForm.USE_YN,
-				largeForm.EXPL,
+				largeForm.lrgCsfCd,
+				largeForm.lrgCsfNm,
+				largeForm.useYn,
+				largeForm.expl,
 				USER_ID,
 			].join('|')
 			const res = await fetch(apiUrl, {
@@ -250,16 +300,17 @@ const COMZ010M00Page = () => {
 			if (!res.ok) throw new Error('저장 실패')
 			await fetchLargeCodes()
 			setLargeForm(defaultLargeCode)
+			setOriginalLargeForm(defaultLargeCode)
 			setSelectedLarge(null)
 			setTimeout(() => {
 				document
-					.querySelector<HTMLInputElement>('input[name="LRG_CSF_CD"]')
+					.querySelector<HTMLInputElement>('input[name="lrgCsfCd"]')
 					?.focus()
-			}, 0)
-			setToast({ message: '대분류코드 저장 완료', type: 'success' })
+			}, 100)
+			showToast('대분류코드 저장 완료', 'info')
 		} catch (e: any) {
 			setError(e.message || '에러 발생')
-			setToast({ message: e.message || '에러 발생', type: 'error' })
+			showToast(e.message || '에러 발생', 'error')
 		} finally {
 			setLoading(false)
 		}
@@ -267,41 +318,50 @@ const COMZ010M00Page = () => {
 
 	// 대분류 삭제
 	const handleLargeDelete = async () => {
-		if (!largeForm.LRG_CSF_CD) return
-		setLoading(true)
-		setError(null)
-		try {
-			const param = [largeForm.LRG_CSF_CD].join('|')
-			const res = await fetch(apiUrl, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					SP: 'COM_01_0103_D(?,?)',
-					PARAM: param,
-				}),
-			})
-			if (!res.ok) throw new Error('삭제 실패')
-			await fetchLargeCodes()
-			setLargeForm(defaultLargeCode)
-			setSelectedLarge(null)
-			setSmallCodes([])
-			setTimeout(() => {
-				document
-					.querySelector<HTMLInputElement>('input[name="LRG_CSF_CD"]')
-					?.focus()
-			}, 0)
-			setToast({ message: '대분류코드 삭제 완료', type: 'success' })
-		} catch (e: any) {
-			setError(e.message || '에러 발생')
-			setToast({ message: e.message || '에러 발생', type: 'error' })
-		} finally {
-			setLoading(false)
-		}
+		if (!largeForm.lrgCsfCd) return
+		
+		showConfirm({
+			message: '정말 삭제하시겠습니까?',
+			type: 'warning',
+			onConfirm: async () => {
+				setLoading(true)
+				setError(null)
+				try {
+					const param = [largeForm.lrgCsfCd].join('|')
+					const res = await fetch(apiUrl, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							SP: 'COM_01_0103_D(?,?)',
+							PARAM: param,
+						}),
+					})
+					if (!res.ok) throw new Error('삭제 실패')
+					await fetchLargeCodes()
+					setLargeForm(defaultLargeCode)
+					setOriginalLargeForm(defaultLargeCode)
+					setSelectedLarge(null)
+					setSmallCodes([])
+					setTimeout(() => {
+						document
+							.querySelector<HTMLInputElement>('input[name="lrgCsfCd"]')
+							?.focus()
+					}, 100)
+					showToast('대분류코드 삭제 완료', 'info')
+				} catch (e: any) {
+					setError(e.message || '에러 발생')
+					showToast(e.message || '에러 발생', 'error')
+				} finally {
+					setLoading(false)
+				}
+			}
+		})
 	}
 
 	// 소분류 행 클릭 핸들러
 	const handleSmallRowClick = (row: SmallCode) => {
 		setSmallForm(row)
+		setOriginalSmallForm(row) // 원본 데이터 저장
 	}
 
 	// 소분류 관련 핸들러
@@ -309,70 +369,93 @@ const COMZ010M00Page = () => {
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
 		const { name, value } = e.target
+		
+		// 입력값 검증
+		if (!validateInput(name, value)) {
+			return
+		}
+		
 		setSmallForm((prev) => ({ ...prev, [name]: value }))
 	}
 
 	const handleSmallNew = () => {
 		setSmallForm(defaultSmallCode)
+		setOriginalSmallForm(defaultSmallCode)
 		if (selectedLarge) {
 			setSmallForm((prev) => ({
 				...prev,
-				LRG_CSF_CD: selectedLarge.LRG_CSF_CD,
+				lrgCsfCd: selectedLarge.lrgCsfCd,
+			}))
+			setOriginalSmallForm((prev) => ({
+				...prev,
+				lrgCsfCd: selectedLarge.lrgCsfCd,
 			}))
 		}
 	}
 
 	// 소분류 저장(등록/수정)
 	const handleSmallSave = async () => {
-		// 필수값 체크
-		if (!smallForm.SML_CSF_CD) {
-			setError('소분류코드를 입력하세요.')
-			setToast({ message: '소분류코드를 입력하세요.', type: 'error' })
-			document
-				.querySelector<HTMLInputElement>('input[name="SML_CSF_CD"]')
-				?.focus()
+		// 변경사항 체크
+		if (!hasChanges(smallForm, originalSmallForm)) {
+			showToast('변경된 내용이 없습니다.', 'warning')
 			return
 		}
-		if (!smallForm.SML_CSF_NM) {
+
+		// 필수값 체크
+		if (!smallForm.smlCsfCd) {
+			setError('소분류코드를 입력하세요.')
+			showToast('소분류코드를 입력하세요.', 'error')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
+					?.focus()
+			}, 100)
+			return
+		}
+		if (!smallForm.smlCsfNm) {
 			setError('소분류명을 입력하세요.')
-			setToast({ message: '소분류명을 입력하세요.', type: 'error' })
-			document
-				.querySelector<HTMLInputElement>('input[name="SML_CSF_NM"]')
-				?.focus()
+			showToast('소분류명을 입력하세요.', 'error')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="smlCsfNm"]')
+					?.focus()
+			}, 100)
 			return
 		}
 		// 신규 등록 시 중복 체크 (수정은 허용)
-		if (!smallForm.LRG_CSF_CD) {
+		if (!smallForm.lrgCsfCd) {
 			setError('대분류코드를 먼저 선택하세요.')
-			setToast({ message: '대분류코드를 먼저 선택하세요.', type: 'error' })
+			showToast('대분류코드를 먼저 선택하세요.', 'error')
 			return
 		}
 		if (!smallCodes || !Array.isArray(smallCodes)) {
 			setError('소분류 목록이 올바르지 않습니다.')
-			setToast({ message: '소분류 목록이 올바르지 않습니다.', type: 'error' })
+			showToast('소분류 목록이 올바르지 않습니다.', 'error')
 			return
 		}
-		if (!selectedLarge && isSmallCodeDuplicate(smallForm.SML_CSF_CD)) {
+		if (!selectedLarge && isSmallCodeDuplicate(smallForm.smlCsfCd)) {
 			setError('이미 존재하는 소분류코드입니다.')
-			setToast({ message: '이미 존재하는 소분류코드입니다.', type: 'error' })
-			document
-				.querySelector<HTMLInputElement>('input[name="SML_CSF_CD"]')
-				?.focus()
+			showToast('이미 존재하는 소분류코드입니다.', 'error')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
+					?.focus()
+			}, 100)
 			return
 		}
 		setLoading(true)
 		setError(null)
 		try {
 			const param = [
-				smallForm.LRG_CSF_CD,
-				smallForm.SML_CSF_CD,
-				smallForm.SML_CSF_NM,
-				smallForm.LINK_CD1,
-				smallForm.LINK_CD2,
-				smallForm.LINK_CD3, // 추가
-				smallForm.SORT_ORD,
-				smallForm.USE_YN,
-				smallForm.EXPL,
+				smallForm.lrgCsfCd,
+				smallForm.smlCsfCd,
+				smallForm.smlCsfNm,
+				smallForm.linkCd1,
+				smallForm.linkCd2,
+				smallForm.linkCd3, // 추가
+				smallForm.sortOrd,
+				smallForm.useYn,
+				smallForm.expl,
 				USER_ID,
 			].join('|')
 			const fetchBody = {
@@ -389,17 +472,18 @@ const COMZ010M00Page = () => {
 				data = await res.json()
 			} catch (jsonErr) {}
 			if (!res.ok) throw new Error('저장 실패')
-			if (smallForm.LRG_CSF_CD) await fetchSmallCodes(smallForm.LRG_CSF_CD)
+			if (smallForm.lrgCsfCd) await fetchSmallCodes(smallForm.lrgCsfCd)
 			setSmallForm(defaultSmallCode)
+			setOriginalSmallForm(defaultSmallCode)
 			setTimeout(() => {
 				document
-					.querySelector<HTMLInputElement>('input[name="SML_CSF_CD"]')
+					.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
 					?.focus()
-			}, 0)
-			setToast({ message: '소분류코드 저장 완료', type: 'success' })
+			}, 100)
+			showToast('소분류코드 저장 완료', 'info')
 		} catch (e: any) {
 			setError(e.message || '에러 발생')
-			setToast({ message: e.message || '에러 발생', type: 'error' })
+			showToast(e.message || '에러 발생', 'error')
 		} finally {
 			setLoading(false)
 		}
@@ -407,47 +491,61 @@ const COMZ010M00Page = () => {
 
 	// 소분류 삭제
 	const handleSmallDelete = async () => {
-		if (!smallForm.LRG_CSF_CD || !smallForm.SML_CSF_CD) return
-		setLoading(true)
-		setError(null)
-		try {
-			const param = [smallForm.LRG_CSF_CD, smallForm.SML_CSF_CD].join('|')
-			// API URL 환경변수 기반 설정
-			const deleteApiUrl =
-				typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
-					? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/procedure-demo/comz010m00`
-					: '/api/procedure-demo/comz010m00'
+		if (!smallForm.lrgCsfCd || !smallForm.smlCsfCd) return
+		
+		showConfirm({
+			message: '정말 삭제하시겠습니까?',
+			type: 'warning',
+			onConfirm: async () => {
+				setLoading(true)
+				setError(null)
+				try {
+					const param = [smallForm.lrgCsfCd, smallForm.smlCsfCd].join('|')
+					// API URL 환경변수 기반 설정
+					const deleteApiUrl =
+						typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
+							? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/procedure-demo/comz010m00`
+							: '/api/procedure-demo/comz010m00'
 
-			const res = await fetch(deleteApiUrl, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					SP: 'COM_01_0106_D(?,?,?)',
-					PARAM: param,
-				}),
-			})
-			if (!res.ok) throw new Error('삭제 실패')
-			await fetchSmallCodes(smallForm.LRG_CSF_CD)
-			setSmallForm(defaultSmallCode)
-			setTimeout(() => {
-				document
-					.querySelector<HTMLInputElement>('input[name="SML_CSF_CD"]')
-					?.focus()
-			}, 0)
-			setToast({ message: '소분류코드 삭제 완료', type: 'success' })
-		} catch (e: any) {
-			setError(e.message || '에러 발생')
-			setToast({ message: e.message || '에러 발생', type: 'error' })
-		} finally {
-			setLoading(false)
-		}
+					const res = await fetch(deleteApiUrl, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							SP: 'COM_01_0106_D(?,?,?)',
+							PARAM: param,
+						}),
+					})
+					if (!res.ok) throw new Error('삭제 실패')
+					await fetchSmallCodes(smallForm.lrgCsfCd)
+					setSmallForm(defaultSmallCode)
+					setOriginalSmallForm(defaultSmallCode)
+					setTimeout(() => {
+						document
+							.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
+							?.focus()
+					}, 100)
+					showToast('소분류코드 삭제 완료', 'info')
+				} catch (e: any) {
+					setError(e.message || '에러 발생')
+					showToast(e.message || '에러 발생', 'error')
+				} finally {
+					setLoading(false)
+				}
+			}
+		})
 	}
 
 	// 대분류 코드 입력 시 실시간 중복 체크
 	const handleLargeCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target
+		
+		// 입력값 검증
+		if (!validateInput(name, value)) {
+			return
+		}
+		
 		setLargeForm((prev) => ({ ...prev, [name]: value }))
-		if (name === 'LRG_CSF_CD' && isLargeCodeDuplicate(value)) {
+		if (name === 'lrgCsfCd' && isLargeCodeDuplicate(value)) {
 			setError('이미 존재하는 대분류코드입니다.')
 		} else {
 			setError(null)
@@ -456,8 +554,14 @@ const COMZ010M00Page = () => {
 	// 소분류 코드 입력 시 실시간 중복 체크
 	const handleSmallCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target
+		
+		// 입력값 검증
+		if (!validateInput(name, value)) {
+			return
+		}
+		
 		setSmallForm((prev) => ({ ...prev, [name]: value }))
-		if (name === 'SML_CSF_CD' && isSmallCodeDuplicate(value)) {
+		if (name === 'smlCsfCd' && isSmallCodeDuplicate(value)) {
 			setError('이미 존재하는 소분류코드입니다.')
 		} else {
 			setError(null)
@@ -494,7 +598,8 @@ const COMZ010M00Page = () => {
 					const nextRow = largeCodes[nextIdx]
 					setSelectedLarge(nextRow)
 					setLargeForm(nextRow)
-					fetchSmallCodes(nextRow.LRG_CSF_CD)
+					setOriginalLargeForm(nextRow)
+					fetchSmallCodes(nextRow.lrgCsfCd)
 					// 다음 행에 포커스 이동
 					setTimeout(() => {
 						document
@@ -510,7 +615,8 @@ const COMZ010M00Page = () => {
 					const prevRow = largeCodes[prevIdx]
 					setSelectedLarge(prevRow)
 					setLargeForm(prevRow)
-					fetchSmallCodes(prevRow.LRG_CSF_CD)
+					setOriginalLargeForm(prevRow)
+					fetchSmallCodes(prevRow.lrgCsfCd)
 					setTimeout(() => {
 						document
 							.querySelectorAll<HTMLTableRowElement>(
@@ -529,6 +635,7 @@ const COMZ010M00Page = () => {
 				if (nextIdx < smallCodes.length) {
 					const nextRow = smallCodes[nextIdx]
 					setSmallForm(nextRow)
+					setOriginalSmallForm(nextRow)
 					setTimeout(() => {
 						document
 							.querySelectorAll<HTMLTableRowElement>(
@@ -542,6 +649,7 @@ const COMZ010M00Page = () => {
 				if (prevIdx >= 0) {
 					const prevRow = smallCodes[prevIdx]
 					setSmallForm(prevRow)
+					setOriginalSmallForm(prevRow)
 					setTimeout(() => {
 						document
 							.querySelectorAll<HTMLTableRowElement>(
@@ -561,11 +669,6 @@ const COMZ010M00Page = () => {
 
 	return (
 		<div className='popup-wrapper'>
-			<Toast
-				message={toast.message}
-				type={toast.type}
-				onClose={() => setToast({ ...toast, message: '' })}
-			/>
 			{/* 상단 헤더 */}
 			<div className='popup-header'>
 				<h3 className='popup-title'>대분류/소분류코드 관리</h3>
@@ -589,9 +692,9 @@ const COMZ010M00Page = () => {
 									<input
 										type='text'
 										className='input-base input-default w-full'
-										name='searchLRG_CSF_CD'
-										value={searchLRG_CSF_CD}
-										onChange={(e) => setSearchLRG_CSF_CD(e.target.value)}
+										name='searchLrgCsfCd'
+										value={searchLrgCsfCd}
+										onChange={(e) => setSearchLrgCsfCd(e.target.value)}
 										onKeyDown={handleSearchInputKeyDown}
 										tabIndex={0}
 										aria-label='대분류코드 검색'
@@ -602,9 +705,9 @@ const COMZ010M00Page = () => {
 									<input
 										type='text'
 										className='input-base input-default w-full'
-										name='searchLRG_CSF_NM'
-										value={searchLRG_CSF_NM}
-										onChange={(e) => setSearchLRG_CSF_NM(e.target.value)}
+										name='searchLrgCsfNm'
+										value={searchLrgCsfNm}
+										onChange={(e) => setSearchLrgCsfNm(e.target.value)}
 										onKeyDown={handleSearchInputKeyDown}
 										tabIndex={0}
 										aria-label='대분류명 검색'
@@ -647,37 +750,37 @@ const COMZ010M00Page = () => {
 									) : (
 										largeCodes.map((row, idx) => (
 											<tr
-												className={`grid-tr cursor-pointer${selectedLarge && selectedLarge.LRG_CSF_CD === row.LRG_CSF_CD ? ' !bg-blue-100' : ''}`}
-												key={row.LRG_CSF_CD ? `${row.LRG_CSF_CD}-${idx}` : idx}
+												className={`grid-tr cursor-pointer${selectedLarge && selectedLarge.lrgCsfCd === row.lrgCsfCd ? ' !bg-blue-100' : ''}`}
+												key={row.lrgCsfCd ? `${row.lrgCsfCd}-${idx}` : idx}
 												onClick={() => handleLargeRowClick(row)}
 												tabIndex={0}
-												aria-label={`대분류코드 ${row.LRG_CSF_CD}`}
+												aria-label={`대분류코드 ${row.lrgCsfCd}`}
 												onDoubleClick={() => handleLargeRowDoubleClick(row)}
 												onKeyDown={handleLargeRowKeyDown(idx)}
 											>
 												<td
 													className='grid-td truncate max-w-[100px]'
-													title={row.LRG_CSF_CD}
+													title={row.lrgCsfCd}
 												>
-													{row.LRG_CSF_CD}
+													{row.lrgCsfCd}
 												</td>
 												<td
 													className='grid-td truncate max-w-[180px]'
-													title={row.LRG_CSF_NM}
+													title={row.lrgCsfNm}
 												>
-													{row.LRG_CSF_NM}
+													{row.lrgCsfNm}
 												</td>
 												<td
 													className='grid-td truncate max-w-[60px]'
-													title={row.USE_YN}
+													title={row.useYn}
 												>
-													{row.USE_YN}
+													{row.useYn}
 												</td>
 												<td
 													className='grid-td truncate max-w-[200px]'
-													title={row.EXPL}
+													title={row.expl}
 												>
-													{row.EXPL}
+													{row.expl}
 												</td>
 											</tr>
 										))
@@ -709,8 +812,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='LRG_CSF_CD'
-												value={largeForm.LRG_CSF_CD || ''}
+												name='lrgCsfCd'
+												value={largeForm.lrgCsfCd || ''}
 												onChange={handleLargeCodeChange}
 												tabIndex={0}
 												aria-label='대분류코드 입력'
@@ -723,8 +826,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='LRG_CSF_NM'
-												value={largeForm.LRG_CSF_NM || ''}
+												name='lrgCsfNm'
+												value={largeForm.lrgCsfNm || ''}
 												onChange={handleLargeFormChange}
 												tabIndex={0}
 												aria-label='대분류명 입력'
@@ -736,8 +839,8 @@ const COMZ010M00Page = () => {
 										<td className='form-td'>
 											<select
 												className='input-base input-default w-full'
-												name='USE_YN'
-												value={largeForm.USE_YN || ''}
+												name='useYn'
+												value={largeForm.useYn || ''}
 												onChange={handleLargeFormChange}
 												tabIndex={0}
 												aria-label='사용여부 선택'
@@ -753,8 +856,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='EXPL'
-												value={largeForm.EXPL || ''}
+												name='expl'
+												value={largeForm.expl || ''}
 												onChange={handleLargeFormChange}
 												tabIndex={0}
 												aria-label='설명 입력'
@@ -763,7 +866,7 @@ const COMZ010M00Page = () => {
 									</tr>
 								</tbody>
 							</table>
-							<div className='flex justify-end'>
+							<div className='flex justify-end gap-2'>
 								<button
 									className='btn-base btn-delete'
 									onClick={handleLargeDelete}
@@ -773,7 +876,7 @@ const COMZ010M00Page = () => {
 									삭제
 								</button>
 								<button
-									className='btn-base btn-act mr-2'
+									className='btn-base btn-act'
 									onClick={handleLargeSave}
 									tabIndex={0}
 									aria-label='저장'
@@ -806,43 +909,43 @@ const COMZ010M00Page = () => {
 									) : (
 										smallCodes.map((row, idx) => (
 											<tr
-												className={`grid-tr${smallForm.LRG_CSF_CD === row.LRG_CSF_CD && smallForm.SML_CSF_CD === row.SML_CSF_CD ? ' !bg-blue-100' : ''}`}
-												key={row.SML_CSF_CD ? `${row.SML_CSF_CD}-${idx}` : idx}
+												className={`grid-tr${smallForm.lrgCsfCd === row.lrgCsfCd && smallForm.smlCsfCd === row.smlCsfCd ? ' !bg-blue-100' : ''}`}
+												key={row.smlCsfCd ? `${row.smlCsfCd}-${idx}` : idx}
 												tabIndex={0}
-												aria-label={`소분류코드 ${row.SML_CSF_CD}`}
+												aria-label={`소분류코드 ${row.smlCsfCd}`}
 												onClick={() => handleSmallRowClick(row)}
 												onDoubleClick={() => handleSmallRowDoubleClick(row)}
 												onKeyDown={handleSmallRowKeyDown(idx)}
 											>
 												<td
 													className='grid-td truncate max-w-[100px]'
-													title={row.SML_CSF_CD}
+													title={row.smlCsfCd}
 												>
-													{row.SML_CSF_CD}
+													{row.smlCsfCd}
 												</td>
 												<td
 													className='grid-td truncate max-w-[180px]'
-													title={row.SML_CSF_NM}
+													title={row.smlCsfNm}
 												>
-													{row.SML_CSF_NM}
+													{row.smlCsfNm}
 												</td>
 												<td
 													className='grid-td text-right truncate max-w-[60px]'
-													title={String(row.SORT_ORD)}
+													title={String(row.sortOrd)}
 												>
-													{row.SORT_ORD}
+													{row.sortOrd}
 												</td>
 												<td
 													className='grid-td truncate max-w-[60px]'
-													title={row.USE_YN}
+													title={row.useYn}
 												>
-													{row.USE_YN}
+													{row.useYn}
 												</td>
 												<td
 													className='grid-td truncate max-w-[200px]'
-													title={row.EXPL}
+													title={row.expl}
 												>
-													{row.EXPL}
+													{row.expl}
 												</td>
 											</tr>
 										))
@@ -874,8 +977,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='LRG_CSF_CD'
-												value={smallForm.LRG_CSF_CD || ''}
+												name='lrgCsfCd'
+												value={smallForm.lrgCsfCd || ''}
 												onChange={handleSmallFormChange}
 												tabIndex={0}
 												aria-label='대분류코드 입력'
@@ -886,8 +989,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='SML_CSF_CD'
-												value={smallForm.SML_CSF_CD || ''}
+												name='smlCsfCd'
+												value={smallForm.smlCsfCd || ''}
 												onChange={handleSmallCodeChange}
 												tabIndex={0}
 												aria-label='소분류코드 입력'
@@ -900,8 +1003,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='SML_CSF_NM'
-												value={smallForm.SML_CSF_NM || ''}
+												name='smlCsfNm'
+												value={smallForm.smlCsfNm || ''}
 												onChange={handleSmallFormChange}
 												tabIndex={0}
 												aria-label='소분류명 입력'
@@ -912,8 +1015,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='LINK_CD1'
-												value={smallForm.LINK_CD1 || ''}
+												name='linkCd1'
+												value={smallForm.linkCd1 || ''}
 												onChange={handleSmallFormChange}
 												tabIndex={0}
 												aria-label='연결코드1 입력'
@@ -926,8 +1029,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='LINK_CD2'
-												value={smallForm.LINK_CD2 || ''}
+												name='linkCd2'
+												value={smallForm.linkCd2 || ''}
 												onChange={handleSmallFormChange}
 												tabIndex={0}
 												aria-label='연결코드2 입력'
@@ -938,11 +1041,13 @@ const COMZ010M00Page = () => {
 											<input
 												type='number'
 												className='input-base input-default w-full'
-												name='SORT_ORD'
-												value={smallForm.SORT_ORD || 0}
+												name='sortOrd'
+												value={smallForm.sortOrd || 0}
 												onChange={handleSmallFormChange}
 												tabIndex={0}
 												aria-label='정렬순서 입력'
+												min='1'
+												max='999'
 											/>
 										</td>
 									</tr>
@@ -951,8 +1056,8 @@ const COMZ010M00Page = () => {
 										<td className='form-td'>
 											<select
 												className='input-base input-default w-full'
-												name='USE_YN'
-												value={smallForm.USE_YN || ''}
+												name='useYn'
+												value={smallForm.useYn || ''}
 												onChange={handleSmallFormChange}
 												tabIndex={0}
 												aria-label='사용여부 선택'
@@ -966,8 +1071,8 @@ const COMZ010M00Page = () => {
 											<input
 												type='text'
 												className='input-base input-default w-full'
-												name='EXPL'
-												value={smallForm.EXPL || ''}
+												name='expl'
+												value={smallForm.expl || ''}
 												onChange={handleSmallFormChange}
 												tabIndex={0}
 												aria-label='설명 입력'
@@ -976,9 +1081,9 @@ const COMZ010M00Page = () => {
 									</tr>
 								</tbody>
 							</table>
-							<div className='flex justify-end'>
+							<div className='flex justify-end gap-2'>
 								<button
-									className='btn-base btn-delete mr-2'
+									className='btn-base btn-delete'
 									onClick={handleSmallDelete}
 									tabIndex={0}
 									aria-label='삭제'
@@ -986,7 +1091,7 @@ const COMZ010M00Page = () => {
 									삭제
 								</button>
 								<button
-									className='btn-base btn-act mr-2'
+									className='btn-base btn-act'
 									onClick={handleSmallSave}
 									tabIndex={0}
 									aria-label='저장'

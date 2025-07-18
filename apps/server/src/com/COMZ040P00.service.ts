@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OracleService } from '../database/database.provider';
+import { toCamelCase } from '../utils/toCamelCase';
 
 interface BusinessSearchParams {
   bsnNo: string;
@@ -46,7 +47,8 @@ export class COMZ040P00Service {
 
       console.log('✅ 사업번호 검색 결과:', result);
 
-      return result;
+      // 결과를 카멜케이스로 변환하여 반환
+      return toCamelCase(result);
     } catch (error) {
       console.error('❌ 사업번호 검색 서비스 오류:', error);
       throw error;
