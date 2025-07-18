@@ -107,6 +107,13 @@ const MenuTree: React.FC<MenuTreeProps> = ({
 	const [searching, setSearching] = useState(false)
 	const [allMenus, setAllMenus] = useState<MenuNode[]>([])
 
+	// locked 상태 변경 시 부모 컴포넌트에 알림
+	useEffect(() => {
+		if (onLockChange) {
+			onLockChange(locked)
+		}
+	}, [locked, onLockChange])
+
 	// menuList가 변경될 때마다 트리 구조로 변환
 	useEffect(() => {
 		if (menuList && Array.isArray(menuList)) {
@@ -128,11 +135,7 @@ const MenuTree: React.FC<MenuTreeProps> = ({
 	}
 
 	const handleLockClick = () => {
-		setLocked((prev) => {
-			const next = !prev
-			if (onLockChange) onLockChange(next)
-			return next
-		})
+		setLocked((prev) => !prev)
 	}
 
 	// 전체 메뉴 최대화

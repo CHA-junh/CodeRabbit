@@ -10,6 +10,7 @@ import PageTitle from './PageTitle'
 import ContentFrame from './ContentFrame'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import { getProgramType } from '../../utils/programType'
+import Toast from '../../components/Toast'
 
 interface TabItem {
 	programId: string
@@ -19,13 +20,23 @@ interface TabItem {
 
 export default function COM0000M00() {
 	const { user, session, logout, isAuthenticated } = useAuth()
-	// 메뉴트리 show/hide 상태
-	const [showMenuTree, setShowMenuTree] = useState(true)
+	// 메뉴트리 show/hide 상태 (기본값을 false로 변경)
+	const [showMenuTree, setShowMenuTree] = useState(false)
 	// 메뉴트리 lock 상태
 	const [menuTreeLocked, setMenuTreeLocked] = useState(false)
 	// 탭 배열 및 활성 탭 상태 추가
 	const [tabs, setTabs] = useState<TabItem[]>([])
 	const [activeTab, setActiveTab] = useState<string>('')
+	// 토스트 상태
+	const [toast, setToast] = useState<{
+		message: string
+		type: 'info' | 'warning' | 'error'
+		isVisible: boolean
+	}>({
+		message: '',
+		type: 'info',
+		isVisible: false,
+	})
 
 	// 인증되지 않은 경우 아무것도 렌더링하지 않음 (상위 컴포넌트에서 처리)
 	if (!isAuthenticated || !user) return null
@@ -48,6 +59,18 @@ export default function COM0000M00() {
 			setActiveTab(pgmId)
 			return
 		}
+
+		// 탭 개수 제한 체크 (5개)
+		if (tabs.length >= 5) {
+			setToast({
+				message:
+					'최대 5개의 화면만 열 수 있습니다. 다른 화면을 닫고 다시 시도해주세요.',
+				type: 'warning',
+				isVisible: true,
+			})
+			return
+		}
+
 		if (!program) {
 			console.log('[handleMenuClick] program이 없음, return')
 			// 경고/alert
@@ -69,7 +92,13 @@ export default function COM0000M00() {
 			}, 0)
 			return next
 		})
+		// 자물쇠가 잠겨있지 않으면 메뉴 영역 즉시 닫기
+		if (!menuTreeLocked) {
+			setShowMenuTree(false)
+		}
+
 		setActiveTab(pgmId)
+
 		setTimeout(() => {
 			console.log('[handleMenuClick] setActiveTab(async):', pgmId)
 		}, 0)
@@ -95,6 +124,11 @@ export default function COM0000M00() {
 	// lock 상태가 true가 되면 메뉴트리 항상 고정
 	if (menuTreeLocked && !showMenuTree) setShowMenuTree(true)
 
+	// 자물쇠 상태 변경 핸들러
+	const handleLockChange = (locked: boolean) => {
+		setMenuTreeLocked(locked)
+	}
+
 	// menuList key mapping (대문자->camelCase)
 	const mappedMenuList = (session.user?.menuList || []).map((menu: any) => ({
 		menuSeq: menu.MENU_SEQ,
@@ -112,6 +146,13 @@ export default function COM0000M00() {
 
 	return (
 		<div className='w-screen h-screen flex flex-col overflow-hidden'>
+			{/* 토스트 알림 */}
+			<Toast
+				message={toast.message}
+				type={toast.type}
+				isVisible={toast.isVisible}
+				onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+			/>
 			{/* 상단 고정 헤더 */}
 			<TopFrame
 				userName={user?.name}
@@ -139,7 +180,7 @@ export default function COM0000M00() {
 						<MenuTree
 							menuList={mappedMenuList}
 							onMenuClick={(pgmId: string) => handleMenuClick(pgmId)}
-							onLockChange={setMenuTreeLocked}
+							onLockChange={handleLockChange}
 						/>
 					</div>
 					{/* 실제 콘텐츠: 메뉴트리 width만큼 margin-left */}
