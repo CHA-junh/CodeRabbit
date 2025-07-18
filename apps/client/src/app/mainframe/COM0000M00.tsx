@@ -162,6 +162,7 @@ export default function COM0000M00() {
 										tabs.find((tab) => tab.programId === activeTab)?.title || ''
 									}
 									programId={activeTab}
+									onClose={() => handleTabClose(activeTab)}
 								/>
 								<ContentFrame
 									programId={activeTab}

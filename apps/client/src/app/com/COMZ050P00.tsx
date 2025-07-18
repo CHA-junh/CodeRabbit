@@ -53,8 +53,8 @@ const getCurrentYear = () => new Date().getFullYear().toString();
 const BusinessNameSearchPopup: React.FC = () => {
   // 쿼리스트링 파라미터 읽기
   const params = useSearchParams();
-  const initialBsnNm = params.get('bsnNm') || '';
-  const mode = params.get('mode') || '';
+  const initialBsnNm = params?.get('bsnNm') || '';
+  const mode = params?.get('mode') || '';
 
   // 상태
   const [checkedStates, setCheckedStates] = useState<string[]>(PGRS_STATES.map(s => s.code));
@@ -66,7 +66,11 @@ const BusinessNameSearchPopup: React.FC = () => {
   const [data, setData] = useState<BusinessNameSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const { session } = useAuth();
+  
+  // 세션에서 로그인ID 가져오기 (우선순위: userId > empNo > name)
   const loginId = session.user?.userId || session.user?.empNo || session.user?.name || '';
+  
+
 
   // mode별 진행상태 체크박스 제어(레거시 호환)
   useEffect(() => {
@@ -137,10 +141,11 @@ const BusinessNameSearchPopup: React.FC = () => {
           bsnNm,
           startYear,
           checkedStates.length === 0 ? 'ALL' : checkedStates.join(','),
-          '', // 빈 값 (레거시와 동일)
-          loginId, // 실제 로그인ID
+          loginId // 실제 로그인ID
         ].join('|'),
       };
+      
+
       const res = await fetch('http://localhost:8080/api/business-name-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
