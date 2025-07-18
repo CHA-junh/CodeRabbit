@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import './common.css';
+import '@/app/common/common.css';
 
 export default function ProjectSearchPopup() {
   return (

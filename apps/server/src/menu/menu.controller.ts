@@ -4,8 +4,10 @@ import { MenuService } from './menu.service';
 import { ProgramService } from '../entities/program.service';
 
 // express-session 타입 확장
+// 기존: session: { user?: any } - TypeScript 오류 발생
+// 수정: session: any - express-session의 모든 속성을 허용하여 타입 충돌 해결
 interface RequestWithSession extends Request {
-  session: { user?: any };
+  session: any;
 }
 
 @Controller('menu')

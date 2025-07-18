@@ -8,37 +8,29 @@ export class COMZ050P00Service {
   constructor(private readonly oracleService: OracleService) {}
 
   async searchBusinessNames(params: COMZ050P00RequestDto): Promise<COMZ050P00ResponseDto> {
-    const oracledb = require('oracledb');
-    const conn = await this.oracleService.getConnection();
     try {
-      const { bsnNm, strtYear, pgrsStDiv, loginId } = params;
-      const result = await conn.execute(
-        `BEGIN BISBM.COM_02_0201_S(:o_result, :i_bsn_nm, :i_strt_year, :i_pgrs_st_div, :i_login_id); END;`,
-        {
-          o_result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-          i_bsn_nm: bsnNm ?? '',
-          i_strt_year: strtYear ?? 'ALL',
-          i_pgrs_st_div: pgrsStDiv ?? 'ALL',
-          i_login_id: loginId ?? null,
-        },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      const cursor = (result as any).outBinds.o_result;
-      const rows: COMZ050P00ResultDto[] = [];
-      let row;
-      while ((row = await cursor.getRow())) {
-        rows.push(row);
+      const { sp, bsnNm, strtYear, pgrsStDiv, loginId } = params ?? {};
+
+      if (!sp) {
+        this.logger.error('필수 파라미터(sp)가 누락되었습니다.');
+        throw new InternalServerErrorException('필수 파라미터(sp)가 누락되었습니다.');
       }
-      await cursor.close();
-      return {
-        data: rows,
-        totalCount: rows.length,
-      };
+
+      const spName = sp.replace(/\(.*\)/, '');
+      
+      // PROCNAME: 동적 프로시저명 (sp 파라미터에서 추출, 주로 COM_02_0201_S)
+      // OracleService의 executeProcedure 메서드 사용
+      const result = await this.oracleService.executeProcedure(spName, [
+        bsnNm ?? '',
+        strtYear ?? 'ALL',
+        pgrsStDiv ?? 'ALL',
+        loginId ?? null,
+      ]);
+      
+      return result;
     } catch (error) {
       this.logger.error('사업명 검색 중 오류', error);
       throw new InternalServerErrorException('사업명 검색 중 오류가 발생했습니다.');
-    } finally {
-      await conn.close();
     }
   }
 } 
