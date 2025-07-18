@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class COMZ050P00RequestDto {
+  @ApiProperty({ description: '저장프로시저명', required: false })
+  sp?: string;
+
   @ApiProperty({ description: '사업명' })
   bsnNm: string;
 

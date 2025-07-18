@@ -11,18 +11,24 @@ export class COMZ050P00Service {
     const oracledb = require('oracledb');
     const conn = await this.oracleService.getConnection();
     try {
-      const { bsnNm, strtYear, pgrsStDiv, loginId } = params;
-      const result = await conn.execute(
-        `BEGIN BISBM.COM_02_0201_S(:o_result, :i_bsn_nm, :i_strt_year, :i_pgrs_st_div, :i_login_id); END;`,
-        {
-          o_result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-          i_bsn_nm: bsnNm ?? '',
-          i_strt_year: strtYear ?? 'ALL',
-          i_pgrs_st_div: pgrsStDiv ?? 'ALL',
-          i_login_id: loginId ?? null,
-        },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
+      const { sp, bsnNm, strtYear, pgrsStDiv, loginId } = params ?? {};
+
+      if (!sp) {
+        this.logger.error('필수 파라미터(sp)가 누락되었습니다.');
+        throw new InternalServerErrorException('필수 파라미터(sp)가 누락되었습니다.');
+      }
+
+      const spName = sp.replace(/\(.*\)/, '');
+      const query = `BEGIN BISBM.${spName}(:o_result, :i_bsn_nm, :i_strt_year, :i_pgrs_st_div, :i_login_id); END;`;
+      const bindParams = {
+        o_result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+        i_bsn_nm: bsnNm ?? '',
+        i_strt_year: strtYear ?? 'ALL',
+        i_pgrs_st_div: pgrsStDiv ?? 'ALL',
+        i_login_id: loginId ?? null,
+      };
+      
+      const result = await conn.execute(query, bindParams, { outFormat: oracledb.OUT_FORMAT_OBJECT });
       const cursor = (result as any).outBinds.o_result;
       const rows: COMZ050P00ResultDto[] = [];
       let row;
@@ -30,6 +36,7 @@ export class COMZ050P00Service {
         rows.push(row);
       }
       await cursor.close();
+      
       return {
         data: rows,
         totalCount: rows.length,

@@ -199,4 +199,97 @@ export class AuthController {
       return { success: false, message: '서버 오류가 발생했습니다.' };
     }
   }
+
+  @Post('test-login')
+  async testLogin(
+    @Body() body: { empNo: string },
+    @Req() req: RequestWithSession,
+  ): Promise<any> {
+    try {
+      console.log('📥 테스트 로그인 요청 받음');
+      console.log('📋 요청 본문:', body);
+
+      const { empNo } = body;
+      
+      // 입력 검증
+      if (!empNo) {
+        return {
+          success: false,
+          message: '사원번호를 입력해주세요.',
+        };
+      }
+
+      // 현재 사용자가 관리자인지 확인
+      if (!req.session.user) {
+        return {
+          success: false,
+          message: '로그인이 필요합니다.',
+        };
+      }
+
+      const currentUser = req.session.user;
+      
+      const isAdmin = currentUser.authCd === 'A' || currentUser.usrRoleId === 'A250715005';
+      
+      if (!isAdmin) {
+        return {
+          success: false,
+          message: '관리자 권한이 필요합니다.',
+        };
+      }
+
+      console.log(`🔐 관리자 권한 확인: ${currentUser.empNo || currentUser.userId}`);
+
+      // 테스트할 사용자 존재 확인
+      const userExists = await this.userService.userExists(empNo);
+      if (!userExists) {
+        return {
+          success: false,
+          message: '존재하지 않는 사용자입니다.',
+        };
+      }
+
+      // 테스트할 사용자 정보 조회
+      const userInfo = await this.userService.findUserWithDept(empNo);
+      if (!userInfo) {
+        return {
+          success: false,
+          message: '사용자 정보 조회에 실패했습니다.',
+        };
+      }
+
+      // menuList, programList 조회
+      if (!userInfo.usrRoleId) {
+        return {
+          success: false,
+          message: '사용자 권한 정보가 없습니다.',
+        };
+      }
+      const menuList = await this.menuService.getMenuListByRole(userInfo.usrRoleId as string);
+      const programList = await this.programService.getProgramListByRole(userInfo.usrRoleId as string);
+
+      // 세션을 테스트 사용자로 변경
+      req.session.user = { 
+        ...userInfo, 
+        isTestLogin: true,
+        originalUser: currentUser, // 원래 사용자 정보 보존
+        menuList,
+        programList,
+      };
+
+      console.log(`✅ 테스트 로그인 성공: ${empNo} (${userInfo.userName})`);
+
+      return {
+        success: true,
+        message: '테스트 로그인이 성공했습니다.',
+        user: { ...userInfo, isTestLogin: true, menuList, programList },
+      };
+    } catch (error) {
+      console.error('테스트 로그인 API 오류:', error);
+      return {
+        success: false,
+        message: '테스트 로그인 중 오류가 발생했습니다.',
+      };
+    }
+  }
 }

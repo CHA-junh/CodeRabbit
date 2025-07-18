@@ -14,8 +14,11 @@ export class COMZ050P00Controller {
     @Body() params: any,
   ): Promise<COMZ050P00ResponseDto> {
     if (params.SP && params.PARAM) {
-      const [bsnNm, strtYear, pgrsStDiv, , loginId] = params.PARAM.split('|');
+      const paramArray = params.PARAM.split('|');
+      const [bsnNm, strtYear, pgrsStDiv, loginId] = paramArray;
+      
       return this.businessNameSearchService.searchBusinessNames({
+        sp: params.SP,
         bsnNm,
         strtYear,
         pgrsStDiv,
