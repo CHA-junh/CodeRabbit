@@ -65,14 +65,11 @@ export default function ConfirmDialog({
 
 	return (
 		<>
-			{/* 배경 오버레이 */}
+			{/* 배경 오버레이와 모달 컨테이너를 하나로 합침 */}
 			<div 
-				className='fixed inset-0 bg-black bg-opacity-50 z-40'
-				onClick={onCancel || (() => {})}
-			/>
-			
-			{/* 모달 컨테이너 */}
-			<div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+				className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'
+				onClick={() => onCancel?.()}
+			>
 				<div 
 					className='bg-white rounded-lg shadow-xl max-w-md w-full animate-scale-in'
 					onClick={(e) => e.stopPropagation()}

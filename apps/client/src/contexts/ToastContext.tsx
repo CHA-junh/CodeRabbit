@@ -140,7 +140,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 				config.onConfirm()
 				setConfirmConfig(prev => ({ ...prev, isVisible: false }))
 			},
-			onCancel: config.onCancel,
+			onCancel: () => {
+				config.onCancel?.()
+				setConfirmConfig(prev => ({ ...prev, isVisible: false }))
+			},
 			confirmOnly: config.confirmOnly || false,
 		})
 	}
