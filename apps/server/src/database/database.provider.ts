@@ -71,6 +71,51 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     return this.pool !== null;
   }
 
+  // 📋 프로시저 실행
+  async executeProcedure(procedureName: string, params: any[] = []): Promise<any> {
+    const connection = await this.getConnection();
+    
+    // OUT 파라미터 타입 분기: 조회(_S)면 CURSOR, 아니면 STRING
+    const isSelectProc = procedureName.endsWith('_S');
+    
+    try {
+      const bindVars: any = {
+        o_result: { 
+          type: isSelectProc ? oracledb.CURSOR : oracledb.STRING, 
+          dir: oracledb.BIND_OUT 
+        },
+      };
+      
+      params.forEach((param, i) => {
+        bindVars[`p${i + 1}`] = param;
+      });
+
+      const result = await connection.execute(
+        `BEGIN ${procedureName}(:o_result${params.length > 0 ? ', ' + params.map((_, i) => `:p${i + 1}`).join(', ') : ''}); END;`,
+        bindVars,
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      const outBinds = result.outBinds as any;
+      if (outBinds?.o_result) {
+        if (isSelectProc) {
+          // 조회 프로시저: CURSOR 반환
+          const cursor = outBinds.o_result;
+          const rows = await cursor.getRows();
+          await cursor.close();
+          return { data: rows, totalCount: rows.length };
+        } else {
+          // 일반 프로시저: STRING 반환
+          return { result: outBinds.o_result };
+        }
+      }
+
+      return isSelectProc ? { data: [], totalCount: 0 } : { result: null };
+    } finally {
+      await connection.close();
+    }
+  }
+
   // 🔌 NestJS 종료 시 자동 호출
   async onModuleDestroy() {
     try {

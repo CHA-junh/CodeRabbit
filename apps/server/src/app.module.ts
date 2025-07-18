@@ -24,6 +24,8 @@ import { SysModule } from './sys/sys.module';
 
 import { COMZ010M00Controller } from './com/COMZ010M00.controller';
 import { COMZ010M00Service } from './com/COMZ010M00.service';
+import { COMZ040P00Controller } from './com/COMZ040P00.controller';
+import { COMZ040P00Service } from './com/COMZ040P00.service';
 import { COMZ050P00Controller } from './com/COMZ050P00.controller';
 import { COMZ050P00Service } from './com/COMZ050P00.service';
 import { COMZ060P00Controller } from './com/COMZ060P00.controller';
@@ -63,6 +65,7 @@ import { CommonController } from './common/common.controller';
     UnitPriceController,
     CodeController,
     COMZ010M00Controller,
+    COMZ040P00Controller,
     COMZ050P00Controller,
     COMZ060P00Controller,
     CommonController,
@@ -76,6 +79,7 @@ import { CommonController } from './common/common.controller';
     CodeService,
     ProcedureDbParser,
     COMZ010M00Service,
+    COMZ040P00Service,
     COMZ050P00Service,
     COMZ060P00Service,
     CommonService,
