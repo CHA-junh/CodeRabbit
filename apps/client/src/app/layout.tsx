@@ -3,6 +3,7 @@ import './globals.css'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 import { AuthProvider } from '../modules/auth/hooks/useAuth'
+import { ToastProvider } from '../contexts/ToastContext'
 import { getPageTitle, getSystemName } from '../utils/environment'
 
 export default function RootLayout({
@@ -38,7 +39,9 @@ export default function RootLayout({
 			<body
 				className={isAuthPage ? '' : 'min-h-screen h-screen overflow-hidden'}
 			>
-				<AuthProvider>{children}</AuthProvider>
+				<AuthProvider>
+					<ToastProvider>{children}</ToastProvider>
+				</AuthProvider>
 			</body>
 		</html>
 	)
