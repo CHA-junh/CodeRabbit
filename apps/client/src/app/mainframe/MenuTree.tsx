@@ -202,7 +202,7 @@ const MenuTree: React.FC<MenuTreeProps> = ({
 									className={`flex items-center gap-2 px-2 py-1 rounded pl-6 cursor-pointer ${selectedMenu === node.pgmId ? 'text-[#0071DB] font-bold bg-blue-50' : 'text-stone-700 hover:text-[#0071DB]'}`}
 									onClick={() => {
 										setSelectedMenu(String(node.menuSeq))
-										console.log('[MenuTree 내부 클릭]', node)
+										// console.log('[MenuTree 내부 클릭]', node)
 										onMenuClick && onMenuClick(String(node.pgmId))
 									}}
 								>

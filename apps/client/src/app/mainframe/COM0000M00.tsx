@@ -9,7 +9,6 @@ import Maintab from './Maintab'
 import PageTitle from './PageTitle'
 import ContentFrame from './ContentFrame'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
-import { getProgramType } from '../../utils/programType'
 import Toast from '../../components/Toast'
 
 interface TabItem {
@@ -42,20 +41,33 @@ export default function COM0000M00() {
 	if (!isAuthenticated || !user) return null
 
 	const handleMenuClick = (pgmId: string) => {
-		console.log('[handleMenuClick] 호출됨, pgmId:', pgmId)
+		// console.log('[handleMenuClick] 호출됨, pgmId:', pgmId)
+
+		// 클릭한 메뉴의 정보 확인
+		const menu = (session.user?.menuList || []).find(
+			(m: any) => m.PGM_ID === pgmId
+		)
+
+		// PGM_ID가 없는 메뉴(폴더)는 처리하지 않음
+		if (!menu || !menu.PGM_ID) {
+			// console.log('[handleMenuClick] PGM_ID가 없는 메뉴(폴더), 처리하지 않음')
+			return
+		}
+
 		// 클릭한 메뉴의 pgmId로 programList에서 찾기
 		const program = (session.user?.programList || []).find(
 			(p: any) => p.PGM_ID === pgmId
 		)
-		console.log('programList에서 찾은 프로그램:', program)
-		// 화면ID 타입 체크 (공통 유틸 사용)
-		if (getProgramType(pgmId, session.user?.programList) !== 'main') {
-			console.log('[handleMenuClick] getProgramType이 main이 아님, return')
+		// console.log('programList에서 찾은 프로그램:', program)
+
+		if (!program) {
+			// console.log('[handleMenuClick] programList에서 프로그램을 찾을 수 없음:', pgmId)
 			return
 		}
+
 		// 이미 열린 탭이면 포커스만 이동
 		if (tabs.some((tab) => tab.programId === pgmId)) {
-			console.log('[handleMenuClick] 이미 열린 탭, setActiveTab 후 return')
+			// console.log('[handleMenuClick] 이미 열린 탭, setActiveTab 후 return')
 			setActiveTab(pgmId)
 			return
 		}
@@ -70,26 +82,20 @@ export default function COM0000M00() {
 			})
 			return
 		}
-
-		if (!program) {
-			console.log('[handleMenuClick] program이 없음, return')
-			// 경고/alert
-			return
-		}
 		const menuPath = program.LINK_PATH
 			? program.LINK_PATH.replace(/\.tsx$/i, '')
 			: ''
 		const title = program.PGM_NM ? program.PGM_NM : pgmId
-		// 로그로 데이터 추적
-		console.log('[MenuTree 클릭]', { pgmId, program, menuPath, title })
-		console.log('[handleMenuClick] tabs(before):', tabs)
+		// 로그로 데이터 추적 (필요시 주석 해제)
+		// console.log('[MenuTree 클릭]', { pgmId, program, menuPath, title })
+		// console.log('[handleMenuClick] tabs(before):', tabs)
 		// 새 탭 추가
 		const newTab: TabItem = { programId: pgmId, title, menuPath }
 		setTabs((prev) => {
 			const next = [...prev, newTab]
-			setTimeout(() => {
-				console.log('[handleMenuClick] tabs(after, async):', next)
-			}, 0)
+			// setTimeout(() => {
+			// 	console.log('[handleMenuClick] tabs(after, async):', next)
+			// }, 0)
 			return next
 		})
 		// 자물쇠가 잠겨있지 않으면 메뉴 영역 즉시 닫기
@@ -99,9 +105,9 @@ export default function COM0000M00() {
 
 		setActiveTab(pgmId)
 
-		setTimeout(() => {
-			console.log('[handleMenuClick] setActiveTab(async):', pgmId)
-		}, 0)
+		// setTimeout(() => {
+		// 	console.log('[handleMenuClick] setActiveTab(async):', pgmId)
+		// }, 0)
 	}
 
 	const handleTabClick = (programId: string) => setActiveTab(programId)
@@ -117,7 +123,7 @@ export default function COM0000M00() {
 
 	// 로그아웃 핸들러
 	const handleLogout = async () => {
-		console.log('🚪 로그아웃 시작')
+		// console.log('🚪 로그아웃 시작')
 		await logout()
 	}
 
@@ -128,6 +134,12 @@ export default function COM0000M00() {
 	const handleLockChange = (locked: boolean) => {
 		setMenuTreeLocked(locked)
 	}
+
+	// 세션 데이터 디버깅 (필요시 주석 해제)
+	// console.log('=== 세션 데이터 디버깅 ===')
+	// console.log('session:', session)
+	// console.log('session.user:', session.user)
+	// console.log('session.user?.menuList:', session.user?.menuList)
 
 	// menuList key mapping (대문자->camelCase)
 	const mappedMenuList = (session.user?.menuList || []).map((menu: any) => ({
@@ -142,7 +154,7 @@ export default function COM0000M00() {
 		mapTitle: menu.MAP_TITLE,
 		menuPath: menu.MENU_PATH,
 	}))
-	console.log('mappedMenuList:', mappedMenuList)
+	// console.log('mappedMenuList:', mappedMenuList)
 
 	return (
 		<div className='w-screen h-screen flex flex-col overflow-hidden'>

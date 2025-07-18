@@ -15,7 +15,9 @@ export class MenuService {
   }
 
   async getMenuListByRole(usrRoleId: string): Promise<any[]> {
-    return await this.dataSource.query(
+    // console.log('🔍 getMenuListByRole 호출됨, usrRoleId:', usrRoleId);
+
+    const result = await this.dataSource.query(
       `
       SELECT A.MENU_DSP_NM
            , A.PGM_ID AS PGM_ID
@@ -60,5 +62,10 @@ export class MenuService {
     `,
       [usrRoleId, usrRoleId],
     );
+
+    // console.log('📋 메뉴 조회 결과 (처음 5개):', result.slice(0, 5));
+    // console.log('📋 전체 메뉴 개수:', result.length);
+
+    return result;
   }
 }
