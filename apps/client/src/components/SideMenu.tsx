@@ -1,155 +1,122 @@
 'use client'
+
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/modules/auth/hooks/useAuth'
 
-export interface ProgramMenuItem {
-	programId: string
-	title: string
+interface SideMenuProps {
+	isOpen: boolean
+	onClose: () => void
 }
 
-export interface MenuGroup {
-	title: string
-	children: ProgramMenuItem[]
-}
-
-type SideMenuProps = {
-	menuData: MenuGroup[]
-	onMenuClick?: (programId: string, title: string) => void
-}
-
-export default function SideMenu({ menuData, onMenuClick }: SideMenuProps) {
-	const [menuOpen, setMenuOpen] = useState(false)
-	const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({})
-	const [selectedMenu, setSelectedMenu] = useState('')
-
-	const toggleMenu = (title: string) => {
-		setOpenMenus((prev) => ({ ...prev, [title]: !prev[title] }))
-	}
+export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
+	const [isLoading, setIsLoading] = useState(false)
+	const { user, logout } = useAuth()
+	const router = useRouter()
 
 	const handleLogout = async () => {
-		console.log('로그아웃 버튼 클릭됨')
-		const res = await fetch('http://localhost:8080/api/auth/logout', {
-			method: 'POST',
-		})
-		const data = await res.json()
-		console.log('로그아웃 API 응답:', data)
-		window.location.href = '/signin'
+		try {
+			setIsLoading(true)
+			const res = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
+				{
+					method: 'POST',
+					credentials: 'include',
+				}
+			)
+
+			if (res.ok) {
+				await logout()
+				router.push('/signin')
+			}
+		} catch (error) {
+			console.error('로그아웃 오류:', error)
+		} finally {
+			setIsLoading(false)
+		}
 	}
 
-	function renderMenuItems(items: any[]) {
-		return items.map((item) => {
-			if (item.children && item.children.length > 0) {
-				// 폴더/그룹 메뉴
-				return (
-					<div key={item.menuSeq}>
-						<div
-							className='flex items-center gap-2 px-2 pt-[4px] pb-[6px] cursor-pointer rounded border-b border-dashed text-stone-700 hover:text-[#0071DB]'
-							onClick={() => toggleMenu(item.menuDspNm)}
-						>
-							<span className='leading-none inline-block m-2'>
-								{item.menuDspNm}
-							</span>
-						</div>
-						{openMenus[item.menuDspNm] && (
-							<div className='pl-4'>{renderMenuItems(item.children)}</div>
-						)}
-					</div>
-				)
-			} else if (item.pgmId) {
-				// 실제 업무화면 메뉴
-				return (
-					<div
-						key={item.menuSeq}
-						className={`flex items-center gap-2 px-2 py-1 rounded pl-6 cursor-pointer ${selectedMenu === item.pgmId ? 'text-[#0071DB] font-bold bg-blue-50' : 'text-stone-700 hover:text-[#0071DB]'}`}
-						onClick={() => {
-							setSelectedMenu(item.pgmId)
-							console.log('SideMenu onMenuClick', item.pgmId, item.menuDspNm)
-							onMenuClick && onMenuClick(item.pgmId, item.menuDspNm)
-						}}
-					>
-						<span className='leading-none inline-block m-2'>
-							{item.menuDspNm}
-						</span>
-					</div>
-				)
-			}
-			return null
-		})
-	}
+	if (!isOpen) return null
 
 	return (
-		<div className='h-full flex flex-row relative z-10'>
-			{/* 좌측 고정 바로가기 영역 */}
-			<aside className='w-28 flex flex-col justify-between items-center py-4 px-0 border-r border-blue-100 h-full transition-all duration-300 bg-[#f5faff] text-blue-500'>
-				<div className='w-full flex flex-col items-center'>
-					{/* 메뉴 버튼 */}
-					<button
-						className='flex items-center w-full h-12 mb-6 px-3 bg-[#f5faff] hover:bg-blue-100 rounded-lg shadow transition border border-blue-200 text-blue-700'
-						onClick={() => setMenuOpen((v) => !v)}
-						aria-label='메뉴 열기'
-					>
-						<span className='text-2xl mr-2 flex-shrink-0'>☰</span>
-						<span className='text-sm font-medium truncate hidden sm:inline'>
-							메뉴
-						</span>
-					</button>
-					{/* 바로가기 버튼들 */}
-					<NavShortcut icon='📁' label='사업관리' />
-					<NavShortcut icon='📊' label='프로젝트' />
-					<NavShortcut icon='💸' label='추진비' />
-					<NavShortcut icon='👥' label='인사관리' />
-					<NavShortcut icon='⚙️' label='시스템' />
-				</div>
-				{/* 하단 로그아웃 */}
-				<div className='w-full flex justify-center mb-2'>
-					<button
-						className='flex items-center w-full h-12 px-3 bg-[#f5faff] hover:bg-blue-100 rounded-lg shadow transition border border-blue-200 text-blue-700'
-						onClick={handleLogout}
-					>
-						<span className='text-2xl mr-2 flex-shrink-0'>🚪</span>
-						<span className='text-sm font-medium truncate hidden sm:inline'>
-							로그아웃
-						</span>
-					</button>
-				</div>
-			</aside>
-			{/* 슬라이드 메뉴 */}
+		<div className='fixed inset-0 z-50 flex'>
+			{/* 배경 오버레이 */}
 			<div
-				className={`h-full transition-all duration-300 ease-in-out ${menuOpen ? 'w-80' : 'w-0'} overflow-hidden bg-white shadow-xl border-r border-blue-200`}
-				style={{ minWidth: menuOpen ? 320 : 0 }}
-			>
-				<div
-					className={`flex flex-col h-full p-6 ${menuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity duration-300`}
-				>
-					<div className='flex items-center mb-4'>
-						<input
-							className='flex-1 px-2 py-1 rounded border border-blue-400 text-gray-800 text-sm'
-							placeholder='메뉴명을 입력하세요'
-						/>
-						<button
-							className='ml-2 text-lg text-gray-500 hover:text-blue-700'
-							onClick={() => setMenuOpen(false)}
+				className='fixed inset-0 bg-black bg-opacity-50'
+				onClick={onClose}
+			></div>
+
+			{/* 사이드 메뉴 */}
+			<div className='relative w-80 bg-white shadow-xl'>
+				{/* 헤더 */}
+				<div className='flex items-center justify-between p-4 border-b'>
+					<h2 className='text-lg font-semibold'>메뉴</h2>
+					<button
+						onClick={onClose}
+						className='p-2 hover:bg-gray-100 rounded-full'
+						aria-label='메뉴 닫기'
+					>
+						<svg
+							className='w-6 h-6'
+							fill='none'
+							stroke='currentColor'
+							viewBox='0 0 24 24'
 						>
-							×
-						</button>
+							<path
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								strokeWidth={2}
+								d='M6 18L18 6M6 6l12 12'
+							/>
+						</svg>
+					</button>
+				</div>
+
+				{/* 사용자 정보 */}
+				<div className='p-4 border-b'>
+					<div className='flex items-center space-x-3'>
+						<div className='w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center'>
+							<span className='text-white font-semibold'>
+								{user?.name?.charAt(0) || 'U'}
+							</span>
+						</div>
+						<div>
+							<p className='font-semibold'>
+								{user?.department && user?.empNo && user?.name && user?.position
+									? `${user.department}(${user.empNo}) ${user.name} ${user.position}`
+									: user?.name || '사용자'}
+							</p>
+							<p className='text-sm text-gray-600'>
+								{user?.department || '부서'}
+							</p>
+						</div>
 					</div>
-					<div className='flex-1 overflow-y-auto'>
-						<div className='text-blue-900 font-bold mb-2'>프로그램 목록</div>
-						{renderMenuItems(menuData)}
-					</div>
+				</div>
+
+				{/* 메뉴 항목들 */}
+				<div className='p-4'>
+					<button
+						onClick={handleLogout}
+						disabled={isLoading}
+						className='w-full flex items-center space-x-3 p-3 hover:bg-gray-100 rounded-lg transition-colors'
+					>
+						<svg
+							className='w-5 h-5'
+							fill='none'
+							stroke='currentColor'
+							viewBox='0 0 24 24'
+						>
+							<path
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								strokeWidth={2}
+								d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'
+							/>
+						</svg>
+						<span>{isLoading ? '로그아웃 중...' : '로그아웃'}</span>
+					</button>
 				</div>
 			</div>
 		</div>
-	)
-}
-
-type NavShortcutProps = { icon: string; label: string }
-function NavShortcut({ icon, label }: NavShortcutProps) {
-	return (
-		<button className='flex items-center w-full h-12 mb-2 px-3 bg-[#f5faff] hover:bg-blue-100 rounded-lg shadow transition border border-blue-200 text-blue-700'>
-			<span className='text-2xl mr-2 flex-shrink-0'>{icon}</span>
-			<span className='text-sm font-medium truncate hidden sm:inline'>
-				{label}
-			</span>
-		</button>
 	)
 }

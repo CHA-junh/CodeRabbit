@@ -18,7 +18,7 @@ interface TabItem {
 }
 
 export default function COM0000M00() {
-	const { user, logout, isAuthenticated, session } = useAuth()
+	const { user, session, logout, isAuthenticated } = useAuth()
 	// 메뉴트리 show/hide 상태
 	const [showMenuTree, setShowMenuTree] = useState(true)
 	// 메뉴트리 lock 상태
@@ -27,18 +27,18 @@ export default function COM0000M00() {
 	const [tabs, setTabs] = useState<TabItem[]>([])
 	const [activeTab, setActiveTab] = useState<string>('')
 
-	// 인증되지 않은 경우 로그인 페이지로 리다이렉트 (SSR 환경 고려 시 별도 처리 필요)
-	if (!isAuthenticated) return null
+	// 인증되지 않은 경우 아무것도 렌더링하지 않음 (상위 컴포넌트에서 처리)
+	if (!isAuthenticated || !user) return null
 
 	const handleMenuClick = (pgmId: string) => {
 		console.log('[handleMenuClick] 호출됨, pgmId:', pgmId)
 		// 클릭한 메뉴의 pgmId로 programList에서 찾기
-		const program = (session.programList || []).find(
+		const program = (session.user?.programList || []).find(
 			(p: any) => p.PGM_ID === pgmId
 		)
 		console.log('programList에서 찾은 프로그램:', program)
 		// 화면ID 타입 체크 (공통 유틸 사용)
-		if (getProgramType(pgmId, session.programList) !== 'main') {
+		if (getProgramType(pgmId, session.user?.programList) !== 'main') {
 			console.log('[handleMenuClick] getProgramType이 main이 아님, return')
 			return
 		}
@@ -86,11 +86,17 @@ export default function COM0000M00() {
 		})
 	}
 
+	// 로그아웃 핸들러
+	const handleLogout = async () => {
+		console.log('🚪 로그아웃 시작')
+		await logout()
+	}
+
 	// lock 상태가 true가 되면 메뉴트리 항상 고정
 	if (menuTreeLocked && !showMenuTree) setShowMenuTree(true)
 
 	// menuList key mapping (대문자->camelCase)
-	const mappedMenuList = (session.menuList || []).map((menu) => ({
+	const mappedMenuList = (session.user?.menuList || []).map((menu: any) => ({
 		menuSeq: menu.MENU_SEQ,
 		menuDspNm: menu.MENU_DSP_NM,
 		pgmId: menu.PGM_ID,
@@ -108,9 +114,10 @@ export default function COM0000M00() {
 		<div className='w-screen h-screen flex flex-col overflow-hidden'>
 			{/* 상단 고정 헤더 */}
 			<TopFrame
-				userName={user?.userName || user?.name}
-				userTeam={user?.deptNm || user?.department}
-				userPosition={user?.dutyNm || user?.position}
+				userName={user?.name}
+				userTeam={user?.department}
+				userPosition={user?.position}
+				userEmpNo={user?.empNo}
 			/>
 			{/* 하단 본문 영역 */}
 			<div className='flex flex-1 min-h-0 relative'>
@@ -118,7 +125,7 @@ export default function COM0000M00() {
 				<div className='z-30'>
 					<LeftFrame
 						onMenuClick={() => setShowMenuTree((v) => !v)}
-						onLogout={logout}
+						onLogout={handleLogout}
 					/>
 				</div>
 				{/* 콘텐츠 라인: relative */}

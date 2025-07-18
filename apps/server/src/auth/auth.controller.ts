@@ -34,7 +34,7 @@ export class AuthController {
   ): Promise<any> {
     try {
       console.log('📥 로그인 요청 받음');
-      console.log('📋 요청 본문:', body);
+      console.log('📋 요청 본문:', { empNo: body.empNo, password: '[HIDDEN]' });
       console.log('📋 요청 본문 타입:', typeof body);
 
       const { empNo, password } = body;

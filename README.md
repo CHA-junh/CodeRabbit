@@ -1,81 +1,102 @@
-# BIST_NEW Monorepo Project
+# BIST_NEW 프로젝트
 
-비즈니스 인텔리전스 시스템 - NestJS + Next.js Monorepo
+이 프로젝트는 BIST 시스템의 새로운 버전입니다.
 
-## 📋 프로젝트 정보
+## 🚀 시작하기
 
-- **SVN Repository**: `http://172.20.30.90/scm/svn/BIST_NEW`
-- **Local Path**: `C:\BIST_NEW`
-- **Architecture**: Monorepo (NestJS Server + Next.js Client)
+### 필수 요구사항
 
-## 🚀 실행 방법
+- Node.js 18+
+- npm 또는 yarn
+- MySQL 또는 MariaDB
 
-### 전체 앱 실행 (서버 + 클라이언트)
+### 설치 및 실행
+
+1. **의존성 설치**
 
 ```bash
+npm install
+```
+
+2. **환경 변수 설정**
+
+   `apps/client/.env.local` 파일을 생성하고 다음 내용을 추가하세요:
+
+```env
+# 개발 환경
+NEXT_PUBLIC_API_URL=http://localhost:8080
+
+# 스테이징 환경
+# NEXT_PUBLIC_API_URL=https://staging-api.example.com
+
+# 프로덕션 환경
+# NEXT_PUBLIC_API_URL=https://api.example.com
+```
+
+3. **개발 서버 실행**
+
+```bash
+# 클라이언트 (Next.js)
+cd apps/client
 npm run dev
+
+# 서버 (NestJS)
+cd apps/server
+npm run start:dev
 ```
 
-### 개별 실행
+4. **브라우저에서 확인**
 
-```bash
-# 서버만 실행
-npm run dev:server
-
-# 클라이언트만 실행
-npm run dev:client
-```
+- **클라이언트**: http://localhost:3000
+- **서버 API**: `http://localhost:8080`
 
 ## 📁 프로젝트 구조
 
 ```
 BIST_NEW/
 ├── apps/
-│   ├── server/          # NestJS 백엔드
-│   └── client/          # Next.js 프론트엔드
-├── shared/              # 공통 라이브러리
-└── package.json         # 루트 설정
+│   ├── client/          # Next.js 프론트엔드
+│   └── server/          # NestJS 백엔드
+├── packages/            # 공유 패키지들
+└── README.md
 ```
 
-## 🔗 접속 URL
+## 🔧 환경별 설정
 
-- **클라이언트**: `http://localhost:3000`
-- **서버 API**: `http://localhost:8080`
+### 개발 환경
 
-## 🗄️ 데이터베이스
+- `NEXT_PUBLIC_API_URL=http://localhost:8080`
 
-- **Type**: Oracle Database
-- **Connection**: Connection Pool
-- **Environment**: `.env` 파일 설정 필요
+### 스테이징 환경
 
-## 📝 SVN 사용법
+- `NEXT_PUBLIC_API_URL=https://staging-api.example.com`
 
-### 초기 체크아웃
+### 프로덕션 환경
 
-```bash
-svn checkout http://172.20.30.90/scm/svn/BIST_NEW C:\BIST_NEW
-```
+- `NEXT_PUBLIC_API_URL=https://api.example.com`
 
-### 커밋
+## 📝 주요 변경사항
 
-```bash
-svn commit -m "커밋 메시지"
-```
+### 보안 개선
 
-### 업데이트
+- ✅ 비밀번호 로그 마스킹
+- ✅ 환경 변수를 통한 API URL 관리
+- ✅ 하드코딩된 URL 제거
 
-```bash
-svn update
-```
+### 동적 컴포넌트 로딩
 
-## ⚙️ 환경 설정
+- ✅ Next.js dynamic import 최적화
+- ✅ 컴포넌트 캐싱 구현
+- ✅ 에러 처리 개선
 
-1. `.env` 파일 생성
-2. Oracle DB 연결 정보 설정
-3. `npm install` 실행
+## 🤝 기여하기
 
-## 🛠️ 개발 도구
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-- **Backend**: NestJS, TypeScript, Oracle DB
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
-- **Version Control**: SVN (TortoiseSVN)
+## 📄 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다.

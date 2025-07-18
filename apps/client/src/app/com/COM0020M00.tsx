@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import { LoginRequest } from '../../modules/auth/types'
 import { PasswordChangePopup } from '../../modules/auth/components/PasswordChangePopup'
+import { getSystemName } from '../../utils/environment'
 
 export default function COM0020M00() {
 	const { login, loading } = useAuth()
@@ -44,7 +45,7 @@ export default function COM0020M00() {
 			}
 			console.log('loginData:', loginData, '(3)')
 
-			const result = await login(loginData)
+			const result = await login(empNo, password)
 			console.log('login result:', result, '(4)')
 
 			// 1. 비밀번호 변경 필요 분기(최우선)
@@ -132,7 +133,7 @@ export default function COM0020M00() {
 	}
 
 	const handleAutoLogin = async (empNo: string, password: string) => {
-		const result = await login({ empNo, password })
+		const result = await login(empNo, password)
 		if (result.success) {
 			window.location.reload()
 		}
@@ -170,6 +171,12 @@ export default function COM0020M00() {
 							alt='Logo'
 							className='absolute top-4 left-4 max-w-md h-auto'
 						/>
+						{/* 시스템명 (우측 상단 고정) */}
+						<div className='absolute top-4 right-4'>
+							<span className='text-white text-sm font-medium bg-black bg-opacity-50 px-3 py-1 rounded'>
+								{getSystemName()}
+							</span>
+						</div>
 					</div>
 
 					{/* 로그인 영역 */}

@@ -1,6 +1,9 @@
 'use client'
 import './globals.css'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
+import { AuthProvider } from '../modules/auth/hooks/useAuth'
+import { getPageTitle, getSystemName } from '../utils/environment'
 
 export default function RootLayout({
 	children,
@@ -9,14 +12,33 @@ export default function RootLayout({
 }) {
 	const pathname = usePathname()
 	const isAuthPage =
-		pathname.startsWith('/signin') || pathname.startsWith('/signup')
+		pathname?.startsWith('/signin') || pathname?.startsWith('/signup')
+
+	// 페이지별 타이틀 설정
+	useEffect(() => {
+		if (!pathname) return
+
+		let pageTitle = ''
+
+		if (pathname.startsWith('/signin')) {
+			pageTitle = '로그인'
+		} else if (pathname.startsWith('/mainframe')) {
+			// 메인프레임은 시스템명만 표시
+			document.title = getSystemName()
+			return
+		} else if (pathname === '/') {
+			pageTitle = '홈'
+		}
+
+		document.title = getPageTitle(pageTitle)
+	}, [pathname])
 
 	return (
 		<html lang='ko'>
 			<body
 				className={isAuthPage ? '' : 'min-h-screen h-screen overflow-hidden'}
 			>
-				{children}
+				<AuthProvider>{children}</AuthProvider>
 			</body>
 		</html>
 	)

@@ -1,172 +1,179 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { AuthService } from '../services/authService'
-import { LoginRequest, UserInfo, SessionInfo } from '../types'
+import React, { useState, useEffect, createContext, useContext } from 'react'
+import AuthService from '../services/authService'
 
-export const useAuth = () => {
-	const [session, setSession] = useState<SessionInfo>({
-		isAuthenticated: false,
-	})
+// 사용자 정보 타입
+interface User {
+	userId: string
+	empNo: string
+	name: string
+	email: string
+	department: string
+	position: string
+	role: string
+	permissions: string[]
+	lastLoginAt: string
+	menuList: any[]
+	programList: any[]
+	needsPasswordChange?: boolean
+}
+
+// 세션 정보 타입 (레거시 호환성)
+interface Session {
+	user: User | null
+}
+
+// 인증 컨텍스트 타입
+interface AuthContextType {
+	user: User | null
+	session: Session
+	loading: boolean
+	isAuthenticated: boolean
+	login: (empNo: string, password: string) => Promise<any>
+	logout: () => Promise<void>
+	checkSession: () => Promise<void>
+}
+
+// 인증 컨텍스트 생성
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// 인증 프로바이더 컴포넌트
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+	const [user, setUser] = useState<User | null>(null)
 	const [loading, setLoading] = useState(true)
-	const router = useRouter()
 
-	// 쿠키 삭제 함수
-	const clearSessionCookies = useCallback(() => {
-		// 현재 쿠키 상태 로그
-		console.log('🍪 현재 쿠키:', document.cookie)
+	// 인증 상태 계산
+	const isAuthenticated = !!user
 
-		// session 쿠키 삭제
-		document.cookie = 'empNo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-		console.log('🧹 세션 쿠키 삭제 완료')
-		console.log('🍪 삭제 후 쿠키:', document.cookie)
-	}, [])
+	// 세션 객체 (레거시 호환성)
+	const session: Session = { user }
 
 	// 세션 확인
-	const checkSession = useCallback(async () => {
+	const checkSession = async () => {
 		try {
-			setLoading(true)
-
-			// 현재 쿠키 상태 확인
 			console.log('🔍 세션 확인 전 쿠키 상태:', document.cookie)
+			const data = await AuthService.checkSession()
+			console.log('🔍 세션 확인 응답 상태:', data)
 
-			const user = await AuthService.checkSession()
+			if (data.success && data.user) {
+				// 서버 응답을 클라이언트 UserInfo로 변환
+				const plainUser = JSON.parse(JSON.stringify(data.user))
+				console.log('🟠 plainUser:', plainUser)
 
-			// user가 null이거나 undefined인 경우 세션 무효로 처리
-			if (!user) {
-				console.log('❌ 세션 확인 실패 - 사용자 정보 없음')
-				setSession({
-					isAuthenticated: false,
-				})
-				// 세션이 없으면 쿠키 삭제 후 로그인 페이지로 이동
-				clearSessionCookies()
-				router.push('/signin')
-				return
+				const userInfo: User = {
+					userId: plainUser.userId ?? '',
+					empNo: plainUser.empNo ?? plainUser.userId ?? '',
+					name: plainUser.userName ?? plainUser.name ?? '',
+					email: plainUser.email ?? plainUser.emailAddr ?? '',
+					department: plainUser.deptNm ?? '',
+					position: plainUser.dutyNm ?? '',
+					role:
+						plainUser.role ?? (plainUser.authCd === '30' ? 'ADMIN' : 'USER'),
+					permissions: plainUser.permissions ?? ['read', 'write'],
+					lastLoginAt: plainUser.lastLoginAt ?? new Date().toISOString(),
+					menuList: plainUser.menuList ?? [],
+					programList: plainUser.programList ?? [],
+					needsPasswordChange: plainUser.needsPasswordChange ?? false,
+				}
+
+				console.log('🟢 변환 후 클라이언트 user:', userInfo)
+				console.log('user.menuList:', userInfo.menuList)
+				console.log('user.programList:', userInfo.programList)
+
+				setUser(userInfo)
+			} else {
+				setUser(null)
 			}
-
-			// 서버 응답에서 success 필드 확인 (추가 검증)
-			const response = await fetch('http://localhost:8080/api/auth/session', {
-				credentials: 'include',
-			})
-			const data = await response.json()
-
-			// success 필드가 false이면 세션 무효
-			if (data.success === false) {
-				console.log('❌ 서버에서 세션 무효 응답 - 강제 로그아웃')
-				setSession({
-					isAuthenticated: false,
-				})
-				clearSessionCookies()
-				router.push('/signin')
-				return
-			}
-
-			// 사용자 정보가 있으면 인증 성공
-			console.log('user.menuList:', user.menuList)
-			console.log('user.programList:', user.programList)
-			setSession({
-				isAuthenticated: true,
-				user: user,
-				menuList: user.menuList || [],
-				programList: user.programList || [],
-			})
 		} catch (error) {
-			console.error('❌ 세션 확인 오류:', error)
-			setSession({
-				isAuthenticated: false,
-			})
-			// 오류 발생 시 쿠키 삭제 후 로그인 페이지로 이동
-			clearSessionCookies()
-			router.push('/signin')
+			console.error('세션 확인 오류:', error)
+			setUser(null)
 		} finally {
 			setLoading(false)
 		}
-	}, [router, clearSessionCookies])
+	}
 
 	// 로그인
-	const login = useCallback(
-		async (loginData: LoginRequest) => {
-			try {
-				setLoading(true)
-				const response = await AuthService.login(loginData)
+	const login = async (empNo: string, password: string) => {
+		try {
+			const data = await AuthService.login(empNo, password)
 
-				// message가 JSON 문자열로 올 경우 파싱해서 진짜 메시지만 추출
-				let safeMessage = ''
-				if (typeof response.message === 'string') {
-					try {
-						const parsed = JSON.parse(response.message)
-						if (parsed && typeof parsed === 'object' && parsed.message) {
-							safeMessage = parsed.message
-						} else {
-							safeMessage = response.message
-						}
-					} catch {
-						safeMessage = response.message
-					}
-				} else if (response.message) {
-					safeMessage = JSON.stringify(response.message)
+			if (data.success && data.user) {
+				// 서버 응답을 클라이언트 UserInfo로 변환
+				const plainUser = JSON.parse(JSON.stringify(data.user))
+				const userInfo: User = {
+					userId: plainUser.userId ?? '',
+					empNo: plainUser.empNo ?? plainUser.userId ?? '',
+					name: plainUser.userName ?? plainUser.name ?? '',
+					email: plainUser.email ?? plainUser.emailAddr ?? '',
+					department: plainUser.deptNm ?? '',
+					position: plainUser.dutyNm ?? '',
+					role:
+						plainUser.role ?? (plainUser.authCd === '30' ? 'ADMIN' : 'USER'),
+					permissions: plainUser.permissions ?? ['read', 'write'],
+					lastLoginAt: plainUser.lastLoginAt ?? new Date().toISOString(),
+					menuList: plainUser.menuList ?? [],
+					programList: plainUser.programList ?? [],
+					needsPasswordChange: plainUser.needsPasswordChange ?? false,
 				}
 
-				if (response.needsPasswordChange) {
-					return {
-						success: false,
-						needsPasswordChange: true,
-						message: safeMessage,
-					}
-				}
-
-				if (response.success && response.user) {
-					setSession({
-						isAuthenticated: true,
-						user: response.user,
-						token: response.token,
-						menuList: response.user.menuList || [],
-						programList: response.user.programList || [],
-					})
-					router.push('/mainframe')
-					return { success: true }
-				} else {
-					return { success: false, message: safeMessage }
-				}
-			} catch (error) {
-				console.error('로그인 오류:', error)
-				return { success: false, message: '로그인 중 오류가 발생했습니다.' }
-			} finally {
-				setLoading(false)
+				setUser(userInfo)
 			}
-		},
-		[router]
-	)
+
+			return data
+		} catch (error) {
+			console.error('로그인 오류:', error)
+			throw error
+		}
+	}
 
 	// 로그아웃
-	const logout = useCallback(async () => {
+	const logout = async () => {
 		try {
-			await AuthService.logout()
-			setSession({
-				isAuthenticated: false,
-			})
+			console.log('🚪 로그아웃 시작')
+			const result = await AuthService.logout()
+			console.log('🚪 로그아웃 결과:', result)
 
-			// 쿠키 삭제 후 로그인 페이지로 이동
-			clearSessionCookies()
-			router.push('/signin')
+			// 클라이언트 상태 초기화
+			setUser(null)
+
+			// 로그인 페이지로 리다이렉션
+			if (typeof window !== 'undefined') {
+				window.location.href = '/signin'
+			}
 		} catch (error) {
 			console.error('로그아웃 오류:', error)
+			// 에러가 발생해도 클라이언트 상태는 초기화
+			setUser(null)
+			if (typeof window !== 'undefined') {
+				window.location.href = '/signin'
+			}
 		}
-	}, [router, clearSessionCookies])
+	}
 
 	// 초기 세션 확인
 	useEffect(() => {
 		checkSession()
-	}, [checkSession])
+	}, [])
 
-	return {
+	const value = {
+		user,
 		session,
 		loading,
+		isAuthenticated,
 		login,
 		logout,
 		checkSession,
-		isAuthenticated: session.isAuthenticated,
-		user: session.user,
 	}
+
+	return React.createElement(AuthContext.Provider, { value }, children)
+}
+
+// 인증 훅
+export function useAuth() {
+	const context = useContext(AuthContext)
+	if (context === undefined) {
+		throw new Error('useAuth must be used within an AuthProvider')
+	}
+	return context
 }

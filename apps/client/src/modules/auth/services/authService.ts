@@ -1,140 +1,93 @@
-import { LoginRequest, LoginResponse } from '../types'
+/**
+ * 인증 관련 API 서비스
+ */
 
-// 인증 서비스
-export class AuthService {
-	private static readonly API_BASE_URL = 'http://localhost:8080/api/auth'
+class AuthService {
+	private static readonly API_BASE_URL =
+		process.env.NEXT_PUBLIC_API_URL + '/api/auth'
 
-	// 서버 응답을 클라이언트 UserInfo로 변환
-	private static mapServerUserToClientUser(serverUser: any): any {
-		if (!serverUser) return null
-		// Proxy/직렬화 문제 대응: plain object로 변환
-		const plainUser = JSON.parse(JSON.stringify(serverUser))
-		console.log('🟠 plainUser:', plainUser)
-		const userInfo = {
-			userId: plainUser.userId ?? '',
-			empNo: plainUser.empNo ?? plainUser.userId ?? '',
-			name: plainUser.userName ?? plainUser.name ?? '',
-			email: plainUser.email ?? plainUser.emailAddr ?? '',
-			department: plainUser.deptNm ?? plainUser.department ?? '',
-			position: plainUser.dutyNm ?? plainUser.position ?? '', // dutyNm(직급명) → position 순서
-			role: plainUser.role ?? (plainUser.authCd === '30' ? 'ADMIN' : 'USER'),
-			permissions: plainUser.permissions ?? ['read', 'write'],
-			lastLoginAt: plainUser.lastLoginAt ?? new Date().toISOString(),
-			// 서버 원본 필드도 모두 보존
-			userName: plainUser.userName ?? plainUser.name ?? '',
-			deptCd: plainUser.deptCd ?? '',
-			deptNm: plainUser.deptNm ?? plainUser.department ?? '',
-			dutyCd: plainUser.dutyCd ?? '',
-			dutyNm: plainUser.dutyNm ?? plainUser.position ?? '',
-			dutyDivCd: plainUser.dutyDivCd ?? '',
-			authCd: plainUser.authCd ?? '',
-			emailAddr: plainUser.emailAddr ?? '',
-			usrRoleId: plainUser.usrRoleId ?? '',
-			needsPasswordChange: plainUser.needsPasswordChange ?? false,
-			menuList: plainUser.menuList ?? [],
-			programList: plainUser.programList ?? [],
-		}
-		console.log('🟢 변환 후 클라이언트 user:', userInfo)
-		return userInfo
-	}
-
-	// 로그인
-	static async login(
-		loginData: LoginRequest
-	): Promise<LoginResponse & { needsPasswordChange?: boolean }> {
+	/**
+	 * 사용자 로그인
+	 */
+	static async login(empNo: string, password: string): Promise<any> {
 		try {
 			const response = await fetch(`${this.API_BASE_URL}/login`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify(loginData),
-				credentials: 'include', // 쿠키 포함
+				credentials: 'include',
+				body: JSON.stringify({ empNo, password }),
 			})
+
 			const data = await response.json()
-			console.log('서버 응답 data:', data)
-
-			// needsPasswordChange를 최대한 명확하게 판별
-			const needsPasswordChange =
-				data.needsPasswordChange === true ||
-				(data.user && data.user.needsPasswordChange === true) ||
-				(typeof data.message === 'string' &&
-					data.message.includes('초기 비밀번호'))
-
-			return {
-				...data,
-				user: data.user ? this.mapServerUserToClientUser(data.user) : undefined,
-				needsPasswordChange,
-			}
+			return data
 		} catch (error) {
-			return {
-				success: false,
-				message: '로그인 중 오류가 발생했습니다.',
-			}
+			console.error('로그인 API 오류:', error)
+			throw error
 		}
 	}
 
-	// 세션 확인
-	static async checkSession(): Promise<any | null> {
+	/**
+	 * 세션 확인
+	 */
+	static async checkSession(): Promise<any> {
 		try {
-			console.log('🔍 세션 확인 시작')
 			const response = await fetch(`${this.API_BASE_URL}/session`, {
-				credentials: 'include', // 쿠키 포함
+				method: 'GET',
+				credentials: 'include',
 			})
-			console.log('🔍 세션 확인 응답 상태:', response.status)
 
-			if (response.ok) {
-				const data = await response.json()
-				console.log('서버 응답 데이터:', data)
-
-				// success 필드가 있으면 그것을 우선 확인, 없으면 user 필드만 확인
-				const isValidSession = data.success !== false && data.user
-				if (isValidSession) {
-					console.log('✅ 서버에서 유효한 세션 확인')
-					return this.mapServerUserToClientUser(data.user)
-				} else {
-					console.log('❌ 서버에서 세션 무효 응답')
-					return null
-				}
-			}
-			console.log('🔍 세션 확인 실패 - 응답이 성공이 아님')
-			return null
+			const data = await response.json()
+			return data
 		} catch (error) {
-			console.error('🔍 세션 확인 오류:', error)
-			return null
+			console.error('세션 확인 API 오류:', error)
+			throw error
 		}
 	}
 
-	// 로그아웃
-	static async logout(): Promise<void> {
+	/**
+	 * 로그아웃
+	 */
+	static async logout(): Promise<any> {
 		try {
-			await fetch(`${this.API_BASE_URL}/logout`, {
+			const response = await fetch(`${this.API_BASE_URL}/logout`, {
 				method: 'POST',
-				credentials: 'include', // 쿠키 포함
+				credentials: 'include',
 			})
+
+			const data = await response.json()
+			return data
 		} catch (error) {
-			// 무시
+			console.error('로그아웃 API 오류:', error)
+			throw error
 		}
 	}
 
-	// 토큰 갱신
-	static async refreshToken(): Promise<string | null> {
+	/**
+	 * 비밀번호 변경
+	 */
+	static async changePassword(
+		userId: string,
+		newPassword: string
+	): Promise<any> {
 		try {
-			const response = await fetch(`${this.API_BASE_URL}/refresh`, {
+			const response = await fetch(`${this.API_BASE_URL}/change-password`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				credentials: 'include',
+				body: JSON.stringify({ userId, newPassword }),
 			})
 
-			if (response.ok) {
-				const data = await response.json()
-				return data.token || null
-			}
-			return null
+			const data = await response.json()
+			return data
 		} catch (error) {
-			console.error('토큰 갱신 오류:', error)
-			return null
+			console.error('비밀번호 변경 API 오류:', error)
+			throw error
 		}
 	}
 }
+
+export default AuthService
