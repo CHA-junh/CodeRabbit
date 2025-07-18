@@ -5,8 +5,9 @@ export default async function handler(
 	res: NextApiResponse
 ) {
 	try {
-		// 백엔드 API 호출
-		const response = await fetch('http://localhost:3001/menu/tree', {
+		// Next.js rewrites를 활용하여 상대 경로 사용
+		// next.config.mjs에서 /api/:path* -> 백엔드로 프록시 설정됨
+		const response = await fetch('/api/sys/menus', {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',

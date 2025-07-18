@@ -79,14 +79,17 @@ export default function LoginForm() {
 		setPwdChangeLoading(true)
 		setPwdChangeMsg(null)
 		try {
-			const res = await fetch(
-				'http://localhost:8080/api/auth/change-password',
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
-				}
-			)
+			// API URL 환경변수 기반 설정
+			const apiUrl =
+				typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
+					? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/change-password`
+					: '/api/auth/change-password'
+
+			const res = await fetch(apiUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
+			})
 			const data = await res.json()
 			if (data.success) {
 				setPwdChangeMsg(
@@ -118,7 +121,13 @@ export default function LoginForm() {
 
 	const handleAutoLogin = async (empNo: string, password: string) => {
 		try {
-			const response = await fetch('http://localhost:8080/api/auth/login', {
+			// API URL 환경변수 기반 설정
+			const apiUrl =
+				typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
+					? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/login`
+					: '/api/auth/login'
+
+			const response = await fetch(apiUrl, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ empNo, password }),

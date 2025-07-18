@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
 
 // 부서구분코드 조회를 위한 타입
 export interface DeptDivCode {
-  code: string; // 코드값
-  name: string; // 코드명
+	code: string // 코드값
+	name: string // 코드명
 }
 
 /**
@@ -17,22 +17,23 @@ export interface DeptDivCode {
  *   // codes: [{ code: '112', name: '부서' }, ...]
  */
 export const useDeptDivCodes = () => {
-  const [codes, setCodes] = useState<DeptDivCode[]>([]);
-  useEffect(() => {
-    const fetchCodes = async () => {
-      try {
-        // 개발/운영 환경에 따라 API 주소 자동 분기
-        const url = process.env.NODE_ENV === 'development'
-          ? 'http://localhost:8080/api/common/dept-div-codes'
-          : '/api/common/dept-div-codes';
-        const res = await fetch(url);
-        const data = await res.json();
-        setCodes(Array.isArray(data) ? data : (data.data ?? []));
-      } catch {
-        setCodes([]);
-      }
-    };
-    fetchCodes();
-  }, []);
-  return codes;
-}; 
+	const [codes, setCodes] = useState<DeptDivCode[]>([])
+	useEffect(() => {
+		const fetchCodes = async () => {
+			try {
+				// 개발/운영 환경에 따라 API 주소 자동 분기
+				const url =
+					process.env.NODE_ENV === 'development'
+						? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/common/dept-div-codes`
+						: '/api/common/dept-div-codes'
+				const res = await fetch(url)
+				const data = await res.json()
+				setCodes(Array.isArray(data) ? data : (data.data ?? []))
+			} catch {
+				setCodes([])
+			}
+		}
+		fetchCodes()
+	}, [])
+	return codes
+}

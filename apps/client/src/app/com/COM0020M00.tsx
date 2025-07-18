@@ -104,14 +104,17 @@ export default function COM0020M00() {
 
 	const handlePwdChangeSubmit = async (newPassword: string) => {
 		try {
-			const response = await fetch(
-				'http://localhost:8080/api/auth/change-password',
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
-				}
-			)
+			// API URL 환경변수 기반 설정
+			const apiUrl =
+				typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
+					? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/change-password`
+					: '/api/auth/change-password'
+
+			const response = await fetch(apiUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ userId: pwdChangeUserId, newPassword }),
+			})
 			const data = await response.json()
 
 			if (data.success) {
