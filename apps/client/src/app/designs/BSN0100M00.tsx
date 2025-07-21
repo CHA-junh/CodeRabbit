@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import './common.css';
 
 import BSN0120M00 from './BSN0120M00';
-// import BSN0120D00 from './BSN0120D00';
+import BSN0130M00 from './BSN0130M00';
 // import BSN0120E00 from './BSN0120E00';
 // import BSN0120F00 from './BSN0120F00';
 // import BSN0120G00 from './BSN0120G00';
@@ -12,7 +12,7 @@ import BSN0120M00 from './BSN0120M00';
 export default function BSN0100M00() {
   const tabs = [
     { label: '제품(재료비)', component: <BSN0120M00 /> },
-    // { label: '직접인건비', component: <BSN0120D00 /> },
+    { label: '직접인건비', component: <BSN0130M00 /> },
     // { label: '직접경비', component: <BSN0120E00 /> },
     // { label: '품의서이력조회', component: <BSN0120F00 /> },
     // { label: '월별투입비용조회', component: <BSN0120G00 /> },
@@ -104,9 +104,9 @@ export default function BSN0100M00() {
       </table>
 
       <div className="flex justify-end gap-2 mb-4">
-        <button className="btn-base btn-act">저장</button>
-        <button className="btn-base btn-act">최종등록</button>
         <button className="btn-base btn-etc">재계약</button>
+        <button className="btn-base btn-act">최종등록</button>
+        <button className="btn-base btn-act">저장</button>
       </div>
 
       {/* 📊 원가 / 공급가 테이블 */}

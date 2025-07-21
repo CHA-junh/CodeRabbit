@@ -196,12 +196,12 @@ html,body {
   @apply table-row;
 }
 .form-th {
-  @apply table-cell bg-[#F1F5F8] border border-stone-300 px-2 py-1 text-sm text-right text-[#2A2A2A] align-middle whitespace-nowrap;
+  @apply table-cell bg-[#F1F5F8] border border-stone-300 px-1 py-1 text-sm text-right text-[#2A2A2A] align-middle whitespace-nowrap;
   height: 30px; /* 고정 높이 지정 */
   vertical-align: middle;
 }
 .form-td {
-  @apply table-cell bg-white border border-stone-300 px-2 py-1 text-left align-middle;
+  @apply table-cell bg-white border border-stone-300 px-1 py-1 text-left align-middle;
   height: 30px; /* 고정 높이 지정 */
   vertical-align: middle;
 }
@@ -419,7 +419,7 @@ html,body {
 /* 탭 콘텐츠 */
 .tab-panel {
   @apply flex-1 min-h-0 overflow-auto 
-         bg-white border border-[#00509A] rounded-b-md p-4 z-0 relative;
+         bg-white border border-[#00509A] rounded-b-lg p-4 z-0 relative;
   font-size: 14px;
   font-weight: 400;
   font-family: 'NanumGothic', sans-serif;
