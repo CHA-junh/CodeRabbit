@@ -110,7 +110,7 @@ export default function BSN0100M00() {
       </div>
 
       {/* 📊 원가 / 공급가 테이블 */}
-      <div className="gridbox-div mb-4">
+      <div className="gridbox-div mb-2">
         <table className="grid-table text-center">
           <thead>
             <tr>
