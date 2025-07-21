@@ -44,7 +44,7 @@ BIST_NEW는 기존 BIST 시스템의 현대화된 버전으로, 모노레포 구
 
 ### 프론트엔드
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 14.2.30 (App Router)
 - **Language**: TypeScript 5.4.5
 - **UI Library**: React 18.2.0
 - **Styling**: Tailwind CSS 3.4.1
@@ -54,21 +54,22 @@ BIST_NEW는 기존 BIST 시스템의 현대화된 버전으로, 모노레포 구
 
 ### 백엔드
 
-- **Framework**: NestJS 11.0.1
+- **Framework**: NestJS 11.1.3
 - **Language**: TypeScript 5.4.5
 - **Database**: Oracle Database (oracledb 6.8.0)
 - **ORM**: TypeORM 0.3.25
 - **Validation**: class-validator 0.14.2
 - **Documentation**: Swagger/OpenAPI 11.2.0
 - **Session**: express-session 1.18.2
+- **CLI**: NestJS CLI 11.0.7
 
 ### 개발 도구
 
-- **Package Manager**: npm
+- **Package Manager**: npm 10.8.2
 - **Monorepo**: Turborepo
 - **Linting**: ESLint
 - **Testing**: Jest
-- **Build Tool**: Next.js, NestJS CLI
+- **Build Tool**: Next.js 14.2.30, NestJS CLI 11.0.7, NestJS Core 11.1.3
 
 ---
 
@@ -201,8 +202,9 @@ TBL_MENU_INF (
 
 ### 필수 요구사항
 
-- **Node.js**: 18+ 버전
-- **npm**: 최신 버전
+- **Node.js**: 20+ 버전 (현재: v20.19.0)
+- **npm**: 10+ 버전 (현재: 10.8.2)
+- **NestJS CLI**: 11+ 버전 (현재: 11.0.7)
 - **Oracle Database**: 11g 이상
 - **Oracle Client**: oracledb 드라이버 설치
 
