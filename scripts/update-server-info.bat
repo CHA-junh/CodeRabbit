@@ -69,7 +69,28 @@ REM 5. 헬스 체크 경로 입력
 set /p HEALTH_CHECK_PATH="헬스 체크 경로 (기본: /health/dev): "
 if "%HEALTH_CHECK_PATH%"=="" set HEALTH_CHECK_PATH=/health/dev
 
-REM 6. 입력 정보 확인
+REM 6. CORS 설정 입력
+:input_cors
+echo.
+echo CORS 설정 옵션:
+echo 1. 모든 IP 허용 (개발용 권장)
+echo 2. 특정 IP만 허용
+echo 3. 기본값 사용 (모든 IP 허용)
+set /p CORS_OPTION="CORS 설정을 선택하세요 (1-3, 기본: 3): "
+if "%CORS_OPTION%"=="" set CORS_OPTION=3
+
+if "%CORS_OPTION%"=="1" (
+    set CORS_ORIGIN=*
+    call :log_info "모든 IP 허용으로 설정됩니다."
+) else if "%CORS_OPTION%"=="2" (
+    set /p CORS_ORIGIN="허용할 IP 주소들을 입력하세요 (예: http://172.20.40.104:3000): "
+    if "%CORS_ORIGIN%"=="" set CORS_ORIGIN=http://%DEV_SERVER_IP%:%FRONTEND_PORT%
+) else (
+    set CORS_ORIGIN=*
+    call :log_info "기본값(모든 IP 허용)을 사용합니다."
+)
+
+REM 7. 입력 정보 확인
 echo.
 call :log_info "입력된 서버 정보:"
 echo   - 서버 IP: %DEV_SERVER_IP%
@@ -77,6 +98,7 @@ echo   - 프론트엔드 포트: %FRONTEND_PORT%
 echo   - 백엔드 포트: %BACKEND_PORT%
 echo   - API 문서 경로: %API_DOCS_PATH%
 echo   - 헬스 체크 경로: %HEALTH_CHECK_PATH%
+echo   - CORS 설정: %CORS_ORIGIN%
 echo.
 
 set /p CONFIRM="이 정보가 맞습니까? (y/N): "
@@ -129,7 +151,7 @@ if exist "env.dev" (
                     ) else if "!var_name!"=="CLIENT_PORT" (
                         echo CLIENT_PORT=%FRONTEND_PORT%
                     ) else if "!var_name!"=="CORS_ORIGIN" (
-                        echo CORS_ORIGIN=http://%DEV_SERVER_IP%:%FRONTEND_PORT%
+                        echo CORS_ORIGIN=%CORS_ORIGIN%
                     ) else (
                         echo !line_content!
                     )
@@ -176,7 +198,7 @@ if exist "env.dev" (
     echo SESSION_COOKIE_MAX_AGE=86400000
     echo.
     echo # CORS 설정
-    echo CORS_ORIGIN=http://%DEV_SERVER_IP%:%FRONTEND_PORT%
+    echo CORS_ORIGIN=%CORS_ORIGIN%
     echo CORS_CREDENTIALS=true
     echo.
     echo # 파일 업로드 설정
