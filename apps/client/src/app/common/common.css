@@ -421,3 +421,34 @@ body {
 	margin-top: 12px;
 	font-weight: normal;
 }
+
+/* 탭 컨테이너 */
+.tab-container {
+  @apply relative flex gap-1 z-10 border-b border-[#00509A];
+}
+
+/* 탭 버튼 */
+.tab-button {
+  @apply h-[30px] px-4 py-1 text-[14px] font-normal font-['NanumGothic'] 
+          inline-flex items-center justify-center rounded-t-md 
+          border border-transparent relative;
+}
+
+/* 탭 활성 상태 */
+.tab-active {
+  @apply bg-[#00509A] text-white border border-[#00509A] border-b z-20;
+}
+
+/* 탭 비활성 상태 */
+.tab-inactive {
+  @apply bg-sky-50 text-[#798EA2] border border-[#D4E4F4] z-10;
+}
+
+/* 탭 콘텐츠 */
+.tab-panel {
+  @apply flex-1 min-h-0 overflow-auto 
+         bg-white border border-[#00509A] rounded-b-md p-4 z-0 relative;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: 'NanumGothic', sans-serif;
+}

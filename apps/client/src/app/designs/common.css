@@ -129,11 +129,14 @@ html,body {
 .icon_btn {
   @apply hover:opacity-80 w-[26px] h-[26px];
   background-color: #58A5EE;
-  background-image: url('/icon_calendar.svg');
+  border-radius: 0.25rem;
+}
+
+.icon_search {
+  background-image: url('/icon_search.svg');
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 16px 16px;
-  border-radius: 6px;
+  background-size: 14px 14px;
 }
 
 /* ============================= */

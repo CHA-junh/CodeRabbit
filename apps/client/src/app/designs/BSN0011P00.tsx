@@ -181,7 +181,7 @@ export default function ProjectEditPopup() {
         </table>
 
         {/* 안내 문구 */}
-        <p className="text-[13px] text-red-600 mt-3">
+        <p className="text-[13px] text-red-500 mt-3">
           ※ 사업번호를 등록한 영업대표만이 사업 기본정보를 수정할 수 있습니다.
         </p>
 
