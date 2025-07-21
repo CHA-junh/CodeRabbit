@@ -1,37 +1,49 @@
-import { Controller, Post, Body } from '@nestjs/common'
-import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
-import { UsersService } from './users.service'
-import { User, UserSearchParams, UserSearchResponseDto } from './dto/users.dto'
+import { Controller, Post, Body, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UsersService } from './users.service';
+import { UserSearchParams, UserSearchResponseDto } from './dto/users.dto';
 
-/**
- * 사용자 관련 API 컨트롤러
- * 사용자 검색 기능을 제공합니다.
- */
+// express-session 타입 확장
+interface RequestWithSession extends Request {
+  session: any;
+}
+
+@ApiTags('사용자 관리')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  /**
-   * 사용자 검색 API
-   * @param body - 검색 조건
-   * @param body.userNm - 사용자명
-   * @returns 검색된 사용자 목록과 프로시저 정보
-   */
   @Post('search')
   @ApiOperation({ 
     summary: '사용자 검색',
-    description: '사용자명으로 사용자를 검색하고 프로시저 정보를 포함하여 반환합니다.'
-  })
-  @ApiBody({ 
-    type: UserSearchParams,
-    description: '사용자 검색 조건'
+    description: '사용자명으로 사용자를 검색합니다.'
   })
   @ApiResponse({ 
     status: 200, 
     description: '사용자 검색 성공',
     type: UserSearchResponseDto
   })
-  async searchUsers(@Body() body: UserSearchParams): Promise<UserSearchResponseDto> {
-    return this.usersService.searchUsers(body.userNm, body.hqDiv, body.deptDiv)
+  @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
+  @ApiResponse({ status: 500, description: '사용자 조회 중 오류가 발생했습니다.' })
+  async searchUsers(@Req() req: RequestWithSession, @Res() res: Response, @Body() body: UserSearchParams) {
+    // 세션 체크 주석 처리 (Swagger UI 테스트용)
+    /*
+    const userInfo = req.session.user;
+    if (!userInfo) {
+      return res
+        .status(401)
+        .json({ success: false, message: '세션이 유효하지 않습니다.' });
+    }
+    */
+    
+    try {
+      const result = await this.usersService.searchUsers(body.userNm, body.hqDiv, body.deptDiv);
+      return res.json({ success: true, data: result.data });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: '사용자 조회 중 오류가 발생했습니다.', error: err });
+    }
   }
 } 

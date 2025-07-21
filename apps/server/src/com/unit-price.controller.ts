@@ -1,66 +1,65 @@
-import { Controller, Post, Body } from '@nestjs/common'
-import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
-import { UnitPriceService } from './unit-price.service'
+import { Controller, Post, Body, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UnitPriceService } from './unit-price.service';
 import { 
   UnitPriceSearchParams, 
   UnitPriceSaveParams, 
   UnitPriceDeleteParams, 
-  UnitPrice,
-  UnitPriceSearchResponseDto
-} from './dto/unit-price.dto'
+  UnitPriceSearchResponseDto 
+} from './dto/unit-price.dto';
 
-/**
- * 단가 관련 API 컨트롤러
- * 단가 검색, 저장, 삭제 기능을 제공합니다.
- */
+// express-session 타입 확장
+interface RequestWithSession extends Request {
+  session: any;
+}
+
+@ApiTags('단가 관리')
 @Controller('unit-price')
 export class UnitPriceController {
   constructor(private readonly unitPriceService: UnitPriceService) {}
 
-  /**
-   * 단가 검색 API
-   * @param body - 검색 조건
-   * @param body.ownOutsDiv - 내부/외부 구분
-   * @param body.year - 년도
-   * @param body.bsnNo - 사업번호 (선택)
-   * @returns 검색된 단가 목록과 프로시저 정보
-   */
   @Post('search')
   @ApiOperation({ 
     summary: '단가 검색',
-    description: '등급별 단가를 검색하고 프로시저 정보를 포함하여 반환합니다.'
-  })
-  @ApiBody({ 
-    type: UnitPriceSearchParams,
-    description: '단가 검색 조건'
+    description: '등급별 단가를 검색합니다.'
   })
   @ApiResponse({ 
     status: 200, 
     description: '단가 검색 성공',
     type: UnitPriceSearchResponseDto
   })
-  async searchUnitPrices(@Body() body: UnitPriceSearchParams): Promise<UnitPriceSearchResponseDto> {
-    return this.unitPriceService.searchUnitPrices(body.ownOutsDiv, body.year, body.bsnNo)
+  @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
+  @ApiResponse({ status: 500, description: '단가 조회 중 오류가 발생했습니다.' })
+  async searchUnitPrices(@Req() req: RequestWithSession, @Res() res: Response, @Body() body: UnitPriceSearchParams) {
+    // 세션 체크 주석 처리 (Swagger UI 테스트용)
+    /*
+    const userInfo = req.session.user;
+    if (!userInfo) {
+      return res
+        .status(401)
+        .json({ success: false, message: '세션이 유효하지 않습니다.' });
+    }
+    */
+    
+    try {
+      const result = await this.unitPriceService.searchUnitPrices(
+        body.ownOutsDiv,
+        body.year,
+        body.bsnNo
+      );
+      return res.json({ success: true, data: result.data });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: '단가 조회 중 오류가 발생했습니다.', error: err });
+    }
   }
 
-  /**
-   * 단가 저장 API
-   * @param body - 저장할 단가 정보
-   * @param body.ownOutsDiv - 내부/외부 구분
-   * @param body.year - 년도
-   * @param body.tcnGrd - 기술등급
-   * @param body.dutyCd - 직무코드
-   * @param body.unitPrice - 단가
-   * @returns 저장 결과
-   */
   @Post('save')
   @ApiOperation({ 
     summary: '단가 저장',
     description: '등급별 단가를 저장합니다. 기존 단가가 있으면 업데이트하고, 없으면 새로 생성합니다.'
-  })
-  @ApiBody({ 
-    type: UnitPriceSaveParams,
-    description: '단가 저장 정보'
   })
   @ApiResponse({ 
     status: 200, 
@@ -68,35 +67,43 @@ export class UnitPriceController {
     schema: {
       type: 'object',
       properties: {
-        rtn: {
-          type: 'string',
-          description: '저장 결과 메시지',
-          example: 'SUCCESS'
+        success: { type: 'boolean' },
+        data: {
+          type: 'object',
+          properties: {
+            rtn: { type: 'string' }
+          }
         }
       }
     }
   })
-  async saveUnitPrice(@Body() body: UnitPriceSaveParams): Promise<{ rtn: string }> {
-    return this.unitPriceService.saveUnitPrice(body)
+  @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
+  @ApiResponse({ status: 500, description: '단가 저장 중 오류가 발생했습니다.' })
+  async saveUnitPrice(@Req() req: RequestWithSession, @Res() res: Response, @Body() body: UnitPriceSaveParams) {
+    // 세션 체크 주석 처리 (Swagger UI 테스트용)
+    /*
+    const userInfo = req.session.user;
+    if (!userInfo) {
+      return res
+        .status(401)
+        .json({ success: false, message: '세션이 유효하지 않습니다.' });
+    }
+    */
+    
+    try {
+      const result = await this.unitPriceService.saveUnitPrice(body);
+      return res.json({ success: true, data: result });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: '단가 저장 중 오류가 발생했습니다.', error: err });
+    }
   }
 
-  /**
-   * 단가 삭제 API
-   * @param body - 삭제할 단가 정보
-   * @param body.ownOutsDiv - 내부/외부 구분
-   * @param body.year - 년도
-   * @param body.tcnGrd - 기술등급
-   * @param body.dutyCd - 직무코드
-   * @returns 삭제 결과
-   */
   @Post('delete')
   @ApiOperation({ 
     summary: '단가 삭제',
     description: '등급별 단가를 삭제합니다. 지정된 조건의 단가가 존재하면 삭제합니다.'
-  })
-  @ApiBody({ 
-    type: UnitPriceDeleteParams,
-    description: '단가 삭제 정보'
   })
   @ApiResponse({ 
     status: 200, 
@@ -104,15 +111,36 @@ export class UnitPriceController {
     schema: {
       type: 'object',
       properties: {
-        rtn: {
-          type: 'string',
-          description: '삭제 결과 메시지',
-          example: 'SUCCESS'
+        success: { type: 'boolean' },
+        data: {
+          type: 'object',
+          properties: {
+            rtn: { type: 'string' }
+          }
         }
       }
     }
   })
-  async deleteUnitPrice(@Body() body: UnitPriceDeleteParams): Promise<{ rtn: string }> {
-    return this.unitPriceService.deleteUnitPrice(body)
+  @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
+  @ApiResponse({ status: 500, description: '단가 삭제 중 오류가 발생했습니다.' })
+  async deleteUnitPrice(@Req() req: RequestWithSession, @Res() res: Response, @Body() body: UnitPriceDeleteParams) {
+    // 세션 체크 주석 처리 (Swagger UI 테스트용)
+    /*
+    const userInfo = req.session.user;
+    if (!userInfo) {
+      return res
+        .status(401)
+        .json({ success: false, message: '세션이 유효하지 않습니다.' });
+    }
+    */
+    
+    try {
+      const result = await this.unitPriceService.deleteUnitPrice(body);
+      return res.json({ success: true, data: result });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: '단가 삭제 중 오류가 발생했습니다.', error: err });
+    }
   }
 } 

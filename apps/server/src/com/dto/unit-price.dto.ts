@@ -146,11 +146,14 @@ export class UnitPriceDeleteParams {
  * 단가 정보 타입
  */
 export interface UnitPrice {
-  ownOutsDiv: string
-  year: string
-  tcnGrd: string
-  dutyCd: string
-  unitPrice: string
+  OWN_OUTS_DIV: string
+  OWN_OUTS_DIV_NM: string
+  YR: string
+  TCN_GRD: string
+  TCN_GRD_NM: string
+  DUTY_CD: string
+  DUTY_NM: string
+  UPRC: string
   [key: string]: any
 }
 

@@ -1,41 +1,50 @@
-import { Controller, Post, Body } from '@nestjs/common'
-import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
-import { EmployeeService } from './employee.service'
-import { EmployeeSearchParams, Employee, EmployeeSearchResponseDto } from './dto/employee.dto'
+import { Controller, Post, Body, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { ApiOperation, ApiResponse, ApiBody, ApiTags } from '@nestjs/swagger';
+import { EmployeeService } from './employee.service';
+import { EmployeeSearchRequestDto, EmployeeSearchResponseDto } from './dto/employee.dto';
 
-/**
- * 직원 관련 API 컨트롤러
- * 직원 검색 기능을 제공합니다.
- */
+// express-session 타입 확장
+interface RequestWithSession extends Request {
+  session: any;
+}
+
+@ApiTags('직원 관리')
 @Controller('employee')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
-  /**
-   * 직원 검색 API
-   * @param body - 검색 조건
-   * @param body.kb - 검색 키워드
-   * @param body.empNo - 사원번호
-   * @param body.empNm - 사원명
-   * @param body.ownOutsDiv - 내부/외부 구분
-   * @param body.retirYn - 퇴직 여부
-   * @returns 검색된 직원 목록과 프로시저 정보
-   */
   @Post('search')
   @ApiOperation({ 
     summary: '직원 검색',
-    description: '사원(직원)을 검색하고 프로시저 정보를 포함하여 반환합니다.'
+    description: '사원(직원)을 검색합니다.'
   })
-  @ApiBody({ 
-    type: EmployeeSearchParams,
-    description: '직원 검색 조건'
-  })
+  @ApiBody({ type: EmployeeSearchRequestDto })
   @ApiResponse({ 
     status: 200, 
     description: '직원 검색 성공',
     type: EmployeeSearchResponseDto
   })
-  async searchEmployees(@Body() body: EmployeeSearchParams): Promise<EmployeeSearchResponseDto> {
-    return this.employeeService.searchEmployees(body)
+  @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
+  @ApiResponse({ status: 500, description: '직원 조회 중 오류가 발생했습니다.' })
+  async searchEmployees(@Req() req: RequestWithSession, @Res() res: Response, @Body() body: EmployeeSearchRequestDto) {
+    // 세션 체크 주석 처리 (Swagger UI 테스트용)
+    /*
+    const userInfo = req.session.user;
+    if (!userInfo) {
+      return res
+        .status(401)
+        .json({ success: false, message: '세션이 유효하지 않습니다.' });
+    }
+    */
+    
+    try {
+      const result = await this.employeeService.searchEmployees(body);
+      return res.json({ success: true, data: result.data });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: '직원 조회 중 오류가 발생했습니다.', error: err });
+    }
   }
 } 

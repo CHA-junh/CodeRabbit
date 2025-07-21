@@ -1,46 +1,29 @@
-import { Injectable } from '@nestjs/common'
-import { OracleService } from '../database/database.provider'
-import * as oracledb from 'oracledb'
+import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import * as oracledb from 'oracledb';
+import { UnitPriceEntity } from './entities/unit-price.entity';
+import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
 import { 
-  UnitPrice, 
   UnitPriceSearchParams, 
   UnitPriceSaveParams, 
-  UnitPriceDeleteParams,
-  UnitPriceSearchResponseDto
-} from './dto/unit-price.dto'
-import { ProcedureDbParser } from '../utils/procedure-db-parser.util'
+  UnitPriceDeleteParams, 
+  UnitPriceSearchResponseDto, 
+  ProcedureInfoDto 
+} from './dto/unit-price.dto';
 
-/**
- * 단가 관련 상수
- */
-const UNIT_PRICE_CONSTANTS = {
-  DEFAULT_OWN_OUTS_DIV: 'A',
-  MAX_ROWS: 100,
-  MAX_RETURN_SIZE: 1000
-} as const
-
-/**
- * 단가 관련 서비스
- * 단가 검색, 저장, 삭제 기능을 제공합니다.
- */
 @Injectable()
 export class UnitPriceService {
   constructor(
-    private readonly oracle: OracleService,
+    @InjectDataSource() private readonly dataSource: DataSource,
     private readonly procedureDbParser: ProcedureDbParser
   ) {}
 
-  /**
-   * 단가 검색
-   * @param ownOutsDiv - 내부/외부 구분
-   * @param year - 년도
-   * @param bsnNo - 사업번호 (선택)
-   * @returns 검색된 단가 목록과 프로시저 정보
-   */
   async searchUnitPrices(ownOutsDiv: string, year: string, bsnNo?: string): Promise<UnitPriceSearchResponseDto> {
-    const conn = await this.oracle.getConnection()
+    const connection = await (this.dataSource.driver as any).oracle.getConnection();
+    
     try {
-      const result = await conn.execute(
+      const result = await connection.execute(
         `
         BEGIN
           COM_01_0201_S(
@@ -53,42 +36,66 @@ export class UnitPriceService {
         `,
         {
           cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-          ownOutsDiv: ownOutsDiv || UNIT_PRICE_CONSTANTS.DEFAULT_OWN_OUTS_DIV,
+          ownOutsDiv: ownOutsDiv || 'A',
           year: year,
           bsnNo: bsnNo || null
         },
         {
           outFormat: oracledb.OUT_FORMAT_OBJECT
         }
-      ) as { outBinds: { cursor: oracledb.ResultSet<UnitPrice> } }
+      ) as { outBinds: { cursor: oracledb.ResultSet<any> } };
       
-      const rs = result.outBinds.cursor
-      const rows = await rs.getRows(UNIT_PRICE_CONSTANTS.MAX_ROWS)
-      await rs.close()
+      const rs = result.outBinds.cursor;
+      const rows = await rs.getRows(100);
+      await rs.close();
+      
+      if (!rows || rows.length === 0) {
+        const response = new UnitPriceSearchResponseDto();
+        response.data = [];
+        response.procedureInfo = await this.getProcedureInfo('COM_01_0201_S');
+        response.totalCount = 0;
+        return response;
+      }
+      
+      // UnitPriceEntity 형태로 변환
+      const unitPrices = rows.map((row: any) => {
+        // 디버깅을 위한 로그 추가
+        console.log('DB에서 반환된 row 데이터:', row);
+        
+        return {
+          OWN_OUTS_DIV: row.OWN_OUTS_DIV || row.ownOutsDiv || row.OWN_OUTS_DIV_CD || row.ownOutsDivCd || '',
+          OWN_OUTS_DIV_NM: (row.OWN_OUTS_DIV || row.ownOutsDiv || row.OWN_OUTS_DIV_CD || row.ownOutsDivCd) === '1' ? '자사' : '외주',
+          YR: row.YR || row.YEAR || row.year || row.YR_CD || row.yrCd || '',
+          TCN_GRD: row.TCN_GRD || row.tcnGrd || row.TCN_GRD_CD || row.tcnGrdCd || '',
+          TCN_GRD_NM: row.TCN_GRD_NM || row.tcnGrdNm || row.TCN_GRD_NM_CD || row.tcnGrdNmCd || '',
+          DUTY_CD: row.DUTY_CD || row.dutyCd || row.DUTY_CD_CD || row.dutyCdCd || '',
+          DUTY_NM: row.DUTY_NM || row.dutyNm || row.DUTY_NM_CD || row.dutyNmCd || '',
+          UPRC: row.UPRC || row.UNIT_PRICE || row.unitPrice || row.UPRC_CD || row.uprcCd || ''
+        };
+      });
       
       // DB에서 실시간으로 프로시저 정보 가져오기
-      const procedureInfo = await this.procedureDbParser.getProcedureInfoFromDb('COM_01_0201_S')
+      const procedureInfo = await this.getProcedureInfo('COM_01_0201_S');
       
-      const response = new UnitPriceSearchResponseDto()
-      response.data = rows
-      response.procedureInfo = procedureInfo
-      response.totalCount = rows.length
+      const response = new UnitPriceSearchResponseDto();
+      response.data = unitPrices;
+      response.procedureInfo = procedureInfo;
+      response.totalCount = unitPrices.length;
       
-      return response
+      return response;
+    } catch (error: any) {
+      console.error('단가 조회 오류:', error);
+      throw new Error(`단가 조회 중 오류가 발생했습니다: ${error.message}`);
     } finally {
-      await conn.close()
+      await connection.close();
     }
   }
 
-  /**
-   * 단가 저장
-   * @param params - 저장할 단가 정보
-   * @returns 저장 결과
-   */
-  async saveUnitPrice(params: UnitPriceSaveParams): Promise<{ rtn: string }> {
-    const conn = await this.oracle.getConnection()
+  async saveUnitPrice(params: any): Promise<{ rtn: string }> {
+    const connection = await (this.dataSource.driver as any).oracle.getConnection();
+    
     try {
-      const result = await conn.execute(
+      const result = await connection.execute(
         `
         BEGIN
           COM_01_0202_T(
@@ -102,29 +109,29 @@ export class UnitPriceService {
         END;
         `,
         {
-          rtn: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: UNIT_PRICE_CONSTANTS.MAX_RETURN_SIZE },
+          rtn: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 1000 },
           ownOutsDiv: params.ownOutsDiv,
           year: params.year,
           tcnGrd: params.tcnGrd,
           dutyCd: params.dutyCd,
           unitPrice: params.unitPrice
         }
-      ) as { outBinds: { rtn: string } }
-      return { rtn: result.outBinds.rtn }
+      ) as { outBinds: { rtn: string } };
+      
+      return { rtn: result.outBinds.rtn };
+    } catch (error: any) {
+      console.error('단가 저장 오류:', error);
+      throw new Error(`단가 저장 중 오류가 발생했습니다: ${error.message}`);
     } finally {
-      await conn.close()
+      await connection.close();
     }
   }
 
-  /**
-   * 단가 삭제
-   * @param params - 삭제할 단가 정보
-   * @returns 삭제 결과
-   */
-  async deleteUnitPrice(params: UnitPriceDeleteParams): Promise<{ rtn: string }> {
-    const conn = await this.oracle.getConnection()
+  async deleteUnitPrice(params: any): Promise<{ rtn: string }> {
+    const connection = await (this.dataSource.driver as any).oracle.getConnection();
+    
     try {
-      const result = await conn.execute(
+      const result = await connection.execute(
         `
         BEGIN
           COM_01_0203_D(
@@ -137,16 +144,44 @@ export class UnitPriceService {
         END;
         `,
         {
-          rtn: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: UNIT_PRICE_CONSTANTS.MAX_RETURN_SIZE },
+          rtn: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 1000 },
           ownOutsDiv: params.ownOutsDiv,
           year: params.year,
           tcnGrd: params.tcnGrd,
           dutyCd: params.dutyCd
         }
-      ) as { outBinds: { rtn: string } }
-      return { rtn: result.outBinds.rtn }
+      ) as { outBinds: { rtn: string } };
+      
+      return { rtn: result.outBinds.rtn };
+    } catch (error: any) {
+      console.error('단가 삭제 오류:', error);
+      throw new Error(`단가 삭제 중 오류가 발생했습니다: ${error.message}`);
     } finally {
-      await conn.close()
+      await connection.close();
+    }
+  }
+
+  /**
+   * DB에서 실시간으로 프로시저 정보 조회
+   */
+  private async getProcedureInfo(procedureName: string): Promise<ProcedureInfoDto> {
+    try {
+      const procedureInfo = await this.procedureDbParser.getProcedureInfoFromDb(procedureName);
+      
+      const dto = new ProcedureInfoDto();
+      dto.name = procedureInfo.name;
+      dto.originalCommentLines = procedureInfo.originalCommentLines;
+      
+      return dto;
+    } catch (error) {
+      console.error(`프로시저 정보 조회 오류 (${procedureName}):`, error);
+      
+      // 오류 발생 시 기본 정보 반환
+      const dto = new ProcedureInfoDto();
+      dto.name = procedureName;
+      dto.originalCommentLines = ['프로시저 정보를 조회할 수 없습니다.'];
+      
+      return dto;
     }
   }
 } 

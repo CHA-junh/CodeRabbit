@@ -16,10 +16,11 @@ export class ProcedureInfoDto {
  * 사용자 정보 타입
  */
 export interface User {
-  userNo: string
-  userNm: string
-  hqDiv: string
-  deptDiv: string
+  USR_ID: string
+  USR_NM: string
+  HQ_DIV: string
+  DEPT_DIV: string
+  USE_YN: string
   [key: string]: any
 }
 

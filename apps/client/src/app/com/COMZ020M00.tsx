@@ -78,8 +78,8 @@ export default function MainPage() {
    * 코드 데이터 상태 관리
    * ASIS: cbTcnGrd.setLargeCode('104', ''), cbDutyCd.setLargeCode('105', '')
    */
-  const [gradeOptions, setGradeOptions] = useState<Array<{data: string, label: string}>>([]);
-  const [positionOptions, setPositionOptions] = useState<Array<{data: string, label: string}>>([]);
+  const [gradeOptions, setGradeOptions] = useState<Array<{codeId: string, codeNm: string}>>([]);
+  const [positionOptions, setPositionOptions] = useState<Array<{codeId: string, codeNm: string}>>([]);
 
   const { showToast, showConfirm } = useToast();
 
@@ -97,7 +97,7 @@ export default function MainPage() {
    * @param largeCategoryCode - 대분류 코드
    * @returns 코드 데이터 배열
    */
-  const fetchCodeData = async (largeCategoryCode: string): Promise<Array<{data: string, label: string}>> => {
+  const fetchCodeData = async (largeCategoryCode: string): Promise<Array<{codeId: string, codeNm: string}>> => {
     try {
       const response = await fetch('/api/code/search', {
         method: 'POST',
@@ -110,8 +110,8 @@ export default function MainPage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        return data.data || [];
+        const result = await response.json();
+        return result.data || [];
       }
       return [];
     } catch (error) {
@@ -507,22 +507,25 @@ export default function MainPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, index) => (
-                  <tr 
-                    key={index} 
-                    className={`grid-tr cursor-pointer ${selectedRow === index ? 'bg-blue-50' : ''}`}
-                    onClick={() => handleRowClick(index)}
-                    data-own-outs-div={row.OWN_OUTS_DIV}
-                    data-year={row.YR}
-                  >
-                    <td className="grid-td">{row.TCN_GRD_NM}</td>
-                    <td className="grid-td">{row.DUTY_NM}</td>
-                    {/* ASIS: moneyFormat 적용 */}
-                    <td className="grid-td text-right pr-4">
-                      {parseInt(row.UPRC).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {rows.map((row, index) => {
+                  console.log(`행 ${index} 데이터:`, row);
+                  return (
+                    <tr 
+                      key={index} 
+                      className={`grid-tr cursor-pointer ${selectedRow === index ? 'bg-blue-50' : ''}`}
+                      onClick={() => handleRowClick(index)}
+                      data-own-outs-div={row.OWN_OUTS_DIV}
+                      data-year={row.YR}
+                    >
+                      <td className="grid-td">{row.TCN_GRD_NM}</td>
+                      <td className="grid-td">{row.DUTY_NM}</td>
+                      {/* ASIS: moneyFormat 적용 */}
+                      <td className="grid-td text-right pr-4">
+                        {parseInt(row.UPRC).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {rows.length === 0 && (
                   <tr>
                     <td colSpan={3} className="grid-td text-center text-gray-500">
@@ -551,8 +554,8 @@ export default function MainPage() {
                   >
                     <option value="">선택</option>
                     {gradeOptions.map((option) => (
-                      <option key={option.data} value={option.data}>
-                        {option.label}
+                      <option key={option.codeId} value={option.codeId}>
+                        {option.codeNm}
                       </option>
                     ))}
                   </select>
@@ -569,8 +572,8 @@ export default function MainPage() {
                   >
                     <option value="">선택</option>
                     {positionOptions.map((option) => (
-                      <option key={option.data} value={option.data}>
-                        {option.label}
+                      <option key={option.codeId} value={option.codeId}>
+                        {option.codeNm}
                       </option>
                     ))}
                   </select>
