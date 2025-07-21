@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useState } from 'react'
 import SideMenu from '../../components/SideMenu'
 import '../globals.css'
@@ -6,7 +7,7 @@ import AuthGuard from '../../modules/auth/components/AuthGuard'
 import Maintab from '../mainframe/Maintab'
 import PageTitle from '../mainframe/PageTitle'
 import ContentFrame from '../mainframe/ContentFrame'
-import { getDynamicProgramComponent } from '../../utils/dynamicProgramLoader.tsx'
+import { getDynamicProgramComponent } from '../../utils/dynamicProgramLoader'
 
 interface TabInfo {
 	programId: string
@@ -75,7 +76,7 @@ export default function MainLayout({
 				<TopBar />
 				<div className='flex flex-1 h-full min-h-0'>
 					{/* 메뉴트리 */}
-					<SideMenu menuData={menuData} onMenuClick={handleMenuClick} />
+					<SideMenu isOpen={true} onClose={() => {}} />
 					<div className='flex-1 flex flex-col h-full min-h-0'>
 						{/* 메인탭 */}
 						<Maintab

@@ -6,6 +6,8 @@ import { AuthProvider } from '../modules/auth/hooks/useAuth'
 import { ToastProvider } from '../contexts/ToastContext'
 import { getPageTitle, getSystemName } from '../utils/environment'
 
+
+
 export default function RootLayout({
 	children,
 }: {
@@ -14,6 +16,8 @@ export default function RootLayout({
 	const pathname = usePathname()
 	const isAuthPage =
 		pathname?.startsWith('/signin') || pathname?.startsWith('/signup')
+
+
 
 	// 페이지별 타이틀 설정
 	useEffect(() => {
