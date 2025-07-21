@@ -17,6 +17,12 @@ interface User {
 	menuList: any[]
 	programList: any[]
 	needsPasswordChange?: boolean
+	deptDivCd?: string
+	hqDivCd?: string
+	hqDivNm?: string
+	deptTp?: string
+	dutyDivCd?: string
+	authCd?: string
 }
 
 // 세션 정보 타입 (레거시 호환성)
@@ -75,6 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					menuList: plainUser.menuList ?? [],
 					programList: plainUser.programList ?? [],
 					needsPasswordChange: plainUser.needsPasswordChange ?? false,
+					deptDivCd: plainUser.deptDivCd ?? '',
+					hqDivCd: plainUser.hqDivCd ?? '',
+					hqDivNm: plainUser.hqDivNm ?? '',
+					deptTp: plainUser.deptTp ?? '',
+					dutyDivCd: plainUser.dutyDivCd ?? '',
+					authCd: plainUser.authCd ?? '',
 				}
 
 				console.log('🟢 변환 후 클라이언트 user:', userInfo)
@@ -115,6 +127,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					menuList: plainUser.menuList ?? [],
 					programList: plainUser.programList ?? [],
 					needsPasswordChange: plainUser.needsPasswordChange ?? false,
+					deptDivCd: plainUser.deptDivCd ?? '',
+					hqDivCd: plainUser.hqDivCd ?? '',
+					hqDivNm: plainUser.hqDivNm ?? '',
+					deptTp: plainUser.deptTp ?? '',
+					dutyDivCd: plainUser.dutyDivCd ?? '',
+					authCd: plainUser.authCd ?? '',
 				}
 
 				setUser(userInfo)

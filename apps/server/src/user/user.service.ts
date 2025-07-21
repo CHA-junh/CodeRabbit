@@ -19,42 +19,37 @@ export class UserService {
    * 사번으로 사용자 정보 조회 (부서명/직급명 포함)
    */
   async findUserWithDept(userId: string): Promise<UserInfoDto | null> {
-    const user = await this.userRepository.findOne({ where: { userId } });
-    if (!user) return null;
-
-    // 부서명 조회 (TBL_SML_CSF_CD 테이블에서 조회 - LRG_CSF_CD='112')
-    let deptNm = '';
-    if (user.deptCd) {
-      const deptResult = await this.dataSource.query(
-        'SELECT SML_CSF_NM FROM TBL_SML_CSF_CD WHERE LRG_CSF_CD = :lrgCsfCd AND SML_CSF_CD = :smlCsfCd AND ROWNUM = 1',
-        ['112', user.deptCd.substring(user.deptCd.length - 4)],
-      );
-      deptNm = deptResult[0]?.SML_CSF_NM || '';
-    }
-
-    // 직급명 조회 (TBL_SML_CSF_CD 테이블에서 조회 - LRG_CSF_CD='116')
-    let dutyNm = '';
-    if (user.dutyCd) {
-      const dutyResult = await this.dataSource.query(
-        'SELECT SML_CSF_NM FROM TBL_SML_CSF_CD WHERE LRG_CSF_CD = :lrgCsfCd AND SML_CSF_CD = :smlCsfCd AND ROWNUM = 1',
-        ['116', user.dutyCd],
-      );
-      dutyNm = dutyResult[0]?.SML_CSF_NM || '';
-    }
-
-    // 필요한 필드만 반환
-    return {
-      userId: user.userId,
-      userName: user.userName,
-      deptCd: user.deptCd,
-      deptNm: deptNm,
-      dutyCd: user.dutyCd,
-      dutyNm: dutyNm,
-      dutyDivCd: user.dutyDivCd,
-      authCd: user.authCd,
-      emailAddr: user.emailAddr,
-      usrRoleId: user.usrRoleId,
-    };
+    const result = await this.dataSource.query(
+      `
+      SELECT 
+        A.USER_ID as "userId",
+        A.USER_NM as "userName",
+        A.DEPT_CD as "deptCd",
+        V.DEPT_NM as "deptNm",
+        A.DUTY_CD as "dutyCd",
+        (SELECT SML_CSF_NM FROM TBL_SML_CSF_CD 
+          WHERE LRG_CSF_CD = '116' 
+          AND SML_CSF_CD = A.DUTY_CD 
+          AND ROWNUM = 1) AS "dutyNm",
+        A.DUTY_DIV_CD as "dutyDivCd",
+        A.AUTH_CD as "authCd",
+        A.EMAIL_ADDR as "emailAddr",
+        A.USR_ROLE_ID as "usrRoleId",
+        V.DEPT_DIV_CD as "deptDivCd",
+        V.HQ_DIV_CD as "hqDivCd",
+        V.HQ_DIV_NM as "hqDivNm",
+        V.DEPT_FULL_NM as "deptFullNm",
+        V.DEPT_TP as "deptTp"
+      FROM TBL_USER_INF A
+      INNER JOIN V_DEPT_SUB V
+        ON V.DEPT_CD = A.DEPT_CD
+       AND V.USE_YN = 'Y'
+      WHERE A.USER_ID = :userId
+      `,
+      [userId],
+    );
+    if (!result || result.length === 0) return null;
+    return result[0];
   }
 
   /**
