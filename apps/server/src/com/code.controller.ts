@@ -40,7 +40,12 @@ export class CodeController {
     
     try {
       const result = await this.codeService.searchCodes(body.largeCategoryCode);
-      return res.json({ success: true, data: result.data });
+      return res.json({ 
+        success: true, 
+        data: result.data,
+        procedureInfo: result.procedureInfo,
+        totalCount: result.totalCount
+      });
     } catch (err) {
       return res
         .status(500)

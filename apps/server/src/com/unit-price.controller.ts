@@ -48,7 +48,12 @@ export class UnitPriceController {
         body.year,
         body.bsnNo
       );
-      return res.json({ success: true, data: result.data });
+      return res.json({ 
+        success: true, 
+        data: result.data,
+        procedureInfo: result.procedureInfo,
+        totalCount: result.totalCount
+      });
     } catch (err) {
       return res
         .status(500)

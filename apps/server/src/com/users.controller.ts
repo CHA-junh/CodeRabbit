@@ -39,7 +39,12 @@ export class UsersController {
     
     try {
       const result = await this.usersService.searchUsers(body.userNm, body.hqDiv, body.deptDiv);
-      return res.json({ success: true, data: result.data });
+      return res.json({ 
+        success: true, 
+        data: result.data,
+        procedureInfo: result.procedureInfo,
+        totalCount: result.totalCount
+      });
     } catch (err) {
       return res
         .status(500)
