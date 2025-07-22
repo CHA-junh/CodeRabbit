@@ -3,6 +3,7 @@
 import React from 'react';
 
 export default function BSN0140M00() {
+    
   return (
     <div>
       {/* 🔷 타이틀 영역 */}

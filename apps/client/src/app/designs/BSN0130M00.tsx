@@ -4,6 +4,7 @@ import React from 'react';
 import './common.css';
 
 export default function BSN0130M00() {
+  
   return (
     <div className="">
       {/* 🔷 타이틀 + 버튼 영역 */}

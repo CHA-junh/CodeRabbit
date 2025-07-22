@@ -3,6 +3,7 @@
 import React from 'react';
 
 export default function BSN0160M00() {
+    
   const data = [
     {
       type: '자사',

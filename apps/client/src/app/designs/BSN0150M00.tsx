@@ -3,6 +3,7 @@
 import React from 'react';
 
 export default function BSN0150M00() {
+    
   const dummyData = [
     {
       no: 1,

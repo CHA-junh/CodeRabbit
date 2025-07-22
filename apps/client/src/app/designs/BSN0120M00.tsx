@@ -4,6 +4,7 @@ import React from 'react';
 import './common.css';
 
 export default function BSN0120M00() {
+  
   return (
     <div className="w-full">
       {/* 🔷 타이틀 + 버튼 */}
