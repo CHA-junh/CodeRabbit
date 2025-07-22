@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { useDeptDivCodes } from '@/modules/com/hooks/useCommonCodes'
+import { useDeptDivCodes } from '@/modules/auth/hooks/useCommonCodes'
 import { useSearchParams } from 'next/navigation'
 import { useToast } from '@/contexts/ToastContext'
 import '@/app/common/common.css'
@@ -56,6 +56,12 @@ export default function DeptNumberSearchPopup() {
 		setForm({ ...form, [e.target.name]: e.target.value })
 	}
 
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter') {
+			handleSearch()
+		}
+	}
+
 	const handleSearch = async () => {
 		setLoading(true)
 		setError('')
@@ -64,7 +70,7 @@ export default function DeptNumberSearchPopup() {
 			const searchParams = new URLSearchParams({
 				deptNo: form.deptNo,
 				year: form.year,
-				...(form.deptDivCd ? { deptDivCd: form.deptDivCd } : {}),
+				deptDivCd: form.deptDivCd || '', // 빈 문자열도 명시적으로 전달
 			})
 			const url = `${apiUrl}?${searchParams.toString()}`
 			const res = await fetch(url)
@@ -110,6 +116,7 @@ export default function DeptNumberSearchPopup() {
 										value={form.year}
 										onChange={handleChange}
 										aria-label='년도'
+										onKeyDown={handleKeyDown}
 									/>
 								</td>
 								<th className='search-th w-[92px]'>부서번호</th>
@@ -121,6 +128,7 @@ export default function DeptNumberSearchPopup() {
 										value={form.deptNo}
 										onChange={handleChange}
 										aria-label='부서번호'
+										onKeyDown={handleKeyDown}
 									/>
 								</td>
 								<th className='search-th w-[92px]'>부서구분</th>
@@ -131,6 +139,7 @@ export default function DeptNumberSearchPopup() {
 										value={form.deptDivCd}
 										onChange={handleChange}
 										aria-label='부서구분'
+										onKeyDown={handleKeyDown}
 									>
 										<option value=''>전체</option>
 										{deptDivCodes.map((item, idx) => {
@@ -140,7 +149,7 @@ export default function DeptNumberSearchPopup() {
 											const name = item.name || item.NAME
 											return (
 												<option key={code || idx} value={code}>
-													{code} - {name}
+													{name}
 												</option>
 											)
 										})}

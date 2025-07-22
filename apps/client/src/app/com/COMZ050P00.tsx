@@ -36,7 +36,7 @@ interface BusinessNameSearchResult {
 	pgrsStDivNm: string
 	bsnStrtDt: string
 	bsnEndDt: string
-	bizRepNm: string
+	bizRepnm: string
 	pmNm: string
 	ctrDt: string
 	pplsDeptNm: string
@@ -151,6 +151,13 @@ const BusinessNameSearchPopup: React.FC = () => {
 	// 사업명 입력 핸들러
 	const handleBsnNmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setBsnNm(e.target.value)
+	}
+
+	// 엔터키 핸들러
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter') {
+			handleSearch()
+		}
 	}
 
 	// 조회 버튼 클릭
@@ -283,6 +290,7 @@ const BusinessNameSearchPopup: React.FC = () => {
 										className='input-base input-default w-[200px]'
 										value={bsnNm}
 										onChange={handleBsnNmChange}
+										onKeyDown={handleKeyDown}
 										tabIndex={0}
 										aria-label='사업명'
 									/>
@@ -395,9 +403,9 @@ const BusinessNameSearchPopup: React.FC = () => {
 										</td>
 										<td
 											className='grid-td truncate max-w-[120px]'
-											title={item.bizRepNm || item.bizRepNm}
+											title={item.bizRepnm || item.bizRepnm}
 										>
-											{item.bizRepNm || item.bizRepNm}
+											{item.bizRepnm || item.bizRepnm}
 										</td>
 										<td
 											className='grid-td truncate max-w-[120px]'

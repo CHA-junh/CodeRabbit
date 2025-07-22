@@ -14,10 +14,22 @@ export class COMZ040P00Controller {
   @Post()
   async searchBusinessNo(@Body() body: any): Promise<any> {
     try {
+      console.log('🔍 COMZ040P00 컨트롤러 - 검색 요청:', body);
+      
       const result = await this.comz040p00Service.searchBusiness(body);
+      
+      console.log('✅ COMZ040P00 컨트롤러 - 검색 완료:', result);
+      
       return result;
     } catch (error) {
-      throw new Error('사업번호 검색 중 오류가 발생했습니다.');
+      console.error('❌ COMZ040P00 컨트롤러 - 검색 오류:', error);
+      
+      return {
+        success: false,
+        data: [],
+        totalCount: 0,
+        message: '사업번호 검색 중 오류가 발생했습니다.'
+      };
     }
   }
 }

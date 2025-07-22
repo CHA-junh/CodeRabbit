@@ -18,7 +18,7 @@
  * - SYS1003M00: 사용자 역할 관리 (코드 조회)
  * - 기타 공통 코드가 필요한 모든 화면
  */
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { CommonService } from './common.service';
 import { DeptDivCodeDto } from '../com/dto/common.dto';
@@ -60,6 +60,69 @@ export class CommonController {
   })
   async getDeptDivCodes(): Promise<DeptDivCodeDto[]> {
     return this.commonService.getDeptDivCodes();
+  }
+
+  /**
+   * 본부구분코드 목록 조회 (GET)
+   *
+   * @description
+   * - 본부구분코드(113)에 해당하는 모든 본부 목록을 조회합니다.
+   * - 직접 DB 쿼리로 조회하여 빠른 응답을 제공합니다.
+   * - 프로시저 호출 없이 단순 조회만 수행합니다.
+   *
+   * @returns DeptDivCodeDto[] - 본부구분코드 목록
+   * @example
+   * GET /api/common/hq-div-codes
+   * Response: [
+   *   { "code": "01", "name": "경영지원본부" },
+   *   { "code": "02", "name": "영업본부" }
+   * ]
+   */
+  @Get('hq-div-codes')
+  @ApiOperation({
+    summary: '본부구분코드 목록',
+    description:
+      '본부구분코드(113) 목록을 조회합니다. 직접 DB 쿼리로 빠른 응답을 제공합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '본부구분코드 목록 조회 성공',
+    type: [DeptDivCodeDto],
+  })
+  async getHqDivCodes(): Promise<DeptDivCodeDto[]> {
+    return this.commonService.getHqDivCodes();
+  }
+
+  /**
+   * 본부별 부서 목록 조회 (GET)
+   *
+   * @description
+   * - 특정 본부에 속한 부서 목록을 직접 DB 쿼리로 조회합니다.
+   * - TBL_SML_CSF_CD 테이블에서 LINK_CD1 컬럼을 사용하여 본부별 필터링합니다.
+   * - 프로시저 호출 없이 단순 SELECT 쿼리만 수행하여 빠른 응답을 제공합니다.
+   *
+   * @param hqCd - 본부구분코드 (예: '01', '02', '03', '04')
+   * @returns DeptDivCodeDto[] - 본부별 부서 목록
+   * @example
+   * GET /api/common/dept-by-hq?hqCd=01
+   * Response: [
+   *   { "code": "1101", "name": "경영지원팀" },
+   *   { "code": "1102", "name": "인사팀" }
+   * ]
+   */
+  @Get('dept-by-hq')
+  @ApiOperation({
+    summary: '본부별 부서 목록',
+    description:
+      '본부구분코드에 해당하는 부서 목록을 조회합니다. 직접 DB 쿼리로 빠른 응답을 제공합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '본부별 부서 목록 조회 성공',
+    type: [DeptDivCodeDto],
+  })
+  async getDeptByHq(@Query('hqCd') hqCd: string): Promise<DeptDivCodeDto[]> {
+    return this.commonService.getDeptByHq(hqCd);
   }
 
   /**

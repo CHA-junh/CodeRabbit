@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useToast } from '@/contexts/ToastContext'
+import { useAuth } from '@/modules/auth/hooks/useAuth'
 import '@/app/common/common.css'
 
 /**
@@ -11,6 +12,7 @@ import '@/app/common/common.css'
  * - 테스트용 사용자 로그인 처리
  * - 팝업 윈도우 형태로 동작
  * - 부모 윈도우 새로고침 연동
+ * - 현재 로그인 사용자와 동일한 사용자 로그인 방지
  * 
  * 연관 테이블:
  * - TBL_USER_INF (사용자 정보)
@@ -23,6 +25,11 @@ export default function TestLoginPopup() {
 	const [userId, setUserId] = useState('')
 	const [loading, setLoading] = useState(false)
 	const { showToast } = useToast()
+	const { session } = useAuth()
+
+	// 현재 로그인 사용자 정보
+	const currentUser = session.user
+	const currentUserId = currentUser?.userId || currentUser?.empNo || ''
 
 	// API URL 환경변수 기반 설정
 	const apiUrl =
@@ -40,6 +47,12 @@ export default function TestLoginPopup() {
 	const handleTestLogin = async () => {
 		if (!userId) {
 			showToast('테스트 사용자ID를 입력해주세요.', 'warning')
+			return
+		}
+
+		// 현재 로그인 사용자와 동일한 사용자인지 체크
+		if (currentUserId && userId === currentUserId) {
+			showToast('현재 로그인된 사용자와 동일한 사용자로는 테스트 로그인할 수 없습니다.', 'warning')
 			return
 		}
 
