@@ -3,7 +3,6 @@
 import React from 'react';
 
 export default function BSN0160M00() {
-    
   const data = [
     {
       type: '자사',
@@ -29,32 +28,37 @@ export default function BSN0160M00() {
 
   return (
     <div>
-      {/* 🔍 조회 조건 */}
-      <div className="search-div flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <label className="w-[100px]">조회년월</label>
-          <select className="combo-base w-[150px]">
-            <option>2025-07</option>
-            <option>2025-06</option>
-          </select>
+        <div className="search-div mb-4">
+        <table className="search-table">
+            <tbody>
+            <tr className="search-tr">
+                <th className="search-th w-[100px]">조회년월</th>
+                <td className="search-td w-[150px]">
+                <select className="combo-base w-full">
+                    <option>2025-07</option>
+                    <option>2025-06</option>
+                </select>
+                </td>
+                <th className="search-th w-[120px]">자사/외주구분</th>
+                <td className="search-td">
+                    <label className="mr-2"><input type="radio" name="type" defaultChecked /> 전체</label>
+                    <label className="mr-2"><input type="radio" name="type" /> 자사</label>
+                    <label><input type="radio" name="type" /> 외주</label>
+                </td>
+                <td className="search-td text-right">
+                <button type="button" className="btn-base btn-search">조회</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="w-[100px]">자사/외주구분</label>
-          <label><input type="radio" name="type" defaultChecked /> 전체</label>
-          <label><input type="radio" name="type" /> 자사</label>
-          <label><input type="radio" name="type" /> 외주</label>
-        </div>
-        <div className="ml-auto">
-          <button type="button" className="btn-base btn-search">조회</button>
-        </div>
-      </div>
 
       {/* 📘 타이틀 영역 */}
       <div className="tit_area">
         <h3>당월 실 투입 입력 현황 확인</h3>
       </div>
 
-      {/* 📋 그리드 */}
+      {/* 📋 그리드 전체 */}
       <div className="gridbox-div">
         <table className="grid-table">
           <thead>
@@ -86,33 +90,31 @@ export default function BSN0160M00() {
               <th className="grid-th">금액</th>
             </tr>
           </thead>
+          <tbody>
+            {data.map((row, idx) => (
+              <tr className="grid-tr" key={idx}>
+                <td className="grid-td">{row.type}</td>
+                <td className="grid-td">{row.grade}</td>
+                <td className="grid-td">{row.position}</td>
+                <td className="grid-td">{row.name}</td>
+                <td className="grid-td">{row.sales}</td>
+                <td className="grid-td text-right">{row.unitPrice}</td>
+                <td className="grid-td text-right">{row.mm}</td>
+                <td className="grid-td text-right">{row.budget}</td>
+                <td className="grid-td text-right">{row.execUnitPrice}</td>
+                <td className="grid-td text-right">{row.planMM}</td>
+                <td className="grid-td text-right">{row.planAmount}</td>
+                <td className="grid-td text-right">{row.execMM}</td>
+                <td className="grid-td text-right">{row.execAmount}</td>
+                <td className="grid-td text-right">{row.totalPlanMM}</td>
+                <td className="grid-td text-right">{row.totalPlanAmount}</td>
+                <td className="grid-td text-right">{row.totalExecMM}</td>
+                <td className="grid-td text-right">{row.totalExecAmount}</td>
+                <td className="grid-td">{row.note}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
-
-        {/* tbody는 div로 처리 */}
-        <div className="grid-tbody">
-          {data.map((row, idx) => (
-            <div className="grid-tr" key={idx}>
-              <div className="grid-td">{row.type}</div>
-              <div className="grid-td">{row.grade}</div>
-              <div className="grid-td">{row.position}</div>
-              <div className="grid-td">{row.name}</div>
-              <div className="grid-td">{row.sales}</div>
-              <div className="grid-td text-right">{row.unitPrice}</div>
-              <div className="grid-td text-right">{row.mm}</div>
-              <div className="grid-td text-right">{row.budget}</div>
-              <div className="grid-td text-right">{row.execUnitPrice}</div>
-              <div className="grid-td text-right">{row.planMM}</div>
-              <div className="grid-td text-right">{row.planAmount}</div>
-              <div className="grid-td text-right">{row.execMM}</div>
-              <div className="grid-td text-right">{row.execAmount}</div>
-              <div className="grid-td text-right">{row.totalPlanMM}</div>
-              <div className="grid-td text-right">{row.totalPlanAmount}</div>
-              <div className="grid-td text-right">{row.totalExecMM}</div>
-              <div className="grid-td text-right">{row.totalExecAmount}</div>
-              <div className="grid-td">{row.note}</div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

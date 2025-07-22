@@ -237,7 +237,7 @@ body {
 	@apply h-[36px];
 }
 .search-th {
-	@apply text-right h-[30px] font-normal pl-10 text-stone-600 bg-transparent whitespace-nowrap;
+	@apply text-right h-[30px] pb-[2px] font-normal pl-10 text-stone-600 bg-transparent whitespace-nowrap;
 }
 .search-td {
 	@apply bg-transparent  h-[30px] text-ellipsis overflow-hidden px-2;
