@@ -5,7 +5,9 @@
 /* 시스템 폰트 사용 (OTS 파싱 에러 방지) */
 html,
 body {
-	font-family: 'Malgun Gothic', '맑은 고딕', 'NanumGothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+	font-family:
+		'Malgun Gothic', '맑은 고딕', 'NanumGothic', 'Apple SD Gothic Neo',
+		'Noto Sans KR', sans-serif;
 	background: none !important;
 }
 
@@ -281,12 +283,35 @@ body {
 
 /* === 테이블 전체 === */
 .grid-table {
-	@apply table w-full text-sm text-gray-800 border-collapse border-t border-[#00509A];
+	@apply table w-full text-sm text-gray-800 border-collapse;
+	table-layout: fixed !important;
+	width: 100% !important;
+}
+
+/* === 헤더 테이블 전용 스타일 === */
+.grid-header-container .grid-table {
+	border-top: none !important; /* 검은 줄 제거 */
+}
+
+/* === 헤더 컨테이너 상단 테두리 제거 === */
+.grid-header-container {
+	border-top: none !important;
+}
+
+/* === 헤더 셀 상단 테두리 제거 === */
+.grid-header-container .grid-th {
+	border-top: none !important;
+}
+
+/* === 모든 헤더 관련 요소 상단 테두리 제거 === */
+.grid-header-container * {
+	border-top: none !important;
 }
 
 /* === 헤더 행 === */
 .grid-th {
 	@apply bg-[#EBF1F6] text-center font-semibold text-gray-700 border border-[#ccc] px-2 py-2 whitespace-nowrap;
+	border-top: none !important; /* 상단 검은 줄 제거 */
 }
 
 /* === 데이터 행 === */
@@ -298,6 +323,32 @@ body {
 	@apply overflow-y-auto w-full;
 	/* 필요 시 max-height 적용 */
 	max-height: 300px;
+}
+
+/* === 그리드 헤더 컨테이너 === */
+.grid-header-container {
+	position: sticky !important;
+	top: 0 !important;
+	z-index: 9999 !important;
+	background-color: white !important;
+	border-bottom: 1px solid #d1d5db !important;
+	border-top: none !important;
+	transform: translateZ(0) !important;
+	isolation: isolate !important;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* === 사용자 그리드 전용 헤더 컨테이너 (스크롤바 패딩 적용) === */
+.gridbox-div[style*='height: 400px'] .grid-header-container {
+	padding-right: 20px !important; /* 스크롤바 너비만큼 패딩 추가 (더 큰 값으로 조정) */
+}
+
+/* === 그리드 데이터 컨테이너 === */
+.grid-data-container {
+	height: calc(100% - 40px) !important;
+	overflow: auto !important;
+	position: relative !important;
+	z-index: 0 !important;
 }
 /* === 그리드 짝수 컬러 다르게 === */
 .grid-tr {
@@ -315,18 +366,6 @@ body {
 
 .title-box {
 	@apply font-semibold text-sm px-4 py-2 bg-blue-50 border-b border-gray-300;
-}
-
-.grid-table {
-	@apply w-full table-fixed border border-gray-200 text-sm text-gray-800 border-collapse;
-}
-
-.grid-th {
-	@apply bg-[#F4F7FA] border border-gray-200 px-2 py-1 text-center font-semibold;
-}
-
-.grid-td {
-	@apply border border-gray-100 px-2 py-1 text-left;
 }
 
 /* * 필수표시 */
@@ -424,31 +463,31 @@ body {
 
 /* 탭 컨테이너 */
 .tab-container {
-  @apply relative flex gap-1 z-10 border-b border-[#00509A];
+	@apply relative flex gap-1 z-10 border-b border-[#00509A];
 }
 
 /* 탭 버튼 */
 .tab-button {
-  @apply h-[30px] px-4 py-1 text-[14px] font-normal font-['NanumGothic'] 
+	@apply h-[30px] px-4 py-1 text-[14px] font-normal font-['NanumGothic'] 
           inline-flex items-center justify-center rounded-t-md 
           border border-transparent relative;
 }
 
 /* 탭 활성 상태 */
 .tab-active {
-  @apply bg-[#00509A] text-white border border-[#00509A] border-b z-20;
+	@apply bg-[#00509A] text-white border border-[#00509A] border-b z-20;
 }
 
 /* 탭 비활성 상태 */
 .tab-inactive {
-  @apply bg-sky-50 text-[#798EA2] border border-[#D4E4F4] z-10;
+	@apply bg-sky-50 text-[#798EA2] border border-[#D4E4F4] z-10;
 }
 
 /* 탭 콘텐츠 */
 .tab-panel {
-  @apply flex-1 min-h-0 overflow-auto 
+	@apply flex-1 min-h-0 overflow-auto 
          bg-white border border-[#00509A] rounded-br-lg p-4 z-0 relative;
-  font-size: 14px;
-  font-weight: 400;
-  font-family: 'NanumGothic', sans-serif;
+	font-size: 14px;
+	font-weight: 400;
+	font-family: 'NanumGothic', sans-serif;
 }

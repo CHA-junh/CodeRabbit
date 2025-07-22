@@ -6,6 +6,8 @@ const nextConfig = {
 		optimizePackageImports: [],
 	},
 
+
+
 	// API 프록시 설정
 	async rewrites() {
 		return [
@@ -22,7 +24,11 @@ const nextConfig = {
 			{
 				source: '/api/:path*',
 				headers: [
-					{ key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_ALLOWED_ORIGIN || 'http://localhost:3000' },
+					{
+						key: 'Access-Control-Allow-Origin',
+						value:
+							process.env.NEXT_PUBLIC_ALLOWED_ORIGIN || 'http://localhost:3000',
+					},
 					{
 						key: 'Access-Control-Allow-Methods',
 						value: 'GET, POST, PUT, DELETE, OPTIONS',

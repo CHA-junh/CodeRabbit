@@ -124,7 +124,12 @@ const USR2010M00: React.FC = () => {
 		{ usrRoleId: string; usrRoleNm: string }[]
 	>([])
 
-	const { data: userData, refetch: refetchUserList } = useQuery<UserData[]>({
+	const {
+		data: userData,
+		refetch: refetchUserList,
+		isLoading,
+		error,
+	} = useQuery<UserData[]>({
 		queryKey: ['userList', searchParams],
 		queryFn: () => usrApiService.getUserList(searchParams),
 	})
@@ -611,85 +616,154 @@ const USR2010M00: React.FC = () => {
 
 			{/* 사용자 목록 그리드 */}
 			<div className='gridbox-div mb-4' style={{ height: '400px' }}>
-				{/* 고정 헤더 */}
-				<div className='sticky top-0 z-10 bg-white border-b border-gray-300'>
-					<table className='grid-table w-full'>
-						<thead>
-							<tr>
-								<th className='grid-th'>사번</th>
-								<th className='grid-th'>성명</th>
-								<th className='grid-th'>본부명</th>
-								<th className='grid-th'>부서명</th>
-								<th className='grid-th'>직급명</th>
-								<th className='grid-th'>직책구분</th>
-								<th className='grid-th'>사용자권한</th>
-								<th className='grid-th'>사용자역할ID</th>
-								<th className='grid-th'>사용자역할</th>
-								<th className='grid-th'>승인결재자</th>
-								<th className='grid-th'>사업</th>
-								<th className='grid-th'>추진비</th>
-								<th className='grid-th'>인사/복리</th>
-							</tr>
-						</thead>
-					</table>
-				</div>
+				{isLoading && (
+					<div className='flex items-center justify-center h-32 text-gray-500'>
+						사용자 목록을 불러오는 중...
+					</div>
+				)}
+				{error && (
+					<div className='flex items-center justify-center h-32 text-red-500'>
+						{error}
+					</div>
+				)}
+				{!isLoading && !error && (
+					<>
+						{/* 고정 헤더 */}
+						<div className='grid-header-container'>
+							<table className='grid-table w-full'>
+								<thead>
+									<tr>
+										<th className='grid-th' style={{ width: '80px' }}>
+											사번
+										</th>
+										<th className='grid-th' style={{ width: '80px' }}>
+											성명
+										</th>
+										<th className='grid-th' style={{ width: '120px' }}>
+											본부명
+										</th>
+										<th className='grid-th' style={{ width: '120px' }}>
+											부서명
+										</th>
+										<th className='grid-th' style={{ width: '80px' }}>
+											직급명
+										</th>
+										<th className='grid-th' style={{ width: '100px' }}>
+											직책구분
+										</th>
+										<th className='grid-th' style={{ width: '100px' }}>
+											사용자권한
+										</th>
+										<th className='grid-th' style={{ width: '120px' }}>
+											사용자역할ID
+										</th>
+										<th className='grid-th' style={{ width: '120px' }}>
+											사용자역할
+										</th>
+										<th className='grid-th' style={{ width: '100px' }}>
+											승인결재자
+										</th>
+										<th className='grid-th' style={{ width: '60px' }}>
+											사업
+										</th>
+										<th className='grid-th' style={{ width: '60px' }}>
+											추진비
+										</th>
+										<th className='grid-th' style={{ width: '60px' }}>
+											인사/복리
+										</th>
+									</tr>
+								</thead>
+							</table>
+						</div>
 
-				{/* 스크롤 가능한 데이터 영역 */}
-				<div style={{ height: 'calc(400px - 40px)', overflow: 'auto' }}>
-					<table className='grid-table w-full'>
-						<tbody>
-							{userData && userData.length > 0
-								? userData.map((user, idx) => (
-										<tr
-											key={user.empNo}
-											className={`grid-tr ${selectedUser?.empNo === user.empNo ? 'selected' : ''}`}
-											onClick={() => handleUserSelect(user)}
-											style={{ cursor: 'pointer' }}
-										>
-											<td className='grid-td'>{user.empNo}</td>
-											<td className='grid-td'>{user.empNm}</td>
-											<td className='grid-td'>{user.hqDivNm}</td>
-											<td className='grid-td'>{user.deptDivNm}</td>
-											<td className='grid-td'>{user.dutyNm}</td>
-											<td className='grid-td'>{user.dutyDivCdNm}</td>
-											<td className='grid-td'>{user.authCdNm}</td>
-											<td className='grid-td'>{user.usrRoleId}</td>
-											<td className='grid-td'>{user.usrRoleNm}</td>
-											<td className='grid-td'>{user.apvApofNm}</td>
-											<td className='grid-td text-center'>
-												<input
-													type='checkbox'
-													checked={user.bsnUseYn === '1'}
-													readOnly
-												/>
-											</td>
-											<td className='grid-td text-center'>
-												<input
-													type='checkbox'
-													checked={user.wpcUseYn === '1'}
-													readOnly
-												/>
-											</td>
-											<td className='grid-td text-center'>
-												<input
-													type='checkbox'
-													checked={user.psmUseYn === '1'}
-													readOnly
-												/>
-											</td>
-										</tr>
-									))
-								: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
-									Array.from({ length: 15 }, (_, idx) => (
-										<tr key={`empty-${idx}`} className='grid-tr'>
-											<td className='grid-td' colSpan={13}>
-												&nbsp;
-											</td>
-										</tr>
-									))}
-						</tbody>
-					</table>
-				</div>
+						{/* 스크롤 가능한 데이터 영역 */}
+						<div className='grid-data-container'>
+							<table className='grid-table w-full'>
+								<tbody>
+									{userData && userData.length > 0
+										? userData.map((user, idx) => (
+												<tr
+													key={user.empNo}
+													className={`grid-tr ${selectedUser?.empNo === user.empNo ? 'selected' : ''}`}
+													onClick={() => handleUserSelect(user)}
+													style={{ cursor: 'pointer' }}
+												>
+													<td className='grid-td' style={{ width: '80px' }}>
+														{user.empNo}
+													</td>
+													<td className='grid-td' style={{ width: '80px' }}>
+														{user.empNm}
+													</td>
+													<td className='grid-td' style={{ width: '120px' }}>
+														{user.hqDivNm}
+													</td>
+													<td className='grid-td' style={{ width: '120px' }}>
+														{user.deptDivNm}
+													</td>
+													<td className='grid-td' style={{ width: '80px' }}>
+														{user.dutyNm}
+													</td>
+													<td className='grid-td' style={{ width: '100px' }}>
+														{user.dutyDivCdNm}
+													</td>
+													<td className='grid-td' style={{ width: '100px' }}>
+														{user.authCdNm}
+													</td>
+													<td className='grid-td' style={{ width: '120px' }}>
+														{user.usrRoleId}
+													</td>
+													<td className='grid-td' style={{ width: '120px' }}>
+														{user.usrRoleNm}
+													</td>
+													<td className='grid-td' style={{ width: '100px' }}>
+														{user.apvApofNm}
+													</td>
+													<td
+														className='grid-td text-center'
+														style={{ width: '60px' }}
+													>
+														<input
+															type='checkbox'
+															checked={user.bsnUseYn === '1'}
+															readOnly
+														/>
+													</td>
+													<td
+														className='grid-td text-center'
+														style={{ width: '60px' }}
+													>
+														<input
+															type='checkbox'
+															checked={user.wpcUseYn === '1'}
+															readOnly
+														/>
+													</td>
+													<td
+														className='grid-td text-center'
+														style={{ width: '60px' }}
+													>
+														<input
+															type='checkbox'
+															checked={user.psmUseYn === '1'}
+															readOnly
+														/>
+													</td>
+												</tr>
+											))
+										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
+											Array.from({ length: 15 }, (_, idx) => (
+												<tr key={`empty-${idx}`} className='grid-tr'>
+													<td className='grid-td' colSpan={13}>
+														&nbsp;
+													</td>
+												</tr>
+											))}
+								</tbody>
+							</table>
+						</div>
+					</>
+				)}
 			</div>
 
 			{/* 하단: 등록/수정 영역과 업무권한 테이블을 가로 배치 */}
@@ -713,44 +787,76 @@ const USR2010M00: React.FC = () => {
 						{!workAuthLoading && !workAuthError && (
 							<>
 								{/* 고정 헤더 */}
-								<div className='sticky top-0 z-10 bg-white border-b border-gray-300'>
+								<div className='grid-header-container'>
 									<table className='grid-table w-full'>
 										<thead>
 											<tr>
-												<th className='grid-th'>업무구분</th>
-												<th className='grid-th w-[70px]'>사용권한</th>
-												<th className='grid-th'>비고</th>
+												<th className='grid-th' style={{ width: '200px' }}>
+													업무구분
+												</th>
+												<th className='grid-th' style={{ width: '80px' }}>
+													사용권한
+												</th>
+												<th className='grid-th' style={{ width: '120px' }}>
+													비고
+												</th>
 											</tr>
 										</thead>
 									</table>
 								</div>
 
 								{/* 스크롤 가능한 데이터 영역 */}
-								<div style={{ height: 'calc(300px - 40px)', overflow: 'auto' }}>
+								<div className='grid-data-container'>
 									<table className='grid-table w-full'>
 										<tbody>
 											{workAuthList.length > 0
 												? workAuthList.map((task, idx) => (
 														<tr className='grid-tr' key={idx}>
-															<td className='grid-td'>{task.smlCsfNm}</td>
-															<td className='grid-td text-center'>
+															<td
+																className='grid-td'
+																style={{ width: '200px' }}
+															>
+																{task.smlCsfNm}
+															</td>
+															<td
+																className='grid-td text-center'
+																style={{ width: '80px' }}
+															>
 																<input
 																	type='checkbox'
 																	checked={task.wrkUseYn === '1'}
 																	readOnly // 직접 수정 방지
 																/>
 															</td>
-															<td className='grid-td'>{task.rmk}</td>
+															<td
+																className='grid-td'
+																style={{ width: '120px' }}
+															>
+																{task.rmk}
+															</td>
 														</tr>
 													))
 												: // 데이터가 없을 때 빈 행들을 렌더링하여 높이 유지
 													Array.from({ length: 5 }, (_, idx) => (
 														<tr className='grid-tr' key={`empty-${idx}`}>
-															<td className='grid-td'>&nbsp;</td>
-															<td className='grid-td text-center'>
+															<td
+																className='grid-td'
+																style={{ width: '200px' }}
+															>
+																&nbsp;
+															</td>
+															<td
+																className='grid-td text-center'
+																style={{ width: '80px' }}
+															>
 																<input type='checkbox' disabled />
 															</td>
-															<td className='grid-td'>&nbsp;</td>
+															<td
+																className='grid-td'
+																style={{ width: '120px' }}
+															>
+																&nbsp;
+															</td>
 														</tr>
 													))}
 										</tbody>

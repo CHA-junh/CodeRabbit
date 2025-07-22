@@ -36,15 +36,17 @@ async function bootstrap() {
     }),
   );
 
-  // 🔒 Rate Limiting 설정
+  // 🔒 Rate Limiting 설정 (더 관대하게 조정)
   const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15분
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // IP당 최대 요청 수
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1분
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000'), // IP당 최대 요청 수 (1000개로 증가)
     message: {
       error: '너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.',
     },
     standardHeaders: true,
     legacyHeaders: false,
+    skipSuccessfulRequests: true, // 성공한 요청은 카운트하지 않음
+    skipFailedRequests: false, // 실패한 요청은 카운트
   });
   app.use(limiter);
 
