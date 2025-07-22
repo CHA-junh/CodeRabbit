@@ -9,7 +9,7 @@ import ContentFrame from '../mainframe/ContentFrame' // 콘텐츠 프레임
 import PageTitle from './PageTitle' // ✅ 타이틀 컴포넌트 추가
 import './common.css'
 import BSN0100M00 from './BSN0100M00' // 콘텐츠 프레임
-import BSN0400M00 from './BSN0400M00' // 콘텐츠 프레임
+import BSN0500M00 from './BSN0500M00' // 콘텐츠 프레임
 
 export default function MainLayout() {
 	// ✅ 현재 선택된 탭 상태 관리
@@ -60,7 +60,7 @@ export default function MainLayout() {
 
 					{/* 콘텐츠 프레임 */}
 					<div className='flex-1 overflow-auto pt-0 p-4'>
-						<BSN0400M00 selectedTab={selectedTab.title} />
+						<BSN0500M00 selectedTab={selectedTab.title} />
 					</div>
 				</div>
 			</div>

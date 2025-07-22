@@ -99,7 +99,7 @@ body {
 /* --- 엑셀 버튼 (아이콘 포함) --- */
 .btn-excel {
 	@apply bg-[#00B846] text-white hover:opacity-80;
-	width: 72px;
+	min-width: 72px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -490,4 +490,25 @@ body {
 	font-size: 14px;
 	font-weight: 400;
 	font-family: 'NanumGothic', sans-serif;
+}
+
+/* 서브 탭 박스 전체 */
+.sub-tab-container {
+  @apply border border-[#ccc] rounded-md;
+}    
+/* 탭 리스트 wrapper */
+.sub-tab-list {
+  @apply flex border-b border-[#ccc] pt-2;
+}
+/* 공통 탭 버튼 스타일 */
+.sub-tab-button {
+  @apply px-4 py-2 text-sm font-semibold text-[#798EA2] hover:text-[#0071DB] transition-all;
+}
+/* 활성화된 탭 */
+.sub-tab-active {
+  @apply text-[#00509A] border-b border-[#00509A] pb-[7px];
+}
+/* 탭 패널 영역 */
+.sub-tab-panel {
+  @apply p-4 bg-white;
 }
