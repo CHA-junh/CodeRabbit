@@ -8,7 +8,8 @@
 	"scripts": {
 		"dev": "concurrently \"npm run dev --workspace=apps/client\" \"npm run start:dev --workspace=apps/server\"",
 		"build": "npm run build --workspaces",
-		"start": "npm run start --workspace=apps/server"
+		"start": "npm run start --workspace=apps/server",
+		"clean": "npm --prefix apps/server run clean"
 	},
 	"dependencies": {
 		"@nestjs/config": "^4.0.2",
@@ -27,6 +28,7 @@
 	"devDependencies": {
 		"@types/node-fetch": "^2.6.12",
 		"@types/oracledb": "^6.6.1",
-		"concurrently": "^8.2.2"
+		"concurrently": "^8.2.2",
+		"rimraf": "^6.0.1"
 	}
 }

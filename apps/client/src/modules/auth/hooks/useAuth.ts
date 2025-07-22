@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				setUser(null)
 			}
 		} catch (error) {
-			console.error('세션 확인 오류:', error)
+			// 불필요한 콘솔 에러 로그 제거 (401 등 인증 실패는 조용히 무시)
 			setUser(null)
 		} finally {
 			setLoading(false)

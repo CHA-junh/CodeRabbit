@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { OracleService } from '../database/database.provider';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
+import { DatabaseModule } from '../database/database.module';
 
 // COM 관련 컨트롤러들
 import { EmployeeController } from './employee.controller';
@@ -24,23 +24,23 @@ import { COMZ060P00Service } from './COMZ060P00.service';
 
 /**
  * COM 모듈
- * 
+ *
  * @description
  * - COM 관련 모든 컨트롤러와 서비스를 관리하는 모듈
  * - 사업관리, 사용자관리, 코드관리, 단가관리 등 COM 기능들을 포함
  * - 화면별 컨트롤러/서비스: COMZ010M00, COMZ040P00, COMZ050P00, COMZ060P00
  * - 공통 기능: Employee, Users, UnitPrice, Code
- * 
+ *
  * @controllers
  * - EmployeeController: 직원 관리
- * - UsersController: 사용자 관리  
+ * - UsersController: 사용자 관리
  * - UnitPriceController: 단가 관리
  * - CodeController: 코드 관리
  * - COMZ010M00Controller: 시스템코드관리
  * - COMZ040P00Controller: 사업번호검색
  * - COMZ050P00Controller: 사업명검색
  * - COMZ060P00Controller: 부서번호검색
- * 
+ *
  * @providers
  * - EmployeeService: 직원 관련 비즈니스 로직
  * - UsersService: 사용자 관련 비즈니스 로직
@@ -52,6 +52,7 @@ import { COMZ060P00Service } from './COMZ060P00.service';
  * - COMZ060P00Service: 부서번호검색 비즈니스 로직
  */
 @Module({
+  imports: [DatabaseModule],
   controllers: [
     EmployeeController,
     UsersController,
@@ -63,7 +64,6 @@ import { COMZ060P00Service } from './COMZ060P00.service';
     COMZ060P00Controller,
   ],
   providers: [
-    OracleService,
     ProcedureDbParser,
     EmployeeService,
     UsersService,
@@ -85,4 +85,4 @@ import { COMZ060P00Service } from './COMZ060P00.service';
     COMZ060P00Service,
   ],
 })
-export class ComModule {} 
+export class ComModule {}
