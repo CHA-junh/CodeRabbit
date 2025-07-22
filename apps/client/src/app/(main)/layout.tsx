@@ -4,7 +4,7 @@ import SideMenu from '../../components/SideMenu'
 import '../globals.css'
 import TopBar from './TopBar'
 import AuthGuard from '../../modules/auth/components/AuthGuard'
-import Maintab from '../mainframe/Maintab'
+import MainTab from '../mainframe/MainTab'
 import PageTitle from '../mainframe/PageTitle'
 import ContentFrame from '../mainframe/ContentFrame'
 import { getDynamicProgramComponent } from '../../utils/dynamicProgramLoader'
@@ -88,7 +88,7 @@ export default function MainLayout({
 					<SideMenu isOpen={true} onClose={() => {}} />
 					<div className='flex-1 flex flex-col h-full min-h-0'>
 						{/* 메인탭 */}
-						<Maintab
+						<MainTab
 							tabs={tabs.map((tab) => ({
 								id: tab.programId,
 								title: tab.title,

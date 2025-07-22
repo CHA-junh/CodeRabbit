@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import MenuTree from './menu'
 import COM0070M00 from './COM0070M00' // 좌측 아이콘바
 import COM0010M00 from './COM0010M00' // 상단 헤더
-import Maintab from './maintab' // 탭 프레임
+import TabFrame from './MainTab' // 탭 프레임
 import ContentFrame from './SYS1000M00' // 콘텐츠 프레임
 import PageTitle from './PageTitle' // ✅ 타이틀 컴포넌트 추가
 import './common.css'
@@ -40,12 +40,7 @@ export default function MainLayout() {
 				<div className='flex-1 bg-white overflow-hidden flex flex-col'>
 					{/* 탭 프레임 */}
 					<div className='h-10 border-b border-slate-200 shrink-0'>
-						<Maintab
-							selected={selectedTab.title}
-							onSelectTab={(title, programId) =>
-								setSelectedTab({ title, programId })
-							}
-						/>
+						<TabFrame />
 					</div>
 
 					{/* 페이지 타이틀 */}

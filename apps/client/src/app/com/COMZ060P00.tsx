@@ -175,72 +175,62 @@ export default function DeptNumberSearchPopup() {
 				{/* 에러 메시지 */}
 				{error && <div className='text-red-600 mb-2'>{error}</div>}
 				{/* 그리드 영역 */}
-				<div className='gridbox-div mb-4 scroll-area scrollbar-thin overflow-y-scroll h-[480px] min-h-[120px] max-h-[480px]'>
-					<table className='grid-table'>
-						<thead>
-							<tr>
-								<th className='grid-th'>부서번호</th>
-								<th className='grid-th'>부서명</th>
-								<th className='grid-th'>시작일자</th>
-								<th className='grid-th'>종료일자</th>
-								<th className='grid-th'>본부구분</th>
-								<th className='grid-th'>부서구분</th>
-							</tr>
-						</thead>
-						<tbody>
-							{results.length === 0 && !loading && (
+				<div className='gridbox-div mb-4' style={{ height: '480px' }}>
+					{/* 고정 헤더 */}
+					<div className='grid-header-container'>
+						<table className='grid-table w-full'>
+							<thead>
 								<tr>
-									<td colSpan={6} className='text-center p-4'>
-										조회 결과가 없습니다.
-									</td>
+									<th className='grid-th' style={{ width: '100px' }}>부서번호</th>
+									<th className='grid-th' style={{ width: '180px' }}>부서명</th>
+									<th className='grid-th' style={{ width: '100px' }}>시작일자</th>
+									<th className='grid-th' style={{ width: '100px' }}>종료일자</th>
+									<th className='grid-th' style={{ width: '100px' }}>본부구분</th>
+									<th className='grid-th' style={{ width: '100px' }}>부서구분</th>
 								</tr>
-							)}
-							{results.map((item, idx) => (
-								<tr
-									key={idx}
-									className='grid-tr'
-									onDoubleClick={() => handleRowDoubleClick(item)}
-								>
-									<td
-										className='grid-td truncate max-w-[100px]'
-										title={item.deptNo}
-									>
-										{item.deptNo}
-									</td>
-									<td
-										className='grid-td truncate max-w-[180px]'
-										title={item.deptNm}
-									>
-										{item.deptNm}
-									</td>
-									<td
-										className='grid-td truncate max-w-[100px]'
-										title={item.strtDt}
-									>
-										{item.strtDt}
-									</td>
-									<td
-										className='grid-td truncate max-w-[100px]'
-										title={item.endDt}
-									>
-										{item.endDt}
-									</td>
-									<td
-										className='grid-td truncate max-w-[100px]'
-										title={item.hqDivNm}
-									>
-										{item.hqDivNm}
-									</td>
-									<td
-										className='grid-td truncate max-w-[100px]'
-										title={item.deptDivNm}
-									>
-										{item.deptDivNm}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+							</thead>
+						</table>
+					</div>
+					{/* 스크롤 가능한 데이터 영역 */}
+					<div className='grid-data-container'>
+						<table className='grid-table w-full'>
+							<tbody>
+								{results.length > 0
+									? results.map((item, idx) => (
+										<tr
+											key={idx}
+											className='grid-tr cursor-pointer'
+											onDoubleClick={() => handleRowDoubleClick(item)}
+											style={{ cursor: 'pointer' }}
+										>
+											<td className='grid-td' style={{ width: '100px' }} title={item.deptNo}>
+												{item.deptNo}
+											</td>
+											<td className='grid-td' style={{ width: '180px' }} title={item.deptNm}>
+												{item.deptNm}
+											</td>
+											<td className='grid-td' style={{ width: '100px' }} title={item.strtDt}>
+												{item.strtDt}
+											</td>
+											<td className='grid-td' style={{ width: '100px' }} title={item.endDt}>
+												{item.endDt}
+											</td>
+											<td className='grid-td' style={{ width: '100px' }} title={item.hqDivNm}>
+												{item.hqDivNm}
+											</td>
+											<td className='grid-td' style={{ width: '100px' }} title={item.deptDivNm}>
+												{item.deptDivNm}
+											</td>
+										</tr>
+									))
+									: Array.from({ length: 10 }, (_, idx) => (
+										<tr key={`empty-${idx}`} className='grid-tr'>
+											<td className='grid-td' colSpan={6}>&nbsp;</td>
+										</tr>
+									))}
+							</tbody>
+						</table>
+					</div>
 				</div>
 				{/* 종료 버튼 (우측 정렬) */}
 				<div className='flex justify-end'>

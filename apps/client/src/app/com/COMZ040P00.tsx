@@ -827,52 +827,62 @@ export default function ProjectSearchPopup() {
         )}
 
         {/* 그리드 영역 */}
-        <div className="gridbox-div scroll-area scrollbar-thin h-[400px] min-h-[200px] max-h-[400px] overflow-y-scroll bg-white mt-4">
-          <table className="grid-table w-full">
-            <thead>
-              <tr>
-                <th className="grid-th w-[50px]">No</th>
-                <th className="grid-th">사업번호</th>
-                <th className="grid-th w-[400px]">사업명</th>
-                <th className="grid-th w-[100px]">시작일자</th>
-                <th className="grid-th w-[100px]">종료일자</th>
-                <th className="grid-th">영업부서</th>
-                <th className="grid-th">영업대표</th>
-                <th className="grid-th">실행부서</th>
-                <th className="grid-th">PM</th>
-                <th className="grid-th">진행상태</th>
-              </tr>
-            </thead>
-            <tbody>
-              {businessList.map((item, index) => (
-                <tr 
-                  key={item.bsnNo}
-                  className={`grid-tr cursor-pointer hover:bg-gray-50${selectedBusiness && selectedBusiness.bsnNo === item.bsnNo ? ' !bg-blue-100' : ''}`}
-                  onClick={() => handleRowClick(item)}
-                  onDoubleClick={() => handleDoubleClick(item)}
-                  tabIndex={0}
-                  aria-label={`사업번호 ${item.bsnNo}`}
-                  onKeyDown={handleRowKeyDown(index)}
-                >
-                  <td className="grid-td w-[50px] text-center">{index + 1}</td>
-                  <td className="grid-td truncate max-w-[120px]" title={item.bsnNo}>{item.bsnNo}</td>
-                  <td className="grid-td truncate max-w-[300px]" title={item.bsnNm}>{item.bsnNm}</td>
-                  <td className="grid-td truncate max-w-[100px]" title={item.bsnStrtDt}>{item.bsnStrtDt}</td>
-                  <td className="grid-td truncate max-w-[100px]" title={item.bsnEndDt}>{item.bsnEndDt}</td>
-                  <td className="grid-td truncate max-w-[120px]" title={item.pplsDeptNm}>{item.pplsDeptNm}</td>
-                  <td className="grid-td truncate max-w-[100px]" title={item.bizRepnm || '미지정'}>{item.bizRepnm || '미지정'}</td>
-                  <td className="grid-td truncate max-w-[120px]" title={item.execDeptNm}>{item.execDeptNm}</td>
-                  <td className="grid-td truncate max-w-[100px]" title={item.pmNm}>{item.pmNm}</td>
-                  <td className="grid-td truncate max-w-[100px]" title={item.pgrsStDivNm}>{item.pgrsStDivNm}</td>
-                </tr>
-              ))}
-              {businessList.length === 0 && !loading && (
+        <div className="gridbox-div mt-4" style={{ height: '400px' }}>
+          {/* 고정 헤더 */}
+          <div className="grid-header-container">
+            <table className="grid-table w-full">
+              <thead>
                 <tr>
-                  <td colSpan={10} className="grid-td !text-center">데이터 없음</td>
+                  <th className="grid-th" style={{ width: '50px' }}>No</th>
+                  <th className="grid-th" style={{ width: '120px' }}>사업번호</th>
+                  <th className="grid-th" style={{ width: '400px' }}>사업명</th>
+                  <th className="grid-th" style={{ width: '100px' }}>시작일자</th>
+                  <th className="grid-th" style={{ width: '100px' }}>종료일자</th>
+                  <th className="grid-th" style={{ width: '120px' }}>영업부서</th>
+                  <th className="grid-th" style={{ width: '100px' }}>영업대표</th>
+                  <th className="grid-th" style={{ width: '120px' }}>실행부서</th>
+                  <th className="grid-th" style={{ width: '100px' }}>PM</th>
+                  <th className="grid-th" style={{ width: '100px' }}>진행상태</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+            </table>
+          </div>
+          {/* 스크롤 가능한 데이터 영역 */}
+          <div className="grid-data-container">
+            <table className="grid-table w-full">
+              <tbody>
+                {businessList.length > 0
+                  ? businessList.map((item, index) => (
+                      <tr 
+                        key={item.bsnNo}
+                        className={`grid-tr cursor-pointer${selectedBusiness && selectedBusiness.bsnNo === item.bsnNo ? ' selected' : ''}`}
+                        onClick={() => handleRowClick(item)}
+                        onDoubleClick={() => handleDoubleClick(item)}
+                        tabIndex={0}
+                        aria-label={`사업번호 ${item.bsnNo}`}
+                        onKeyDown={handleRowKeyDown(index)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <td className="grid-td text-center" style={{ width: '50px' }}>{index + 1}</td>
+                        <td className="grid-td" style={{ width: '120px' }} title={item.bsnNo}>{item.bsnNo}</td>
+                        <td className="grid-td" style={{ width: '400px' }} title={item.bsnNm}>{item.bsnNm}</td>
+                        <td className="grid-td" style={{ width: '100px' }} title={item.bsnStrtDt}>{item.bsnStrtDt}</td>
+                        <td className="grid-td" style={{ width: '100px' }} title={item.bsnEndDt}>{item.bsnEndDt}</td>
+                        <td className="grid-td" style={{ width: '120px' }} title={item.pplsDeptNm}>{item.pplsDeptNm}</td>
+                        <td className="grid-td" style={{ width: '100px' }} title={item.bizRepnm || '미지정'}>{item.bizRepnm || '미지정'}</td>
+                        <td className="grid-td" style={{ width: '120px' }} title={item.execDeptNm}>{item.execDeptNm}</td>
+                        <td className="grid-td" style={{ width: '100px' }} title={item.pmNm}>{item.pmNm}</td>
+                        <td className="grid-td" style={{ width: '100px' }} title={item.pgrsStDivNm}>{item.pgrsStDivNm}</td>
+                      </tr>
+                    ))
+                  : Array.from({ length: 10 }, (_, idx) => (
+                      <tr key={`empty-${idx}`} className="grid-tr">
+                        <td className="grid-td" colSpan={10}>&nbsp;</td>
+                      </tr>
+                    ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* 종료 버튼 */}
