@@ -9,6 +9,8 @@ import BSN0140M00 from './BSN0140M00';
 import BSN0150M00 from './BSN0150M00';
 import BSN0160M00 from './BSN0160M00';
 
+// 수주확정/계약 페이지
+
 export default function BSN0100M00() {
   const tabs = [
     { label: '제품(재료비)', component: <BSN0120M00 /> },
