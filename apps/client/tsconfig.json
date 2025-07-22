@@ -23,6 +23,6 @@
 			"@/*": ["./src/*"]
 		}
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/designs/PSM0060M00.tsx"],
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/designs/PSM0060M00.tsx", "src/app/designs/BSN0110M00.tsx"],
 	"exclude": ["node_modules"]
 }
