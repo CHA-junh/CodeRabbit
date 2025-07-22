@@ -501,13 +501,7 @@ const COMZ010M00Page = () => {
 				setError(null)
 				try {
 					const param = [smallForm.lrgCsfCd, smallForm.smlCsfCd].join('|')
-					// API URL 환경변수 기반 설정
-					const deleteApiUrl =
-						typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
-							? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/procedure-demo/comz010m00`
-							: '/api/procedure-demo/comz010m00'
-
-					const res = await fetch(deleteApiUrl, {
+					const res = await fetch(apiUrl, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
@@ -717,63 +711,86 @@ const COMZ010M00Page = () => {
 			<div className='flex gap-4'>
 				{/* 대분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div scroll-area scrollbar-thin h-[240px] min-h-[120px] max-h-[240px] overflow-y-scroll bg-white mb-4'>
-						<table className='grid-table w-full'>
-							<thead>
-								<tr>
-									<th className='grid-th'>대분류코드</th>
-									<th className='grid-th'>대분류명</th>
-									<th className='grid-th'>사용여부</th>
-									<th className='grid-th'>설명</th>
-								</tr>
-							</thead>
-							<tbody>
-								{largeCodes.length === 0 ? (
+					<div className='gridbox-div mb-4' style={{ height: '240px' }}>
+						{/* 고정 헤더 */}
+						<div className='grid-header-container'>
+							<table className='grid-table w-full'>
+								<thead>
 									<tr>
-										<td colSpan={4} className='grid-td !text-center'>
-											데이터 없음
-										</td>
+										<th className='grid-th' style={{ width: '120px' }}>
+											대분류코드
+										</th>
+										<th className='grid-th' style={{ width: '180px' }}>
+											대분류명
+										</th>
+										<th className='grid-th' style={{ width: '80px' }}>
+											사용여부
+										</th>
+										<th className='grid-th' style={{ width: '200px' }}>
+											설명
+										</th>
 									</tr>
-								) : (
-									largeCodes.map((row, idx) => (
-										<tr
-											className={`grid-tr cursor-pointer${selectedLarge && selectedLarge.lrgCsfCd === row.lrgCsfCd ? ' !bg-blue-100' : ''}`}
-											key={row.lrgCsfCd ? `${row.lrgCsfCd}-${idx}` : idx}
-											onClick={() => handleLargeRowClick(row)}
-											tabIndex={0}
-											aria-label={`대분류코드 ${row.lrgCsfCd}`}
-											onDoubleClick={() => handleLargeRowDoubleClick(row)}
-											onKeyDown={handleLargeRowKeyDown(idx)}
-										>
-											<td
-												className='grid-td truncate max-w-[100px]'
-												title={row.lrgCsfCd}
-											>
-												{row.lrgCsfCd}
-											</td>
-											<td
-												className='grid-td truncate max-w-[180px]'
-												title={row.lrgCsfNm}
-											>
-												{row.lrgCsfNm}
-											</td>
-											<td
-												className='grid-td truncate max-w-[60px]'
-												title={row.useYn}
-											>
-												{row.useYn}
-											</td>
-											<td
-												className='grid-td truncate max-w-[200px]'
-												title={row.expl}
-											>
-												{row.expl}
-											</td>
-										</tr>
-									))
-								)}
-							</tbody>
-						</table>
+								</thead>
+							</table>
+						</div>
+
+						{/* 스크롤 가능한 데이터 영역 */}
+						<div className='grid-data-container'>
+							<table className='grid-table w-full'>
+								<tbody>
+									{largeCodes.length > 0
+										? largeCodes.map((row, idx) => (
+												<tr
+													className={`grid-tr cursor-pointer${selectedLarge && selectedLarge.lrgCsfCd === row.lrgCsfCd ? ' selected' : ''}`}
+													key={row.lrgCsfCd ? `${row.lrgCsfCd}-${idx}` : idx}
+													onClick={() => handleLargeRowClick(row)}
+													tabIndex={0}
+													aria-label={`대분류코드 ${row.lrgCsfCd}`}
+													onDoubleClick={() => handleLargeRowDoubleClick(row)}
+													onKeyDown={handleLargeRowKeyDown(idx)}
+													style={{ cursor: 'pointer' }}
+												>
+													<td
+														className='grid-td'
+														style={{ width: '120px' }}
+														title={row.lrgCsfCd}
+													>
+														{row.lrgCsfCd}
+													</td>
+													<td
+														className='grid-td'
+														style={{ width: '180px' }}
+														title={row.lrgCsfNm}
+													>
+														{row.lrgCsfNm}
+													</td>
+													<td
+														className='grid-td'
+														style={{ width: '80px' }}
+														title={row.useYn}
+													>
+														{row.useYn}
+													</td>
+													<td
+														className='grid-td'
+														style={{ width: '200px' }}
+														title={row.expl}
+													>
+														{row.expl}
+													</td>
+												</tr>
+											))
+										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
+											Array.from({ length: 10 }, (_, idx) => (
+												<tr key={`empty-${idx}`} className='grid-tr'>
+													<td className='grid-td' colSpan={4}>
+														&nbsp;
+													</td>
+												</tr>
+											))}
+								</tbody>
+							</table>
+						</div>
 					</div>
 					{/* 대분류 등록 폼 */}
 					<div className='border border-stone-300 p-3 rounded'>
@@ -875,70 +892,96 @@ const COMZ010M00Page = () => {
 				</div>
 				{/* 소분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div scroll-area scrollbar-thin h-[240px] min-h-[120px] max-h-[240px] overflow-y-scroll bg-white mb-4'>
-						<table className='grid-table w-full'>
-							<thead>
-								<tr>
-									<th className='grid-th'>소분류코드</th>
-									<th className='grid-th'>소분류명</th>
-									<th className='grid-th'>정렬순서</th>
-									<th className='grid-th'>사용여부</th>
-									<th className='grid-th'>설명</th>
-								</tr>
-							</thead>
-							<tbody>
-								{smallCodes.length === 0 ? (
+					<div className='gridbox-div mb-4' style={{ height: '240px' }}>
+						{/* 고정 헤더 */}
+						<div className='grid-header-container'>
+							<table className='grid-table w-full'>
+								<thead>
 									<tr>
-										<td colSpan={5} className='grid-td !text-center'>
-											데이터 없음
-										</td>
+										<th className='grid-th' style={{ width: '120px' }}>
+											소분류코드
+										</th>
+										<th className='grid-th' style={{ width: '180px' }}>
+											소분류명
+										</th>
+										<th className='grid-th' style={{ width: '80px' }}>
+											정렬순서
+										</th>
+										<th className='grid-th' style={{ width: '80px' }}>
+											사용여부
+										</th>
+										<th className='grid-th' style={{ width: '200px' }}>
+											설명
+										</th>
 									</tr>
-								) : (
-									smallCodes.map((row, idx) => (
-										<tr
-											className={`grid-tr${smallForm.lrgCsfCd === row.lrgCsfCd && smallForm.smlCsfCd === row.smlCsfCd ? ' !bg-blue-100' : ''}`}
-											key={row.smlCsfCd ? `${row.smlCsfCd}-${idx}` : idx}
-											tabIndex={0}
-											aria-label={`소분류코드 ${row.smlCsfCd}`}
-											onClick={() => handleSmallRowClick(row)}
-											onDoubleClick={() => handleSmallRowDoubleClick(row)}
-											onKeyDown={handleSmallRowKeyDown(idx)}
-										>
-											<td
-												className='grid-td truncate max-w-[100px]'
-												title={row.smlCsfCd}
-											>
-												{row.smlCsfCd}
-											</td>
-											<td
-												className='grid-td truncate max-w-[180px]'
-												title={row.smlCsfNm}
-											>
-												{row.smlCsfNm}
-											</td>
-											<td
-												className='grid-td text-right truncate max-w-[60px]'
-												title={String(row.sortOrd)}
-											>
-												{row.sortOrd}
-											</td>
-											<td
-												className='grid-td truncate max-w-[60px]'
-												title={row.useYn}
-											>
-												{row.useYn}
-											</td>
-											<td
-												className='grid-td truncate max-w-[200px]'
-												title={row.expl}
-											>
-												{row.expl}
-											</td>
-										</tr>
-									))
-								)}
-							</tbody>
-						</table>
+								</thead>
+							</table>
+						</div>
+
+						{/* 스크롤 가능한 데이터 영역 */}
+						<div className='grid-data-container'>
+							<table className='grid-table w-full'>
+								<tbody>
+									{smallCodes.length > 0
+										? smallCodes.map((row, idx) => (
+												<tr
+													className={`grid-tr${smallForm.lrgCsfCd === row.lrgCsfCd && smallForm.smlCsfCd === row.smlCsfCd ? ' selected' : ''}`}
+													key={row.smlCsfCd ? `${row.smlCsfCd}-${idx}` : idx}
+													tabIndex={0}
+													aria-label={`소분류코드 ${row.smlCsfCd}`}
+													onClick={() => handleSmallRowClick(row)}
+													onDoubleClick={() => handleSmallRowDoubleClick(row)}
+													onKeyDown={handleSmallRowKeyDown(idx)}
+													style={{ cursor: 'pointer' }}
+												>
+													<td
+														className='grid-td'
+														style={{ width: '120px' }}
+														title={row.smlCsfCd}
+													>
+														{row.smlCsfCd}
+													</td>
+													<td
+														className='grid-td'
+														style={{ width: '180px' }}
+														title={row.smlCsfNm}
+													>
+														{row.smlCsfNm}
+													</td>
+													<td
+														className='grid-td text-right'
+														style={{ width: '80px' }}
+														title={String(row.sortOrd)}
+													>
+														{row.sortOrd}
+													</td>
+													<td
+														className='grid-td'
+														style={{ width: '80px' }}
+														title={row.useYn}
+													>
+														{row.useYn}
+													</td>
+													<td
+														className='grid-td'
+														style={{ width: '200px' }}
+														title={row.expl}
+													>
+														{row.expl}
+													</td>
+												</tr>
+											))
+										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
+											Array.from({ length: 10 }, (_, idx) => (
+												<tr key={`empty-${idx}`} className='grid-tr'>
+													<td className='grid-td' colSpan={5}>
+														&nbsp;
+													</td>
+												</tr>
+											))}
+								</tbody>
+							</table>
+						</div>
 					</div>
 					{/* 소분류 등록 폼 */}
 					<div className='border border-stone-300 p-3 rounded'>
