@@ -25,14 +25,7 @@ export default function MainPage() {
   };
 
   return (
-    <div className="popup-wrapper">
-      {/* 상단 헤더 */}
-      <div className="popup-header">
-        <h3 className="popup-title">등급별단가등록</h3>
-        <button className="popup-close" type="button">×</button>
-      </div>
-
-      <div className="popup-body">
+    <div className="mdi">
       {/* 검색 영역 */}
       <div className="search-div mb-4">
         <table className="search-table table-fixed">
@@ -165,6 +158,5 @@ export default function MainPage() {
         <button className="btn-base btn-delete">종료</button>
       </div>
     </div>
-  </div>
   );
 }

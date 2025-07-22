@@ -113,7 +113,7 @@ body {
 
 /* --- 아이콘 전용 버튼 --- */
 .icon_btn {
-	@apply hover:opacity-80 w-[26px] h-[26px];
+	@apply hover:opacity-80 min-w-[26px] min-h-[26px];
 	background-color: #58a5ee;
 	background-image: url('/icon_calendar.svg');
 	background-repeat: no-repeat;
