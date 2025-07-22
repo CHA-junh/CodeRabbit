@@ -113,7 +113,7 @@ export default function BSN0110M00() {
           </tr>
         </tbody>
       </table>
-      <div className="flex gap-2  justify-end ">
+      <div className="flex gap-2  justify-end mb-4">
         <button className="btn-base btn-etc">재계약</button> 
         <button className="btn-base btn-act">최종등록</button>
         <button className="btn-base btn-act">수주확정</button>
