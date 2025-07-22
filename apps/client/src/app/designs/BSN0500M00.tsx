@@ -5,7 +5,7 @@ import './common.css';
 
 import BSN0510M00 from './BSN0510M00';     // 사업실적조회
 import BSN0520M00 from './BSN0520M00';     // 담당자별사업실적조회
-import BSN0530M00 from './BSN0570M00';     // 사업계획등록
+import BSN0570M00 from './BSN0570M00';     // 사업계획등록
 
 export default function BSN0500M00() {
   const tabs = [
