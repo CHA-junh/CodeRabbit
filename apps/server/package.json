@@ -14,7 +14,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:test": "ts-node src/database/db-test.ts",
     "db:analyze": "ts-node src/database/db-analyze.ts",
-    "db:login-test": "ts-node src/database/test-login.ts"
+    "db:login-test": "ts-node src/database/test-login.ts",
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

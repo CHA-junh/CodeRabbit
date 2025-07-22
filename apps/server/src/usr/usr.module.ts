@@ -52,9 +52,11 @@ import { TblSmlCsfCd } from '../entities/tbl-sml-csf-cd.entity';
 import { CodeService } from '../com/code.service';
 import { OracleService } from '../database/database.provider';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
+import { DatabaseModule } from '../database/database.module';
 
 @Module({
   imports: [
+    DatabaseModule,
     // TypeORM 엔티티 등록
     TypeOrmModule.forFeature([
       User, // 사용자 기본 정보 (로그인, 비밀번호 등)
@@ -68,7 +70,6 @@ import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
   providers: [
     UsrService, // 사용자 관리 비즈니스 로직
     CodeService, // 공통 코드 관리 서비스
-    OracleService, // Oracle DB 연결 관리
     ProcedureDbParser, // 프로시저 정보 파싱
   ],
   exports: [UsrService], // 다른 모듈에서 UsrService 사용 가능하도록 export

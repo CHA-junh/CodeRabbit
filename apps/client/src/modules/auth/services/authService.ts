@@ -38,10 +38,16 @@ class AuthService {
 				credentials: 'include',
 			})
 
+			if (response.status === 401) {
+				// 인증 실패: 콘솔 에러 없이 실패 응답만 반환
+				return { success: false, user: null };
+			}
+
 			const data = await response.json()
 			return data
 		} catch (error) {
-			console.error('세션 확인 API 오류:', error)
+			// 네트워크 등 진짜 예외만 콘솔 출력
+			console.error('세션 확인 API 예외:', error)
 			throw error
 		}
 	}
