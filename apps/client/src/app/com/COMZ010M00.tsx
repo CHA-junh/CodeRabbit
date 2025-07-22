@@ -711,7 +711,7 @@ const COMZ010M00Page = () => {
 			<div className='flex gap-4'>
 				{/* 대분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4' style={{ height: '320px' }}>
+					<div className='gridbox-div mb-4' style={{ height: '400px' }}>
 						{/* 고정 헤더 */}
 						<div className='grid-header-container'>
 							<table className='grid-table w-full'>
@@ -892,7 +892,7 @@ const COMZ010M00Page = () => {
 				</div>
 				{/* 소분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4' style={{ height: '320px' }}>
+					<div className='gridbox-div mb-4' style={{ height: '400px' }}>
 						{/* 고정 헤더 */}
 						<div className='grid-header-container'>
 							<table className='grid-table w-full'>
