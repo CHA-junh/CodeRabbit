@@ -27,9 +27,18 @@ export default function MainLayout({
 	// 메뉴 데이터 fetch
 	const [menuData, setMenuData] = useState<MenuGroup[]>([])
 	useEffect(() => {
-		fetch('/api/menus')
+		fetch('/api/menu/tree')
 			.then((res) => res.json())
-			.then(setMenuData)
+			.then((data) => {
+				if (data.success) {
+					setMenuData(data.data)
+				} else {
+					console.error('메뉴 데이터 로드 실패:', data.message)
+				}
+			})
+			.catch((error) => {
+				console.error('메뉴 API 호출 오류:', error)
+			})
 	}, [])
 
 	// 탭 상태 관리

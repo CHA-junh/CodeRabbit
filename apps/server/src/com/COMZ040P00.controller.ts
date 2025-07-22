@@ -12,36 +12,12 @@ export class COMZ040P00Controller {
   constructor(private readonly comz040p00Service: COMZ040P00Service) {}
 
   @Post()
-  async businessSearch(
-    @Body() body: {
-      bsnNo: string;
-      startYear: string;
-      progressStateDiv: string;
-      searchDiv: string;
-      hqCd: string;
-      deptCd: string;
-      userNm: string;
-      loginId: string;
-    },
-    @Req() req: RequestWithSession,
-  ) {
+  async searchBusinessNo(@Body() body: any): Promise<any> {
     try {
-      console.log('📥 사업번호 검색 요청 받음');
-      console.log('📋 요청 본문:', body);
-      
       const result = await this.comz040p00Service.searchBusiness(body);
-
-      return {
-        success: true,
-        data: result.data,
-        totalCount: result.totalCount,
-      };
+      return result;
     } catch (error) {
-      console.error('사업번호 검색 오류:', error);
-      return {
-        success: false,
-        message: '사업번호 검색 중 오류가 발생했습니다.',
-      };
+      throw new Error('사업번호 검색 중 오류가 발생했습니다.');
     }
   }
-} 
+}

@@ -29,7 +29,7 @@ export class User {
   @Column({ name: 'APV_APOF_ID', type: 'varchar2', length: 10, nullable: true })
   apvApofId?: string;
 
-  @Column({ name: 'USER_PWD', type: 'varchar2', length: 20, nullable: true })
+  @Column({ name: 'USER_PWD', type: 'varchar2', length: 255, nullable: true })
   userPwd?: string;
 
   @Column({

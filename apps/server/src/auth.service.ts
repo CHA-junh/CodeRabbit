@@ -30,7 +30,7 @@ export class AuthService {
       }
 
       const data = (await response.json()) as any;
-      console.log('GW 응답:', data);
+
       if (data.jsonMessage?.result === 'success') {
         return {
           success: true,
