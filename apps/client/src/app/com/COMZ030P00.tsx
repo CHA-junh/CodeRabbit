@@ -36,7 +36,7 @@ export interface GradeUnitPricePopupRef {
 
 /**
  * 등급별 단가 조회 팝업
- * ASIS: COM_01_0300.mxml → TOBE: COMZ030M00.tsx
+ * ASIS: COM_01_0300.mxml → TOBE: COMZ030P00.tsx
  * 
  * 주요 기능:
  * 1. 등급별 단가 조회 (USP_UNTPRC_SEL)
@@ -127,7 +127,7 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
   const handleSearch = async () => {
     // ASIS: validation check
     if (!year.trim()) {
-      showToast('안내', '년도를 입력하세요.', 'info');
+      showToast('년도를 입력하세요.', 'info');
       return;
     }
 
@@ -149,12 +149,12 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
       } else {
         const errorData = await res.json();
         const errorMessage = errorData.message || '등급별 단가 조회 중 오류가 발생했습니다.';
-        showToast('경고', errorMessage, 'warning');
+        showToast(errorMessage, 'warning');
         setGridData([]);
       }
     } catch (error) {
       console.error('등급별 단가 조회 오류:', error);
-      showToast('오류', '등급별 단가 조회 중 오류가 발생했습니다.', 'error');
+      showToast('등급별 단가 조회 중 오류가 발생했습니다.', 'error');
       setGridData([]);
     } finally {
       setLoading(false);
