@@ -87,7 +87,7 @@ export default function BSN0120M00() {
         </div>
 
 
-        <div className="flex gap-2 mt-4 justify-end">
+        <div className="flex gap-2 mt-2 justify-end">
             <button className="btn-base btn-delete">삭제</button>
             <button className="btn-base btn-etc">신규</button>
             <button className="btn-base btn-act">수정</button>

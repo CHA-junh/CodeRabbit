@@ -5,16 +5,16 @@ import './common.css';
 
 import BSN0120M00 from './BSN0120M00';
 import BSN0130M00 from './BSN0130M00';
-// import BSN0120E00 from './BSN0120E00';
-// import BSN0120F00 from './BSN0120F00';
+import BSN0140M00 from './BSN0140M00';
+import BSN0150M00 from './BSN0150M00';
 // import BSN0120G00 from './BSN0120G00';
 
 export default function BSN0100M00() {
   const tabs = [
     { label: '제품(재료비)', component: <BSN0120M00 /> },
     { label: '직접인건비', component: <BSN0130M00 /> },
-    // { label: '직접경비', component: <BSN0120E00 /> },
-    // { label: '품의서이력조회', component: <BSN0120F00 /> },
+    { label: '직접경비', component: <BSN0140M00 /> },
+    { label: '품의서이력조회', component: <BSN0150M00 /> },
     // { label: '월별투입비용조회', component: <BSN0120G00 /> },
   ];
 
@@ -39,21 +39,21 @@ export default function BSN0100M00() {
           <tbody>
             <tr className="search-tr">
               <th className="search-th w-[100px]">사업번호</th>
-              <td className="search-td w-[200px]">
+              <td className="search-td w-[180px]">
                 <div className="flex gap-1 items-center">
                   <input className="input-base input-default w-full" />
                   <button className="icon_btn icon_search" />
                 </div>
               </td>
               <th className="search-th w-[100px]">사업명</th>
-              <td className="search-td">
+              <td className="search-td w-[180px]">
                 <div className="flex gap-1 items-center">
                   <input className="input-base input-default w-full" />
                   <button className="icon_btn icon_search" />
                 </div>
               </td>
               <th className="search-th w-[100px]">사업기간</th>
-              <td className="search-td">
+              <td className="search-td" colSpan={3}>
                 <div className="flex gap-2 items-center">
                   <input type="date" className="input-base input-calender" />
                   <span className="m-1">~</span>
@@ -66,9 +66,9 @@ export default function BSN0100M00() {
               <td className="search-td"><input className="input-base input-default w-full" /></td>
               <th className="search-th">사업부서</th>
               <td className="search-td"><input className="input-base input-default w-full" /></td>
-              <th className="search-th">영업대표</th>
-              <td className="search-td"><input className="input-base input-default w-full" /></td>
-              <th className="search-th">실행부서 / PM</th>
+              <th className="search-th ">영업대표</th>
+              <td className="search-td !w-[166px] "><input className="input-base input-default w-full" /></td>
+              <th className="search-th  w-[100px] ">실행부서 / PM</th>
               <td className="search-td">
                 <div className="flex gap-1">
                   <input className="input-base input-default w-full" placeholder="실행부서" />

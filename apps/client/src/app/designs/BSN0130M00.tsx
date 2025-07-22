@@ -11,9 +11,6 @@ export default function BSN0130M00() {
         <h3>직접인건비</h3>
         <div className="flex gap-2">
           <button className="btn-base btn-etc">리스트초기화</button>
-          <button className="btn-base btn-etc">신규</button>
-          <button className="btn-base btn-etc">추가</button>
-          <button className="btn-base btn-etc">행삭제</button>
         </div>
       </div>
 
@@ -201,6 +198,14 @@ export default function BSN0130M00() {
           </tbody>
         </table>
       </div>
+      <div className="flex gap-1 justify-end mt-2">
+          <button className="btn-base btn-etc">신규</button>
+          <button className="btn-base btn-etc">추가</button>
+          <button className="btn-base btn-delete">행삭제</button>
+
+      </div>
+
+
     </div>
   );
 }
