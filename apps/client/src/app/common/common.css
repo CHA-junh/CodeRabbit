@@ -329,7 +329,7 @@ body {
 .grid-header-container {
 	position: sticky !important;
 	top: 0 !important;
-	z-index: 9999 !important;
+	z-index: 10 !important;
 	background-color: white !important;
 	border-bottom: 1px solid #d1d5db !important;
 	border-top: none !important;
