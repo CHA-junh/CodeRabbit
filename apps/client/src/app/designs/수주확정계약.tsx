@@ -7,7 +7,7 @@ import BSN0120M00 from './BSN0120M00';
 import BSN0130M00 from './BSN0130M00';
 import BSN0140M00 from './BSN0140M00';
 import BSN0150M00 from './BSN0150M00';
-import BSN0160M00 from './BSN0160M00';
+import PRJ0090M00 from './PRJ0090M00';
 
 // 수주확정/계약 페이지
 
@@ -17,7 +17,7 @@ export default function BSN0100M00() {
     { label: '직접인건비', component: <BSN0130M00 /> },
     { label: '직접경비', component: <BSN0140M00 /> },
     { label: '품의서이력조회', component: <BSN0150M00 /> },
-    { label: '월별투입비용조회', component: <BSN0160M00 /> },
+    { label: '월별투입비용조회', component: <PRJ0090M00 /> },
   ];
 
   const [selectedTab, setSelectedTab] = useState(tabs[0]);

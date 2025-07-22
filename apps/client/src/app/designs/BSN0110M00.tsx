@@ -6,7 +6,7 @@ import BSN0120M00 from './BSN0120M00';
 import BSN0130M00 from './BSN0130M00';
 import BSN0140M00 from './BSN0140M00';
 import BSN0150M00 from './BSN0150M00';
-import BSN0160M00 from './BSN0160M00';
+import BSN0160M00 from './PRJ0090M00';
 import './common.css';
 
 // 페이지용도모르겠음

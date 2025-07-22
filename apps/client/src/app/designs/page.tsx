@@ -8,7 +8,7 @@ import TabFrame from './MainTab' // 탭 프레임
 import ContentFrame from '../mainframe/ContentFrame' // 콘텐츠 프레임
 import PageTitle from './PageTitle' // ✅ 타이틀 컴포넌트 추가
 import './common.css'
-import BSN0100M00 from './BSN0100M00' // 콘텐츠 프레임
+import BSN0100M00 from './수주확정계약' // 콘텐츠 프레임
 import BSN0500M00 from './BSN0500M00' // 콘텐츠 프레임
 
 export default function MainLayout() {
