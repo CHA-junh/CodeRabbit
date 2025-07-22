@@ -57,7 +57,7 @@ export default function MainLayout() {
 					</div>
 
 					{/* 콘텐츠 프레임 */}
-					<div className='flex-1 overflow-auto p-4'>
+					<div className='flex-1 overflow-auto pt-0 p-4'>
 						<ContentFrame selectedTab={selectedTab.title} />
 					</div>
 				</div>

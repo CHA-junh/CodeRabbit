@@ -41,14 +41,14 @@ export default function BSN0100M00() {
               <th className="search-th w-[100px]">사업번호</th>
               <td className="search-td w-[180px]">
                 <div className="flex gap-1 items-center">
-                  <input className="input-base input-default w-full" />
+                  <input className="input-base input-default" />
                   <button className="icon_btn icon_search" />
                 </div>
               </td>
               <th className="search-th w-[100px]">사업명</th>
               <td className="search-td w-[180px]">
                 <div className="flex gap-1 items-center">
-                  <input className="input-base input-default w-full" />
+                  <input className="input-base input-default" />
                   <button className="icon_btn icon_search" />
                 </div>
               </td>
