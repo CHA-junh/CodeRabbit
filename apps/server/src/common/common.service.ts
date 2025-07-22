@@ -31,6 +31,26 @@ import {
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
 import { DeptDivCodeDto } from '../com/dto/common.dto';
 
+// toCamelCase 유틸리티 함수
+const toCamelCase = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(toCamelCase);
+  }
+  if (obj !== null && obj.constructor === Object) {
+    return Object.keys(obj).reduce(
+      (result, key) => {
+        const camelKey = key.toLowerCase();
+        return {
+          ...result,
+          [camelKey]: toCamelCase(obj[key]),
+        };
+      },
+      {},
+    );
+  }
+  return obj;
+};
+
 @Injectable()
 export class CommonService {
   constructor(
@@ -68,7 +88,44 @@ export class CommonService {
         [],
         { outFormat: require('oracledb').OUT_FORMAT_OBJECT },
       );
-      return (result.rows as DeptDivCodeDto[]) ?? [];
+      return toCamelCase(result.rows || []);
+    } finally {
+      await conn.close();
+    }
+  }
+
+  /**
+   * 본부구분코드 목록 조회
+   *
+   * @description
+   * - 본부구분코드(113)에 해당하는 모든 본부 목록을 직접 DB 쿼리로 조회합니다.
+   * - 프로시저 호출 없이 단순 SELECT 쿼리만 수행하여 빠른 응답을 제공합니다.
+   * - TBL_SML_CSF_CD 테이블에서 LRG_CSF_CD = '113' 조건으로 조회합니다.
+   *
+   * @returns Promise<DeptDivCodeDto[]> - 본부구분코드 목록
+   * @example
+   * const hqCodes = await commonService.getHqDivCodes();
+   * // 결과: [
+   * //   { code: "01", name: "경영지원본부" },
+   * //   { code: "02", name: "영업본부" }
+   * // ]
+   *
+   * @throws Error - DB 연결 실패 또는 쿼리 실행 오류 시
+   */
+  async getHqDivCodes(): Promise<DeptDivCodeDto[]> {
+    const conn = await this.oracle.getConnection();
+    try {
+      // 본부구분코드(113)에 해당하는 소분류코드 조회
+      const result = await conn.execute(
+        `SELECT SML_CSF_CD as code, SML_CSF_NM as name 
+         FROM TBL_SML_CSF_CD 
+         WHERE LRG_CSF_CD = '113' 
+         AND USE_YN = 'Y'
+         ORDER BY SML_CSF_CD`,
+        [],
+        { outFormat: require('oracledb').OUT_FORMAT_OBJECT },
+      );
+      return toCamelCase(result.rows || []);
     } finally {
       await conn.close();
     }
@@ -243,6 +300,50 @@ export class CommonService {
       throw new Error(
         `본부별 부서 코드 조회 중 오류가 발생했습니다: ${error.message}`,
       );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  /**
+   * 본부별 부서 목록 조회 (직접 DB 조회)
+   *
+   * @description
+   * - 특정 본부에 속한 부서 목록을 직접 DB 쿼리로 조회합니다.
+   * - TBL_SML_CSF_CD 테이블에서 LINK_CD1 컬럼을 사용하여 본부별 필터링합니다.
+   * - 프로시저 호출 없이 단순 SELECT 쿼리만 수행하여 빠른 응답을 제공합니다.
+   *
+   * @param hqCd - 본부구분코드 (예: '01', '02', '03', '04')
+   * @returns Promise<DeptDivCodeDto[]> - 본부별 부서 목록
+   * @example
+   * const deptList = await commonService.getDeptByHq('01');
+   * // 결과: [
+   * //   { code: "1101", name: "경영지원팀" },
+   * //   { code: "1102", name: "인사팀" }
+   * // ]
+   *
+   * @throws Error - DB 연결 실패 또는 쿼리 실행 오류 시
+   */
+  async getDeptByHq(hqCd: string): Promise<DeptDivCodeDto[]> {
+    const conn = await this.oracle.getConnection();
+    try {
+      // 본부코드가 없거나 'ALL'인 경우 빈 배열 반환
+      if (!hqCd || hqCd === 'ALL') {
+        return [];
+      }
+
+      // 본부별 부서 조회 (LINK_CD1 사용)
+      const result = await conn.execute(
+        `SELECT SML_CSF_CD as code, SML_CSF_NM as name 
+         FROM TBL_SML_CSF_CD 
+         WHERE LRG_CSF_CD = '112'
+         AND LINK_CD1 = :hqCd
+         AND USE_YN = 'Y'
+         ORDER BY SML_CSF_CD`,
+        [hqCd],
+        { outFormat: require('oracledb').OUT_FORMAT_OBJECT },
+      );
+      return toCamelCase(result.rows || []);
     } finally {
       await conn.close();
     }

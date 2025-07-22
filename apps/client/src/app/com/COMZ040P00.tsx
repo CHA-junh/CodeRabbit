@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import '@/app/common/common.css';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useToast } from '@/contexts/ToastContext';
+import { useDeptByHq, DeptByHq } from '@/modules/auth/hooks/useCommonCodes';
+import { useCommonCodes } from '@/modules/auth/hooks/useCommonCodes';
 
 /**
  * COMZ040P00 - (팝)사업번호검색화면
@@ -30,9 +32,9 @@ const apiUrl =
 interface BusinessData {
   bsnNo: string;
   bsnNm: string;
-  bizRepNm: string;
-  bizRepId: string;
-  bizRepEmail: string;
+  bizRepnm: string;  // 백엔드에서 실제로 오는 필드명
+  bizRepid: string;  // 백엔드에서 실제로 오는 필드명
+  bizRepemail: string;  // 백엔드에서 실제로 오는 필드명
   pmNm: string;
   pmId: string;
   bsnStrtDt: string;
@@ -56,7 +58,8 @@ interface DeptInfo {
 export default function ProjectSearchPopup() {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const [searchType, setSearchType] = useState('0'); // 0: 전체, 1: 사업부서, 2: 실행부서
+  const { hqDivCodes, loading: codesLoading, error: codesError } = useCommonCodes();
+  const [searchType, setSearchType] = useState(''); // 초기값을 빈 문자열로 설정
   const [hqDiv, setHqDiv] = useState('ALL');
   const [deptDiv, setDeptDiv] = useState('ALL');
   const [userNm, setUserNm] = useState('');
@@ -70,14 +73,22 @@ export default function ProjectSearchPopup() {
     failed: true,
     cancelled: true
   });
-  const [bsnYear, setBsnYear] = useState(new Date().getFullYear().toString());
-  const [bsnYearAll, setBsnYearAll] = useState(true);
+  const [progressEnabled, setProgressEnabled] = useState({
+    all: true,
+    new: true,
+    sales: true,
+    confirmed: true,
+    contract: true,
+    completed: true,
+    failed: true,
+    cancelled: true
+  });
+  const [bsnYear, setBsnYear] = useState('ALL');
   const [bsnNo, setBsnNo] = useState('');
   const [businessList, setBusinessList] = useState<BusinessData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<BusinessData | null>(null);
-  const [deptList, setDeptList] = useState<DeptInfo[]>([]);
   const [planYn, setPlanYn] = useState(false); // 사업예산품의서 여부
 
   // 진행상태 코드 매핑
@@ -93,64 +104,101 @@ export default function ProjectSearchPopup() {
     return codes.join(',');
   };
 
-  // 부서 목록 조회 함수
-  const fetchDeptList = async (hqCd: string) => {
-    try {
-      const res = await fetch(`${apiUrl}/COMZ060P00`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          deptNo: '',
-          year: new Date().getFullYear().toString(),
-          deptDivCd: hqCd
-        }),
-      });
-      if (!res.ok) throw new Error('부서 조회 실패');
-      const data = await res.json();
-      setDeptList(data.data || []);
-    } catch (e: any) {
-      console.error('부서 조회 오류:', e);
-      showToast('부서 조회 중 오류가 발생했습니다.', 'error');
-      setDeptList([]);
+  // 본부별 부서 목록 조회 (공통 훅 사용)
+  const deptListData = useDeptByHq(hqDiv);
+
+  // 디버깅용 로그 - 상태 변경 시에만 실행
+  useEffect(() => {
+    if (user) {
+      console.log('🔍 현재 본부:', hqDiv);
+      console.log('🔍 부서 목록:', deptListData);
+      console.log('🔍 사용자 정보:', user);
     }
-  };
+  }, [hqDiv, deptListData, user]);
 
   // 권한에 따른 조회구분 디폴트 설정 (레거시 setDefalutSrchKb 함수)
   const setDefaultSearchType = () => {
-    const authCd = user?.role || '';
-    const hqDivCd = user?.department || '';
-    const deptTp = user?.department || '';
+    const authCd = user?.authCd || '';
+    const hqDivCd = user?.hqDivCd || '';
+    const deptTp = user?.deptTp || '';
+
+    console.log('🔍 권한:', authCd);
+    console.log('🔍 본부:', hqDivCd);
+    console.log('🔍 부서유형:', deptTp);
+
+    let newSearchType = '0'; // 기본값
 
     if (authCd === '00') { // 본부장/임원 이상
-      setSearchType('0');
+      newSearchType = '0';
     } else if (authCd === '10') { // 부서장
       if (hqDivCd === '02' || deptTp === 'BIZ') { // 영업본부
-        setSearchType('1');
+        newSearchType = '1';
       } else if (hqDivCd === '03' || hqDivCd === '04') { // 서비스사업본부, 개발본부
-        setSearchType('2');
+        newSearchType = '2';
       } else {
-        setSearchType('0');
+        newSearchType = '0';
       }
     } else if (authCd === '20') { // 영업대표
-      setSearchType('1');
+      newSearchType = '1';
     } else if (authCd === '30') { // PM
-      setSearchType('2');
+      newSearchType = '2'; // 레거시와 동일하게 PM은 기본적으로 실행부서
     } else {
+      // 권한코드가 없거나 알 수 없는 경우
       if (hqDivCd === '01' || deptTp === 'ADM') { // 경영지원본부
-        setSearchType('0');
+        newSearchType = '0';
       } else {
-        setSearchType('');
+        newSearchType = '0'; // 기본값으로 '전체' 설정
       }
     }
 
-    handleSearchTypeChange(searchType);
+    console.log('🔍 설정된 조회구분:', newSearchType);
+    setSearchType(newSearchType);
+    
+    handleSearchTypeChange(newSearchType); // 새로운 값으로 직접 호출
   };
+
+  // 컴포넌트 마운트 시 권한에 따른 기본값 설정 (초기 데이터 로드와 분리)
+  useEffect(() => {
+    if (user) {
+      console.log('🔍 useEffect - 사용자 정보 로드됨:', user);
+      setDefaultSearchType();
+    }
+  }, [user]);
+
+  // 권한 설정 완료 후 초기 검색 실행
+  useEffect(() => {
+    if (user && searchType !== '') {
+      console.log('🔍 권한 설정 완료 - 초기 검색 실행');
+      console.log('🔍 검색 타입:', searchType);
+      console.log('🔍 사용자 정보:', user);
+      setProgressStateByType(''); // 기본 진행상태 설정
+            handleSearch();
+    }
+  }, [searchType, user]);
+
+  // 공통 코드 에러 처리
+  useEffect(() => {
+    if (codesError) {
+      showToast(codesError, 'error');
+    }
+  }, [codesError, showToast]);
 
   // 진행상태 설정 (레거시 setPgrsSt 함수)
   const setProgressStateByType = (val: string) => {
     if (val === 'plan') { // 사업예산품의서
       setPlanYn(true);
       setProgressStates({
+        all: true,
+        new: true,
+        sales: true,
+        confirmed: false,
+        contract: false,
+        completed: false,
+        failed: false,
+        cancelled: false
+      });
+      // 레거시와 동일하게 신규, 영업진행만 체크 가능
+      setProgressEnabled({
         all: true,
         new: true,
         sales: true,
@@ -172,11 +220,22 @@ export default function ProjectSearchPopup() {
         failed: false,
         cancelled: false
       });
+      // 레거시와 동일하게 수주확정, 계약, 완료만 체크 가능
+      setProgressEnabled({
+        all: true,
+        new: false,
+        sales: false,
+        confirmed: true,
+        contract: true,
+        completed: true,
+        failed: false,
+        cancelled: false
+      });
     } else if (val === 'pplct') { // 업무추진비
       setPlanYn(false);
-      const authCd = user?.role || '';
-      const hqDivCd = user?.department || '';
-      const deptTp = user?.department || '';
+      const authCd = user?.authCd || '';
+      const hqDivCd = user?.hqDivCd || '';
+      const deptTp = user?.deptTp || '';
 
       if (hqDivCd === '02' || authCd === '00' || deptTp === 'BIZ') {
         // 영업본부 또는 본부장 이상
@@ -190,9 +249,29 @@ export default function ProjectSearchPopup() {
           failed: false,
           cancelled: false
         });
+        setProgressEnabled({
+          all: true,
+          new: true,
+          sales: true,
+          confirmed: true,
+          contract: true,
+          completed: true,
+          failed: false,
+          cancelled: false
+        });
       } else {
         // 영업본부와 본부장이상이 아니면 수주확정된 사업리스트만 조회 가능
         setProgressStates({
+          all: true,
+          new: false,
+          sales: false,
+          confirmed: true,
+          contract: true,
+          completed: true,
+          failed: false,
+          cancelled: false
+        });
+        setProgressEnabled({
           all: true,
           new: false,
           sales: false,
@@ -215,107 +294,172 @@ export default function ProjectSearchPopup() {
         failed: true,
         cancelled: true
       });
+      setProgressEnabled({
+        all: true,
+        new: true,
+        sales: true,
+        confirmed: true,
+        contract: true,
+        completed: true,
+        failed: true,
+        cancelled: true
+      });
     }
   };
 
   // 선택 권한 체크 (레거시 chkAuthListSelect 함수)
   const checkAuthListSelect = (item: BusinessData): boolean => {
-    const authCd = user?.role || '';
+    const authCd = user?.authCd || '';
     const userName = user?.name || '';
 
     // PM인 경우에는 자신의 사업만 선택할 수 있다
     if (authCd === '30') {
       if (userName !== item.pmNm) {
-        alert(`${userName}은(는) 해당 사업의 PM이 아닙니다. 선택할 수 없습니다.`);
+        showToast(`해당 사업의 PM이 아닙니다. 선택할 수 없습니다.`, 'warning');
         return false;
       }
     }
     return true;
   };
 
-  // 모두선택 체크박스 처리
+  // 모두선택 체크박스 처리 (레거시 onChangeAll 함수)
   const handleAllProgressChange = (checked: boolean) => {
-    setProgressStates({
-      all: checked,
-      new: checked,
-      sales: checked,
-      confirmed: checked,
-      contract: checked,
-      completed: checked,
-      failed: checked,
-      cancelled: checked
-    });
-  };
-
-  // 개별 진행상태 체크박스 처리
-  const handleProgressChange = (key: string, checked: boolean) => {
+    console.log('🔄 전체 체크박스 클릭:', checked);
     setProgressStates(prev => ({
       ...prev,
-      [key]: checked,
-      all: false // 개별 선택 시 모두선택 해제
+      all: checked,
+      new: progressEnabled.new ? checked : prev.new,
+      sales: progressEnabled.sales ? checked : prev.sales,
+      confirmed: progressEnabled.confirmed ? checked : prev.confirmed,
+      contract: progressEnabled.contract ? checked : prev.contract,
+      completed: progressEnabled.completed ? checked : prev.completed,
+      failed: progressEnabled.failed ? checked : prev.failed,
+      cancelled: progressEnabled.cancelled ? checked : prev.cancelled
     }));
   };
 
-  // 조회구분 변경 처리
+  // 개별 진행상태 체크박스 처리 (레거시 onChangePrgsSt 함수)
+  const handleProgressChange = (key: string, checked: boolean) => {
+    console.log('🔄 개별 체크박스 클릭:', key, checked);
+    setProgressStates(prev => ({
+      ...prev,
+      [key]: checked,
+      // 개별 체크박스 해제 시 전체 선택도 해제 (레거시와 동일)
+      all: checked ? prev.all : false
+    }));
+  };
+
+  // 조회구분 변경 처리 (레거시 onRdPplsExecDivChange 함수)
   const handleSearchTypeChange = (value: string) => {
     setSearchType(value);
+    
     if (value === '0') {
       setHqDiv('ALL');
       setDeptDiv('ALL');
+      const authCd = user?.authCd || '';
+      const dutyDivCd = user?.dutyDivCd || '';
+      if (authCd === '40' || (authCd === '30' && dutyDivCd === '4')) {
+        setUserNm(user?.name || '');
+      } else {
+        setUserNm('');
+      }
+    } else if (value === '1' || value === '2') {
+      setHqDiv(user?.hqDivCd || '');
+      const authCd = user?.authCd || '';
+      const hqDivCd = user?.hqDivCd || '';
+      const deptTp = user?.deptTp || '';
+      
+      if (hqDivCd === '02' || deptTp === 'BIZ') {
+        setDeptDiv(user?.deptDivCd || '');
+        setUserNm(authCd === '00' ? '' : (user?.name || ''));
+      } else {
+        setDeptDiv('ALL');
+        setUserNm((authCd === '00' || authCd === '10') ? '' : (user?.name || ''));
+      }
+    } else {
+      setHqDiv('');
+      setDeptDiv('');
       setUserNm('');
     }
   };
 
-  // 본부 변경 처리
+  // 본부 변경 처리 (레거시 onHqDivChange 함수)
   const handleHqChange = (value: string) => {
     setHqDiv(value);
-    setDeptDiv('ALL');
-    if (value !== 'ALL' && searchType !== '0') {
-      fetchDeptList(value);
-    } else {
-      setDeptList([]);
-    }
-  };
-
-  // 사업년도 전체 체크 처리
-  const handleBsnYearAllChange = (checked: boolean) => {
-    setBsnYearAll(checked);
+    setDeptDiv('ALL'); // 레거시와 동일하게 본부 변경 시 부서는 'ALL'로 리셋
   };
 
   // 검색 실행
   const handleSearch = async () => {
+    if (!user) {
+      showToast('사용자 정보를 찾을 수 없습니다.', 'error');
+      return;
+    }
+
+    console.log('🔍 검색 시작');
+    console.log('🔍 현재 상태:', {
+      searchType,
+      hqDiv,
+      deptDiv,
+      userNm,
+      bsnNo,
+      bsnYear,
+      progressStates
+    });
+
+    // 검색 조건 유효성 검사
+    if (searchType === '') {
+      console.log('⚠️ 검색 타입이 설정되지 않음');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
+      const searchParams = {
+        bsnNo: bsnNo || '',
+        startYear: bsnYear || 'ALL',
+        progressStateDiv: getProgressStateCode(),
+        searchDiv: searchType,
+        hqCd: hqDiv,
+        deptCd: deptDiv,
+        userNm: userNm || 'ALL', // 프로시저 로직에 맞춰 'ALL' 사용
+        loginId: user.userId || user.empNo || ''
+      };
+
+      console.log('📤 검색 요청:', searchParams);
+
       const response = await fetch(`${apiUrl}/COMZ040P00`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          bsnNo: bsnNo,
-          startYear: bsnYearAll ? 'ALL' : bsnYear,
-          progressStateDiv: getProgressStateCode(),
-          searchDiv: searchType,
-          hqCd: hqDiv,
-          deptCd: deptDiv,
-          userNm: userNm || 'ALL',
-          loginId: user?.userId || user?.empNo || ''
-        }),
+        body: JSON.stringify(searchParams),
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setBusinessList(data.data || []);
-      } else {
-        setError(data.message || '검색에 실패했습니다.');
+      if (!response.ok) {
+        throw new Error(`검색 실패: ${response.status}`);
       }
-    } catch (err) {
-      setError('서버 연결에 실패했습니다.');
-      console.error('Business search error:', err);
+
+      const result = await response.json();
+      console.log('📥 검색 결과:', result);
+
+      if (result.success) {
+        setBusinessList(result.data || []);
+        if (result.data && result.data.length === 0) {
+          showToast('검색 결과가 없습니다.', 'info');
+        } else {
+          showToast(`${result.data?.length || 0}건의 사업이 검색되었습니다.`, 'info');
+        }
+      } else {
+        showToast(result.message || '검색 중 오류가 발생했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('검색 오류:', error);
+      setError(error instanceof Error ? error.message : '검색 중 오류가 발생했습니다.');
+      showToast('검색 중 오류가 발생했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -338,13 +482,13 @@ export default function ProjectSearchPopup() {
       const resultData = {
         bsnNo: item.bsnNo,
         bsnDeptKb: item.bsnDeptKb,
-        bizRepNm: item.bizRepNm,
-        bizRepId: item.bizRepId,
+        bizRepNm: item.bizRepnm,  // 실제 필드명 사용
+        bizRepId: item.bizRepid,  // 실제 필드명 사용
         pmNm: item.pmNm,
         pmId: item.pmId,
         bsnStrtDt: item.bsnStrtDt,
         bsnEndDt: item.bsnEndDt,
-        bizRepEmail: item.bizRepEmail,
+        bizRepEmail: item.bizRepemail,  // 실제 필드명 사용
         pplsDeptCd: item.pplsDeptCd,
         execDeptCd: item.execDeptCd,
         bsnNm: item.bsnNm
@@ -399,15 +543,16 @@ export default function ProjectSearchPopup() {
 
   // 유효성 체크 (레거시 chkValidation 함수)
   const checkValidation = (): boolean => {
-    // 사업예산 계획일 경우
+    // 사업예산품의서일 경우
     if (planYn) {
       if (!progressStates.new && !progressStates.sales) {
-        alert('진행상태를 선택하세요.');
+        showToast('진행상태를 선택하세요.', 'warning');
         return false;
       }
     } else {
+      // 사업확정품의서일 경우 - 수주확정, 계약, 완료 중 하나라도 선택되어야 함
       if (!progressStates.confirmed && !progressStates.contract && !progressStates.completed) {
-        alert('진행상태를 선택하세요.');
+        showToast('진행상태를 선택하세요.', 'warning');
         return false;
       }
     }
@@ -426,13 +571,26 @@ export default function ProjectSearchPopup() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  // 초기 데이터 로드
+  // 전체 체크박스 상태 자동 업데이트
   useEffect(() => {
-    // 권한에 따른 기본 설정
-    setDefaultSearchType();
-    setProgressStateByType(''); // 기본 진행상태 설정
-    handleSearch();
-  }, []);
+    const allIndividualChecked = progressStates.new && 
+                                progressStates.sales && 
+                                progressStates.confirmed && 
+                                progressStates.contract && 
+                                progressStates.completed && 
+                                progressStates.failed && 
+                                progressStates.cancelled;
+    
+    if (allIndividualChecked !== progressStates.all) {
+      console.log('🔄 전체 체크박스 상태 업데이트:', allIndividualChecked);
+      setProgressStates(prev => ({
+        ...prev,
+        all: allIndividualChecked
+      }));
+    }
+  }, [progressStates.new, progressStates.sales, progressStates.confirmed, 
+      progressStates.contract, progressStates.completed, progressStates.failed, 
+      progressStates.cancelled]);
 
   return (
     <div className="popup-wrapper">
@@ -494,13 +652,14 @@ export default function ProjectSearchPopup() {
                     className="combo-base"
                     value={hqDiv}
                     onChange={(e) => handleHqChange(e.target.value)}
-                    disabled={searchType === '0'}
+                    disabled={searchType === '0' || codesLoading}
                   >
                     <option value="ALL">전체</option>
-                    <option value="01">경영지원본부</option>
-                    <option value="02">영업본부</option>
-                    <option value="03">서비스사업본부</option>
-                    <option value="04">개발본부</option>
+                    {hqDivCodes.map((code) => (
+                      <option key={code.code} value={code.code}>
+                        {code.name}
+                      </option>
+                    ))}
                   </select>
                 </td>
                 <th className="search-th w-[110px]">
@@ -514,9 +673,9 @@ export default function ProjectSearchPopup() {
                     disabled={searchType === '0'}
                   >
                     <option value="ALL">전체</option>
-                    {deptList.map((dept) => (
-                      <option key={dept.deptDivCd} value={dept.deptDivCd}>
-                        {dept.deptNm}
+                    {deptListData.map((dept: any) => (
+                      <option key={dept.code || dept.deptDivCd} value={dept.code || dept.deptDivCd}>
+                        {dept.name || dept.deptNm}
                       </option>
                     ))}
                   </select>
@@ -530,7 +689,8 @@ export default function ProjectSearchPopup() {
                     className="input-base input-default w-[100px]" 
                     value={userNm}
                     onChange={(e) => setUserNm(e.target.value)}
-                    disabled={searchType === '0'}
+                    disabled={searchType === '0' || (user?.authCd === '40' || (user?.authCd === '30' && user?.dutyDivCd === '4'))}
+                    placeholder={user?.authCd === '30' && user?.dutyDivCd === '4' && searchType === '2' ? '본인 PM 사업만 조회' : ''}
                   />
                 </td>
                 <td className="search-td" colSpan={4}></td>
@@ -545,6 +705,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.all}
                       onChange={(e) => handleAllProgressChange(e.target.checked)}
+                      disabled={!progressEnabled.all}
                     /> (모두선택)
                   </label>
                   <label className="mr-2">
@@ -552,6 +713,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.new}
                       onChange={(e) => handleProgressChange('new', e.target.checked)}
+                      disabled={!progressEnabled.new}
                     /> 신규
                   </label>
                   <label className="mr-2">
@@ -559,6 +721,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.sales}
                       onChange={(e) => handleProgressChange('sales', e.target.checked)}
+                      disabled={!progressEnabled.sales}
                     /> 영업진행
                   </label>
                   <label className="mr-2">
@@ -566,6 +729,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.confirmed}
                       onChange={(e) => handleProgressChange('confirmed', e.target.checked)}
+                      disabled={!progressEnabled.confirmed}
                     /> 수주확정
                   </label>
                   <label className="mr-2">
@@ -573,6 +737,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.contract}
                       onChange={(e) => handleProgressChange('contract', e.target.checked)}
+                      disabled={!progressEnabled.contract}
                     /> 계약
                   </label>
                   <label className="mr-2">
@@ -580,6 +745,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.completed}
                       onChange={(e) => handleProgressChange('completed', e.target.checked)}
+                      disabled={!progressEnabled.completed}
                     /> 완료(종결)
                   </label>
                   <label className="mr-2">
@@ -587,6 +753,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.failed}
                       onChange={(e) => handleProgressChange('failed', e.target.checked)}
+                      disabled={!progressEnabled.failed}
                     /> 수주실패
                   </label>
                   <label>
@@ -594,6 +761,7 @@ export default function ProjectSearchPopup() {
                       type="checkbox" 
                       checked={progressStates.cancelled}
                       onChange={(e) => handleProgressChange('cancelled', e.target.checked)}
+                      disabled={!progressEnabled.cancelled}
                     /> 취소(삭제)
                   </label>
                 </td>
@@ -603,22 +771,17 @@ export default function ProjectSearchPopup() {
               <tr className="search-tr">
                 <th className="search-th">사업년도</th>
                 <td className="search-td">
-                  <label className="mr-2">
-                    <input 
-                      type="checkbox" 
-                      checked={bsnYearAll}
-                      onChange={(e) => handleBsnYearAllChange(e.target.checked)}
-                    /> 전체
-                  </label>
                   <select 
                     className="combo-base w-[120px]"
                     value={bsnYear}
                     onChange={(e) => setBsnYear(e.target.value)}
-                    disabled={bsnYearAll}
                   >
+                    <option value="ALL">전체</option>
                     <option value="2025">2025년</option>
                     <option value="2024">2024년</option>
                     <option value="2023">2023년</option>
+                    <option value="2022">2022년</option>
+                    <option value="2021">2021년</option>
                   </select>
                 </td>
                 <th className="search-th">사업번호</th>
@@ -697,7 +860,7 @@ export default function ProjectSearchPopup() {
                   <td className="grid-td truncate max-w-[100px]" title={item.bsnStrtDt}>{item.bsnStrtDt}</td>
                   <td className="grid-td truncate max-w-[100px]" title={item.bsnEndDt}>{item.bsnEndDt}</td>
                   <td className="grid-td truncate max-w-[120px]" title={item.pplsDeptNm}>{item.pplsDeptNm}</td>
-                  <td className="grid-td truncate max-w-[100px]" title={item.bizRepNm}>{item.bizRepNm}</td>
+                  <td className="grid-td truncate max-w-[100px]" title={item.bizRepnm || '미지정'}>{item.bizRepnm || '미지정'}</td>
                   <td className="grid-td truncate max-w-[120px]" title={item.execDeptNm}>{item.execDeptNm}</td>
                   <td className="grid-td truncate max-w-[100px]" title={item.pmNm}>{item.pmNm}</td>
                   <td className="grid-td truncate max-w-[100px]" title={item.pgrsStDivNm}>{item.pgrsStDivNm}</td>
@@ -727,3 +890,5 @@ export default function ProjectSearchPopup() {
     </div>
   );
 }
+
+

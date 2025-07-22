@@ -668,445 +668,423 @@ const COMZ010M00Page = () => {
 	}, [])
 
 	return (
-		<div className='popup-wrapper'>
-			{/* 상단 헤더 */}
-			<div className='popup-header'>
-				<h3 className='popup-title'>대분류/소분류코드 관리</h3>
-				<button
-					className='popup-close'
-					type='button'
-					aria-label='닫기'
-					tabIndex={0}
-				>
-					×
-				</button>
+		<div className='mdi'>
+			{/* 🔍 조회 영역 */}
+			<div className='search-div mb-3'>
+				<table className='search-table'>
+					<tbody>
+						<tr className='search-tr'>
+							<th className='search-th w-[110px]'>대분류 코드</th>
+							<td className='search-td w-[15%]'>
+								<input
+									type='text'
+									className='input-base input-default w-full'
+									name='searchLrgCsfCd'
+									value={searchLrgCsfCd}
+									onChange={(e) => setSearchLrgCsfCd(e.target.value)}
+									onKeyDown={handleSearchInputKeyDown}
+									tabIndex={0}
+									aria-label='대분류코드 검색'
+								/>
+							</td>
+							<th className='search-th w-[100px]'>대분류명</th>
+							<td className='search-td  w-[20%]'>
+								<input
+									type='text'
+									className='input-base input-default w-full'
+									name='searchLrgCsfNm'
+									value={searchLrgCsfNm}
+									onChange={(e) => setSearchLrgCsfNm(e.target.value)}
+									onKeyDown={handleSearchInputKeyDown}
+									tabIndex={0}
+									aria-label='대분류명 검색'
+								/>
+							</td>
+							<td className='search-td text-right'>
+								<button
+									className='btn-base btn-search ml-2'
+									onClick={handleSearch}
+									tabIndex={0}
+									aria-label='조회'
+								>
+									조회
+								</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
-			<div className='popup-body'>
-				{/* 🔍 조회 영역 */}
-				<div className='search-div mb-3'>
-					<table className='search-table'>
-						<tbody>
-							<tr className='search-tr'>
-								<th className='search-th w-[110px]'>대분류 코드</th>
-								<td className='search-td w-[15%]'>
-									<input
-										type='text'
-										className='input-base input-default w-full'
-										name='searchLrgCsfCd'
-										value={searchLrgCsfCd}
-										onChange={(e) => setSearchLrgCsfCd(e.target.value)}
-										onKeyDown={handleSearchInputKeyDown}
-										tabIndex={0}
-										aria-label='대분류코드 검색'
-									/>
-								</td>
-								<th className='search-th w-[100px]'>대분류명</th>
-								<td className='search-td  w-[20%]'>
-									<input
-										type='text'
-										className='input-base input-default w-full'
-										name='searchLrgCsfNm'
-										value={searchLrgCsfNm}
-										onChange={(e) => setSearchLrgCsfNm(e.target.value)}
-										onKeyDown={handleSearchInputKeyDown}
-										tabIndex={0}
-										aria-label='대분류명 검색'
-									/>
-								</td>
-								<td className='search-td text-right'>
-									<button
-										className='btn-base btn-search ml-2'
-										onClick={handleSearch}
-										tabIndex={0}
-										aria-label='조회'
-									>
-										조회
-									</button>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div className='flex gap-4'>
-					{/* 대분류 코드 테이블 */}
-					<div className='flex-1'>
-						<div className='gridbox-div scroll-area scrollbar-thin h-[240px] min-h-[120px] max-h-[240px] overflow-y-scroll bg-white mb-4'>
-							<table className='grid-table w-full'>
-								<thead>
+			<div className='flex gap-4'>
+				{/* 대분류 코드 테이블 */}
+				<div className='flex-1'>
+					<div className='gridbox-div scroll-area scrollbar-thin h-[240px] min-h-[120px] max-h-[240px] overflow-y-scroll bg-white mb-4'>
+						<table className='grid-table w-full'>
+							<thead>
+								<tr>
+									<th className='grid-th'>대분류코드</th>
+									<th className='grid-th'>대분류명</th>
+									<th className='grid-th'>사용여부</th>
+									<th className='grid-th'>설명</th>
+								</tr>
+							</thead>
+							<tbody>
+								{largeCodes.length === 0 ? (
 									<tr>
-										<th className='grid-th'>대분류코드</th>
-										<th className='grid-th'>대분류명</th>
-										<th className='grid-th'>사용여부</th>
-										<th className='grid-th'>설명</th>
+										<td colSpan={4} className='grid-td !text-center'>
+											데이터 없음
+										</td>
 									</tr>
-								</thead>
-								<tbody>
-									{largeCodes.length === 0 ? (
-										<tr>
-											<td colSpan={4} className='grid-td !text-center'>
-												데이터 없음
+								) : (
+									largeCodes.map((row, idx) => (
+										<tr
+											className={`grid-tr cursor-pointer${selectedLarge && selectedLarge.lrgCsfCd === row.lrgCsfCd ? ' !bg-blue-100' : ''}`}
+											key={row.lrgCsfCd ? `${row.lrgCsfCd}-${idx}` : idx}
+											onClick={() => handleLargeRowClick(row)}
+											tabIndex={0}
+											aria-label={`대분류코드 ${row.lrgCsfCd}`}
+											onDoubleClick={() => handleLargeRowDoubleClick(row)}
+											onKeyDown={handleLargeRowKeyDown(idx)}
+										>
+											<td
+												className='grid-td truncate max-w-[100px]'
+												title={row.lrgCsfCd}
+											>
+												{row.lrgCsfCd}
+											</td>
+											<td
+												className='grid-td truncate max-w-[180px]'
+												title={row.lrgCsfNm}
+											>
+												{row.lrgCsfNm}
+											</td>
+											<td
+												className='grid-td truncate max-w-[60px]'
+												title={row.useYn}
+											>
+												{row.useYn}
+											</td>
+											<td
+												className='grid-td truncate max-w-[200px]'
+												title={row.expl}
+											>
+												{row.expl}
 											</td>
 										</tr>
-									) : (
-										largeCodes.map((row, idx) => (
-											<tr
-												className={`grid-tr cursor-pointer${selectedLarge && selectedLarge.lrgCsfCd === row.lrgCsfCd ? ' !bg-blue-100' : ''}`}
-												key={row.lrgCsfCd ? `${row.lrgCsfCd}-${idx}` : idx}
-												onClick={() => handleLargeRowClick(row)}
-												tabIndex={0}
-												aria-label={`대분류코드 ${row.lrgCsfCd}`}
-												onDoubleClick={() => handleLargeRowDoubleClick(row)}
-												onKeyDown={handleLargeRowKeyDown(idx)}
-											>
-												<td
-													className='grid-td truncate max-w-[100px]'
-													title={row.lrgCsfCd}
-												>
-													{row.lrgCsfCd}
-												</td>
-												<td
-													className='grid-td truncate max-w-[180px]'
-													title={row.lrgCsfNm}
-												>
-													{row.lrgCsfNm}
-												</td>
-												<td
-													className='grid-td truncate max-w-[60px]'
-													title={row.useYn}
-												>
-													{row.useYn}
-												</td>
-												<td
-													className='grid-td truncate max-w-[200px]'
-													title={row.expl}
-												>
-													{row.expl}
-												</td>
-											</tr>
-										))
-									)}
-								</tbody>
-							</table>
-						</div>
-						{/* 대분류 등록 폼 */}
-						<div className='border border-stone-300 p-3 rounded'>
-							<div className='tit_area flex justify-between items-center mb-2'>
-								<h4 className='text-sm font-bold'>대분류코드 등록</h4>
-								<button
-									className='btn-base btn-etc'
-									onClick={handleLargeNew}
-									tabIndex={0}
-									aria-label='신규'
-								>
-									신규
-								</button>
-							</div>
-							<table
-								className='form-table w-full mb-4'
-								onKeyDown={handleLargeFormKeyDown}
+									))
+								)}
+							</tbody>
+						</table>
+					</div>
+					{/* 대분류 등록 폼 */}
+					<div className='border border-stone-300 p-3 rounded'>
+						<div className='tit_area flex justify-between items-center mb-2'>
+							<h4 className='text-sm font-bold'>대분류코드 등록</h4>
+							<button
+								className='btn-base btn-etc'
+								onClick={handleLargeNew}
+								tabIndex={0}
+								aria-label='신규'
 							>
-								<tbody>
-									<tr className='form-tr'>
-										<th className='form-th w-[120px]'>대분류코드</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='lrgCsfCd'
-												value={largeForm.lrgCsfCd || ''}
-												onChange={handleLargeCodeChange}
-												tabIndex={0}
-												aria-label='대분류코드 입력'
-											/>
-										</td>
-									</tr>
-									<tr className='form-tr'>
-										<th className='form-th w-[120px]'>대분류명</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='lrgCsfNm'
-												value={largeForm.lrgCsfNm || ''}
-												onChange={handleLargeFormChange}
-												tabIndex={0}
-												aria-label='대분류명 입력'
-											/>
-										</td>
-									</tr>
-									<tr className='form-tr'>
-										<th className='form-th'>사용여부</th>
-										<td className='form-td'>
-											<select
-												className='input-base input-default w-full'
-												name='useYn'
-												value={largeForm.useYn || ''}
-												onChange={handleLargeFormChange}
-												tabIndex={0}
-												aria-label='사용여부 선택'
-											>
-												<option value='Y'>Yes</option>
-												<option value='N'>No</option>
-											</select>
-										</td>
-									</tr>
-									<tr className='form-tr'>
-										<th className='form-th'>설명</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='expl'
-												value={largeForm.expl || ''}
-												onChange={handleLargeFormChange}
-												tabIndex={0}
-												aria-label='설명 입력'
-											/>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-							<div className='flex justify-end gap-2'>
-								<button
-									className='btn-base btn-delete'
-									onClick={handleLargeDelete}
-									tabIndex={0}
-									aria-label='삭제'
-								>
-									삭제
-								</button>
-								<button
-									className='btn-base btn-act'
-									onClick={handleLargeSave}
-									tabIndex={0}
-									aria-label='저장'
-								>
-									저장
-								</button>
-							</div>
+								신규
+							</button>
+						</div>
+						<table
+							className='form-table w-full mb-4'
+							onKeyDown={handleLargeFormKeyDown}
+						>
+							<tbody>
+								<tr className='form-tr'>
+									<th className='form-th w-[120px]'>대분류코드</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='lrgCsfCd'
+											value={largeForm.lrgCsfCd || ''}
+											onChange={handleLargeCodeChange}
+											tabIndex={0}
+											aria-label='대분류코드 입력'
+										/>
+									</td>
+								</tr>
+								<tr className='form-tr'>
+									<th className='form-th w-[120px]'>대분류명</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='lrgCsfNm'
+											value={largeForm.lrgCsfNm || ''}
+											onChange={handleLargeFormChange}
+											tabIndex={0}
+											aria-label='대분류명 입력'
+										/>
+									</td>
+								</tr>
+								<tr className='form-tr'>
+									<th className='form-th'>사용여부</th>
+									<td className='form-td'>
+										<select
+											className='input-base input-default w-full'
+											name='useYn'
+											value={largeForm.useYn || ''}
+											onChange={handleLargeFormChange}
+											tabIndex={0}
+											aria-label='사용여부 선택'
+										>
+											<option value='Y'>Yes</option>
+											<option value='N'>No</option>
+										</select>
+									</td>
+								</tr>
+								<tr className='form-tr'>
+									<th className='form-th'>설명</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='expl'
+											value={largeForm.expl || ''}
+											onChange={handleLargeFormChange}
+											tabIndex={0}
+											aria-label='설명 입력'
+										/>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<div className='flex justify-end gap-2'>
+							<button
+								className='btn-base btn-delete'
+								onClick={handleLargeDelete}
+								tabIndex={0}
+								aria-label='삭제'
+							>
+								삭제
+							</button>
+							<button
+								className='btn-base btn-act'
+								onClick={handleLargeSave}
+								tabIndex={0}
+								aria-label='저장'
+							>
+								저장
+							</button>
 						</div>
 					</div>
-					{/* 소분류 코드 테이블 */}
-					<div className='flex-1'>
-						<div className='gridbox-div scroll-area scrollbar-thin h-[240px] min-h-[120px] max-h-[240px] overflow-y-scroll bg-white mb-4'>
-							<table className='grid-table w-full'>
-								<thead>
+				</div>
+				{/* 소분류 코드 테이블 */}
+				<div className='flex-1'>
+					<div className='gridbox-div scroll-area scrollbar-thin h-[240px] min-h-[120px] max-h-[240px] overflow-y-scroll bg-white mb-4'>
+						<table className='grid-table w-full'>
+							<thead>
+								<tr>
+									<th className='grid-th'>소분류코드</th>
+									<th className='grid-th'>소분류명</th>
+									<th className='grid-th'>정렬순서</th>
+									<th className='grid-th'>사용여부</th>
+									<th className='grid-th'>설명</th>
+								</tr>
+							</thead>
+							<tbody>
+								{smallCodes.length === 0 ? (
 									<tr>
-										<th className='grid-th'>소분류코드</th>
-										<th className='grid-th'>소분류명</th>
-										<th className='grid-th'>정렬순서</th>
-										<th className='grid-th'>사용여부</th>
-										<th className='grid-th'>설명</th>
+										<td colSpan={5} className='grid-td !text-center'>
+											데이터 없음
+										</td>
 									</tr>
-								</thead>
-								<tbody>
-									{smallCodes.length === 0 ? (
-										<tr>
-											<td colSpan={5} className='grid-td !text-center'>
-												데이터 없음
+								) : (
+									smallCodes.map((row, idx) => (
+										<tr
+											className={`grid-tr${smallForm.lrgCsfCd === row.lrgCsfCd && smallForm.smlCsfCd === row.smlCsfCd ? ' !bg-blue-100' : ''}`}
+											key={row.smlCsfCd ? `${row.smlCsfCd}-${idx}` : idx}
+											tabIndex={0}
+											aria-label={`소분류코드 ${row.smlCsfCd}`}
+											onClick={() => handleSmallRowClick(row)}
+											onDoubleClick={() => handleSmallRowDoubleClick(row)}
+											onKeyDown={handleSmallRowKeyDown(idx)}
+										>
+											<td
+												className='grid-td truncate max-w-[100px]'
+												title={row.smlCsfCd}
+											>
+												{row.smlCsfCd}
+											</td>
+											<td
+												className='grid-td truncate max-w-[180px]'
+												title={row.smlCsfNm}
+											>
+												{row.smlCsfNm}
+											</td>
+											<td
+												className='grid-td text-right truncate max-w-[60px]'
+												title={String(row.sortOrd)}
+											>
+												{row.sortOrd}
+											</td>
+											<td
+												className='grid-td truncate max-w-[60px]'
+												title={row.useYn}
+											>
+												{row.useYn}
+											</td>
+											<td
+												className='grid-td truncate max-w-[200px]'
+												title={row.expl}
+											>
+												{row.expl}
 											</td>
 										</tr>
-									) : (
-										smallCodes.map((row, idx) => (
-											<tr
-												className={`grid-tr${smallForm.lrgCsfCd === row.lrgCsfCd && smallForm.smlCsfCd === row.smlCsfCd ? ' !bg-blue-100' : ''}`}
-												key={row.smlCsfCd ? `${row.smlCsfCd}-${idx}` : idx}
-												tabIndex={0}
-												aria-label={`소분류코드 ${row.smlCsfCd}`}
-												onClick={() => handleSmallRowClick(row)}
-												onDoubleClick={() => handleSmallRowDoubleClick(row)}
-												onKeyDown={handleSmallRowKeyDown(idx)}
-											>
-												<td
-													className='grid-td truncate max-w-[100px]'
-													title={row.smlCsfCd}
-												>
-													{row.smlCsfCd}
-												</td>
-												<td
-													className='grid-td truncate max-w-[180px]'
-													title={row.smlCsfNm}
-												>
-													{row.smlCsfNm}
-												</td>
-												<td
-													className='grid-td text-right truncate max-w-[60px]'
-													title={String(row.sortOrd)}
-												>
-													{row.sortOrd}
-												</td>
-												<td
-													className='grid-td truncate max-w-[60px]'
-													title={row.useYn}
-												>
-													{row.useYn}
-												</td>
-												<td
-													className='grid-td truncate max-w-[200px]'
-													title={row.expl}
-												>
-													{row.expl}
-												</td>
-											</tr>
-										))
-									)}
-								</tbody>
-							</table>
-						</div>
-						{/* 소분류 등록 폼 */}
-						<div className='border border-stone-300 p-3 rounded'>
-							<div className='tit_area flex justify-between items-center mb-4'>
-								<h4 className='text-sm font-bold'>소분류코드 등록</h4>
-								<button
-									className='btn-base btn-etc'
-									onClick={handleSmallNew}
-									tabIndex={0}
-									aria-label='신규'
-								>
-									신규
-								</button>
-							</div>
-							<table
-								className='form-table w-full mb-2'
-								onKeyDown={handleSmallFormKeyDown}
+									))
+								)}
+							</tbody>
+						</table>
+					</div>
+					{/* 소분류 등록 폼 */}
+					<div className='border border-stone-300 p-3 rounded'>
+						<div className='tit_area flex justify-between items-center mb-4'>
+							<h4 className='text-sm font-bold'>소분류코드 등록</h4>
+							<button
+								className='btn-base btn-etc'
+								onClick={handleSmallNew}
+								tabIndex={0}
+								aria-label='신규'
 							>
-								<tbody>
-									<tr className='form-tr'>
-										<th className='form-th w-[120px]'>대분류코드</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='lrgCsfCd'
-												value={smallForm.lrgCsfCd || ''}
-												onChange={handleSmallFormChange}
-												tabIndex={0}
-												aria-label='대분류코드 입력'
-											/>
-										</td>
-										<th className='form-th w-[120px]'>소분류코드</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='smlCsfCd'
-												value={smallForm.smlCsfCd || ''}
-												onChange={handleSmallCodeChange}
-												tabIndex={0}
-												aria-label='소분류코드 입력'
-											/>
-										</td>
-									</tr>
-									<tr className='form-tr'>
-										<th className='form-th'>소분류명</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='smlCsfNm'
-												value={smallForm.smlCsfNm || ''}
-												onChange={handleSmallFormChange}
-												tabIndex={0}
-												aria-label='소분류명 입력'
-											/>
-										</td>
-										<th className='form-th'>연결코드1</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='linkCd1'
-												value={smallForm.linkCd1 || ''}
-												onChange={handleSmallFormChange}
-												tabIndex={0}
-												aria-label='연결코드1 입력'
-											/>
-										</td>
-									</tr>
-									<tr className='form-tr'>
-										<th className='form-th'>연결코드2</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='linkCd2'
-												value={smallForm.linkCd2 || ''}
-												onChange={handleSmallFormChange}
-												tabIndex={0}
-												aria-label='연결코드2 입력'
-											/>
-										</td>
-										<th className='form-th'>정렬순서</th>
-										<td className='form-td'>
-											<input
-												type='number'
-												className='input-base input-default w-full'
-												name='sortOrd'
-												value={smallForm.sortOrd || 0}
-												onChange={handleSmallFormChange}
-												tabIndex={0}
-												aria-label='정렬순서 입력'
-												min='1'
-												max='999'
-											/>
-										</td>
-									</tr>
-									<tr className='form-tr'>
-										<th className='form-th'>사용여부</th>
-										<td className='form-td'>
-											<select
-												className='input-base input-default w-full'
-												name='useYn'
-												value={smallForm.useYn || ''}
-												onChange={handleSmallFormChange}
-												tabIndex={0}
-												aria-label='사용여부 선택'
-											>
-												<option value='Y'>Yes</option>
-												<option value='N'>No</option>
-											</select>
-										</td>
-										<th className='form-th'>설명</th>
-										<td className='form-td'>
-											<input
-												type='text'
-												className='input-base input-default w-full'
-												name='expl'
-												value={smallForm.expl || ''}
-												onChange={handleSmallFormChange}
-												tabIndex={0}
-												aria-label='설명 입력'
-											/>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-							<div className='flex justify-end gap-2'>
-								<button
-									className='btn-base btn-delete'
-									onClick={handleSmallDelete}
-									tabIndex={0}
-									aria-label='삭제'
-								>
-									삭제
-								</button>
-								<button
-									className='btn-base btn-act'
-									onClick={handleSmallSave}
-									tabIndex={0}
-									aria-label='저장'
-								>
-									저장
-								</button>
-								<button
-									className='btn-base btn-delete'
-									tabIndex={0}
-									aria-label='종료'
-									onClick={() => window.close()}
-								>
-									종료
-								</button>
-							</div>
+								신규
+							</button>
+						</div>
+						<table
+							className='form-table w-full mb-2'
+							onKeyDown={handleSmallFormKeyDown}
+						>
+							<tbody>
+								<tr className='form-tr'>
+									<th className='form-th w-[120px]'>대분류코드</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='lrgCsfCd'
+											value={smallForm.lrgCsfCd || ''}
+											onChange={handleSmallFormChange}
+											tabIndex={0}
+											aria-label='대분류코드 입력'
+										/>
+									</td>
+									<th className='form-th w-[120px]'>소분류코드</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='smlCsfCd'
+											value={smallForm.smlCsfCd || ''}
+											onChange={handleSmallCodeChange}
+											tabIndex={0}
+											aria-label='소분류코드 입력'
+										/>
+									</td>
+								</tr>
+								<tr className='form-tr'>
+									<th className='form-th'>소분류명</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='smlCsfNm'
+											value={smallForm.smlCsfNm || ''}
+											onChange={handleSmallFormChange}
+											tabIndex={0}
+											aria-label='소분류명 입력'
+										/>
+									</td>
+									<th className='form-th'>연결코드1</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='linkCd1'
+											value={smallForm.linkCd1 || ''}
+											onChange={handleSmallFormChange}
+											tabIndex={0}
+											aria-label='연결코드1 입력'
+										/>
+									</td>
+								</tr>
+								<tr className='form-tr'>
+									<th className='form-th'>연결코드2</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='linkCd2'
+											value={smallForm.linkCd2 || ''}
+											onChange={handleSmallFormChange}
+											tabIndex={0}
+											aria-label='연결코드2 입력'
+										/>
+									</td>
+									<th className='form-th'>정렬순서</th>
+									<td className='form-td'>
+										<input
+											type='number'
+											className='input-base input-default w-full'
+											name='sortOrd'
+											value={smallForm.sortOrd || 0}
+											onChange={handleSmallFormChange}
+											tabIndex={0}
+											aria-label='정렬순서 입력'
+											min='1'
+											max='999'
+										/>
+									</td>
+								</tr>
+								<tr className='form-tr'>
+									<th className='form-th'>사용여부</th>
+									<td className='form-td'>
+										<select
+											className='input-base input-default w-full'
+											name='useYn'
+											value={smallForm.useYn || ''}
+											onChange={handleSmallFormChange}
+											tabIndex={0}
+											aria-label='사용여부 선택'
+										>
+											<option value='Y'>Yes</option>
+											<option value='N'>No</option>
+										</select>
+									</td>
+									<th className='form-th'>설명</th>
+									<td className='form-td'>
+										<input
+											type='text'
+											className='input-base input-default w-full'
+											name='expl'
+											value={smallForm.expl || ''}
+											onChange={handleSmallFormChange}
+											tabIndex={0}
+											aria-label='설명 입력'
+										/>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<div className='flex justify-end gap-2'>
+							<button
+								className='btn-base btn-delete'
+								onClick={handleSmallDelete}
+								tabIndex={0}
+								aria-label='삭제'
+							>
+								삭제
+							</button>
+							<button
+								className='btn-base btn-act'
+								onClick={handleSmallSave}
+								tabIndex={0}
+								aria-label='저장'
+							>
+								저장
+							</button>
 						</div>
 					</div>
 				</div>

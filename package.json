@@ -13,6 +13,7 @@
 	"dependencies": {
 		"@nestjs/config": "^4.0.2",
 		"@nestjs/swagger": "^11.2.0",
+		"@tanstack/react-query": "^5.83.0",
 		"@types/bcrypt": "^6.0.0",
 		"bcrypt": "^6.0.0",
 		"class-validator": "^0.14.2",
