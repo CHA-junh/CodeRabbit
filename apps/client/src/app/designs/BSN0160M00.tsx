@@ -2,6 +2,7 @@
 
 import React from 'react';
 
+// 빠진거같아서 추가한 페이지
 export default function BSN0160M00() {
   const data = [
     {
