@@ -2,37 +2,84 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 // Redis 세션 미들웨어 관련 import
 import session = require('express-session');
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger:
+      process.env.NODE_ENV === 'production'
+        ? ['error', 'warn']
+        : ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
 
-  // express-session 기본 MemoryStore 미들웨어 적용
+  // 🔒 보안 헤더 설정 (Helmet)
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+        },
+      },
+      hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      },
+    }),
+  );
+
+  // 🔒 Rate Limiting 설정
+  const limiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15분
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // IP당 최대 요청 수
+    message: {
+      error: '너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use(limiter);
+
+  // 🔒 보안 강화된 세션 설정
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || 'bist-secret', // 운영환경에서는 강력한 secret 사용
+      secret: process.env.SESSION_SECRET || 'bist-secret',
       resave: false,
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production', // HTTPS 환경에서만 secure
+        sameSite: 'strict', // CSRF 공격 방지
         path: '/',
-        // maxAge: 1000 * 60 * 60 * 24 * 7, // 7일 (보안상 삭제)
+        maxAge: parseInt(process.env.SESSION_COOKIE_MAX_AGE || '86400000'), // 24시간
       },
+      name: 'bist-session', // 기본 세션명 변경
     }),
   );
 
   app.setGlobalPrefix('api');
 
-  // 전역 Validation Pipe 설정
+  // 🔒 전역 인터셉터 적용
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
+  // 🔒 전역 예외 필터 적용
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // 🔒 전역 Validation Pipe 설정 (보안 강화)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      disableErrorMessages: false,
+      disableErrorMessages: process.env.NODE_ENV === 'production', // 운영환경에서는 에러 메시지 비활성화
     }),
   );
 
@@ -57,10 +104,15 @@ async function bootstrap() {
     },
   });
 
-  // CORS 활성화 (브라우저에서 접근 가능하도록)
+  // 🔒 보안 강화된 CORS 설정
   app.enableCors({
-    origin: true,
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+      'http://localhost:3000',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count'],
   });
 
   const port = process.env.PORT || 8080;

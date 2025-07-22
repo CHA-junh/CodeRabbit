@@ -41,6 +41,12 @@ export class MenuController {
     }
   }
 
+  @Get('menus')
+  async getMenus(@Req() req: RequestWithSession, @Res() res: Response) {
+    // /menus 엔드포인트는 /tree와 동일한 기능 제공 (클라이언트 호환성)
+    return this.getMenuTree(req, res);
+  }
+
   @Get('programs')
   async getPrograms(@Req() req: RequestWithSession, @Res() res: Response) {
     const userInfo = req.session.user;
