@@ -52,10 +52,20 @@ export const fetchUserRoles = async (searchConditions?: {
 export const saveUserRoles = async (
 	payload: SavePayload
 ): Promise<{ message: string; savedRoles: TblUserRole[] }> => {
+	// 엔티티에 없는 필드(menuNm 등) 제거
+	const cleanRows = (rows: any[] = []) =>
+		rows.map(({ menuNm, cnt, ...rest }) => rest);
+
+	const cleanPayload = {
+		createdRows: cleanRows(payload.createdRows),
+		updatedRows: cleanRows(payload.updatedRows),
+		deletedRows: cleanRows(payload.deletedRows),
+	};
+
 	const response = await fetch(`${API_URL}/user-roles`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(payload),
+		body: JSON.stringify(cleanPayload),
 	});
 
 	if (!response.ok) {
@@ -136,4 +146,17 @@ export const copyUserRole = async (
 		throw new Error(errorData.message || "역할 복사에 실패했습니다.");
 	}
 	return response.json();
+};
+
+export const fetchDeptCodesByHq = async (hqDivCd: string) => {
+	const response = await fetch(`/api/common/dept-by-hq`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ hqDivCd }),
+	});
+	if (!response.ok) {
+		throw new Error("부서 코드 조회 실패");
+	}
+	const result = await response.json();
+	return result.data;
 };
