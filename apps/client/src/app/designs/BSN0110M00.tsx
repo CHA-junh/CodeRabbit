@@ -3,11 +3,13 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import BSN0120M00 from './BSN0120M00';
-import BSN0120D00 from './BSN0120D00';
-import BSN0120E00 from './BSN0120E00';
-import BSN0120F00 from './BSN0120F00';
-import BSN0120G00 from './BSN0120G00';
+import BSN0130M00 from './BSN0130M00';
+import BSN0140M00 from './BSN0140M00';
+import BSN0150M00 from './BSN0150M00';
+import BSN0160M00 from './BSN0160M00';
 import './common.css';
+
+// 페이지용도모르겠음
 
 export default function BSN0110M00() {
   const router = useRouter();
@@ -16,10 +18,10 @@ export default function BSN0110M00() {
 
   const tabs = [
     { label: '제품(재료비)', value: 'BSN0120M00' },
-    { label: '직접인건비', value: 'BSN0120D00' },
-    { label: '직접경비', value: 'BSN0120E00' },
-    { label: '품의서이력조회', value: 'BSN0120F00' },
-    { label: '월별투입비용조회', value: 'BSN0120G00' },
+    { label: '직접인건비', value: 'BSN0130M00' },
+    { label: '직접경비', value: 'BSN0140M00' },
+    { label: '품의서이력조회', value: 'BSN0150M00' },
+    { label: '월별투입비용조회', value: 'BSN0160M00' },
   ];
 
   const handleTabChange = (value: string) => {
@@ -33,15 +35,13 @@ export default function BSN0110M00() {
       case 'BSN0120M00':
         return <BSN0120M00 />;
       case 'BSN0120D00':
-        return <BSN0120D00 />;
+        return <BSN0130M00 />;
       case 'BSN0120E00':
-        return <BSN0120E00 />;
+        return <BSN0140M00 />;
       case 'BSN0120F00':
-        return <BSN0120F00 />;
+        return <BSN0150M00 />;
       case 'BSN0120G00':
-        return <BSN0120G00 />;
-      default:
-        return <BSN0120M00 />;
+        return <BSN0160M00 />;
     }
   };
 
