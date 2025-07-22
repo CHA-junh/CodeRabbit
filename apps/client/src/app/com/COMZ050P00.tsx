@@ -332,104 +332,78 @@ const BusinessNameSearchPopup: React.FC = () => {
 				</div>
 
 				{/* 검색 결과 그리드 */}
-				<div className='gridbox-div mt-4 scroll-area scrollbar-thin overflow-y-scroll h-[480px] min-h-[120px] max-h-[480px]'>
-					<table className='grid-table'>
-						<thead>
-							<tr>
-								<th className='grid-th w-[40px]'>No</th>
-								<th className='grid-th'>사업번호</th>
-								<th className='grid-th w-[25%]'>사업명</th>
-								<th className='grid-th'>시작일자</th>
-								<th className='grid-th'>종료일자</th>
-								<th className='grid-th'>사업부서</th>
-								<th className='grid-th'>영업대표</th>
-								<th className='grid-th'>실행부서</th>
-								<th className='grid-th'>PM</th>
-								<th className='grid-th'>상태</th>
-							</tr>
-						</thead>
-						<tbody>
-							{loading ? (
-								<tr className='grid-tr'>
-									<td colSpan={10} className='p-4 text-center'>
-										로딩중...
-									</td>
+				<div className='gridbox-div mt-4' style={{ height: '480px' }}>
+					{/* 고정 헤더 */}
+					<div className='grid-header-container'>
+						<table className='grid-table w-full'>
+							<thead>
+								<tr>
+									<th className='grid-th' style={{ width: '40px' }}>No</th>
+									<th className='grid-th' style={{ width: '120px' }}>사업번호</th>
+									<th className='grid-th' style={{ width: '320px' }}>사업명</th>
+									<th className='grid-th' style={{ width: '100px' }}>시작일자</th>
+									<th className='grid-th' style={{ width: '100px' }}>종료일자</th>
+									<th className='grid-th' style={{ width: '120px' }}>사업부서</th>
+									<th className='grid-th' style={{ width: '120px' }}>영업대표</th>
+									<th className='grid-th' style={{ width: '120px' }}>실행부서</th>
+									<th className='grid-th' style={{ width: '80px' }}>PM</th>
+									<th className='grid-th' style={{ width: '100px' }}>상태</th>
 								</tr>
-							) : data.length === 0 ? (
-								<tr className='grid-tr'>
-									<td colSpan={10} className='p-4 text-center'>
-										조회 결과가 없습니다.
-									</td>
-								</tr>
-							) : (
-								data.map((item, idx) => (
-									<tr
-										className='grid-tr'
-										key={item.bsnNo || item.bsnNo || idx}
-										onDoubleClick={() => handleRowDoubleClick(item)}
-										tabIndex={0}
-										aria-label={`사업번호 ${item.bsnNo || item.bsnNo}`}
-									>
-										<td className='grid-td text-center w-[40px]'>{idx + 1}</td>
-										<td
-											className='grid-td truncate max-w-[120px]'
-											title={item.bsnNo || item.bsnNo}
+							</thead>
+						</table>
+					</div>
+					{/* 스크롤 가능한 데이터 영역 */}
+					<div className='grid-data-container'>
+						<table className='grid-table w-full'>
+							<tbody>
+								{data.length > 0
+									? data.map((item, idx) => (
+										<tr
+											className='grid-tr cursor-pointer'
+											key={item.bsnNo || item.bsnNo || idx}
+											onDoubleClick={() => handleRowDoubleClick(item)}
+											tabIndex={0}
+											aria-label={`사업번호 ${item.bsnNo || item.bsnNo}`}
+											style={{ cursor: 'pointer' }}
 										>
-											{item.bsnNo || item.bsnNo}
-										</td>
-										<td
-											className='grid-td truncate max-w-[320px]'
-											title={item.bsnNm || item.bsnNm}
-										>
-											{item.bsnNm || item.bsnNm}
-										</td>
-										<td
-											className='grid-td truncate max-w-[100px]'
-											title={item.bsnStrtDt || item.bsnStrtDt}
-										>
-											{item.bsnStrtDt || item.bsnStrtDt}
-										</td>
-										<td
-											className='grid-td truncate max-w-[100px]'
-											title={item.bsnEndDt || item.bsnEndDt}
-										>
-											{item.bsnEndDt || item.bsnEndDt}
-										</td>
-										<td
-											className='grid-td truncate max-w-[120px]'
-											title={item.pplsDeptNm || item.pplsDeptNm}
-										>
-											{item.pplsDeptNm || item.pplsDeptNm}
-										</td>
-										<td
-											className='grid-td truncate max-w-[120px]'
-											title={item.bizRepnm || item.bizRepnm}
-										>
-											{item.bizRepnm || item.bizRepnm}
-										</td>
-										<td
-											className='grid-td truncate max-w-[120px]'
-											title={item.execDeptNm || item.execDeptNm}
-										>
-											{item.execDeptNm || item.execDeptNm}
-										</td>
-										<td
-											className='grid-td truncate max-w-[80px]'
-											title={item.pmNm || item.pmNm}
-										>
-											{item.pmNm || item.pmNm}
-										</td>
-										<td
-											className='grid-td truncate max-w-[100px]'
-											title={item.pgrsStDivNm || item.pgrsStDivNm}
-										>
-											{item.pgrsStDivNm || item.pgrsStDivNm}
-										</td>
-									</tr>
-								))
-							)}
-						</tbody>
-					</table>
+											<td className='grid-td text-center' style={{ width: '40px' }}>{idx + 1}</td>
+											<td className='grid-td' style={{ width: '120px' }} title={item.bsnNo || item.bsnNo}>
+												{item.bsnNo || item.bsnNo}
+											</td>
+											<td className='grid-td' style={{ width: '320px' }} title={item.bsnNm || item.bsnNm}>
+												{item.bsnNm || item.bsnNm}
+											</td>
+											<td className='grid-td' style={{ width: '100px' }} title={item.bsnStrtDt || item.bsnStrtDt}>
+												{item.bsnStrtDt || item.bsnStrtDt}
+											</td>
+											<td className='grid-td' style={{ width: '100px' }} title={item.bsnEndDt || item.bsnEndDt}>
+												{item.bsnEndDt || item.bsnEndDt}
+											</td>
+											<td className='grid-td' style={{ width: '120px' }} title={item.pplsDeptNm || item.pplsDeptNm}>
+												{item.pplsDeptNm || item.pplsDeptNm}
+											</td>
+											<td className='grid-td' style={{ width: '120px' }} title={item.bizRepnm || item.bizRepnm}>
+												{item.bizRepnm || item.bizRepnm}
+											</td>
+											<td className='grid-td' style={{ width: '120px' }} title={item.execDeptNm || item.execDeptNm}>
+												{item.execDeptNm || item.execDeptNm}
+											</td>
+											<td className='grid-td' style={{ width: '80px' }} title={item.pmNm || item.pmNm}>
+												{item.pmNm || item.pmNm}
+											</td>
+											<td className='grid-td' style={{ width: '100px' }} title={item.pgrsStDivNm || item.pgrsStDivNm}>
+												{item.pgrsStDivNm || item.pgrsStDivNm}
+											</td>
+										</tr>
+									))
+									: Array.from({ length: 10 }, (_, idx) => (
+										<tr key={`empty-${idx}`} className='grid-tr'>
+											<td className='grid-td' colSpan={10}>&nbsp;</td>
+										</tr>
+									))}
+							</tbody>
+						</table>
+					</div>
 				</div>
 
 				{/* 종료 버튼 */}

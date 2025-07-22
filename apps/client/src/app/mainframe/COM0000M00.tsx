@@ -5,7 +5,7 @@ import '../common/common.css'
 import TopFrame from './TopFrame'
 import LeftFrame from './LeftFrame'
 import MenuTree from './MenuTree'
-import Maintab from './Maintab'
+import MainTab from './MainTab'
 import PageTitle from './PageTitle'
 import ContentFrame from './ContentFrame'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
@@ -197,7 +197,7 @@ export default function COM0000M00() {
 					>
 						{tabs.length > 0 && activeTab && (
 							<>
-								<Maintab
+								<MainTab
 									tabs={tabs.map((tab) => ({
 										id: tab.programId,
 										title: tab.title,
