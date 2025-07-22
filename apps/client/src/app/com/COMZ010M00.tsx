@@ -6,7 +6,7 @@ import { useToast } from '@/contexts/ToastContext'
 import '@/app/common/common.css'
 
 /**
- * COMZ010M00 - (팝)시스템코드관리 화면
+ * COMZ010M00 - 시스템코드관리 화면
  * 
  * 주요 기능:
  * - 대분류 코드 관리 (등록/수정/삭제)
@@ -711,7 +711,7 @@ const COMZ010M00Page = () => {
 			<div className='flex gap-4'>
 				{/* 대분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4' style={{ height: '240px' }}>
+					<div className='gridbox-div mb-4' style={{ height: '400px' }}>
 						{/* 고정 헤더 */}
 						<div className='grid-header-container'>
 							<table className='grid-table w-full'>
@@ -781,7 +781,7 @@ const COMZ010M00Page = () => {
 												</tr>
 											))
 										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
-											Array.from({ length: 10 }, (_, idx) => (
+											Array.from({ length: 15 }, (_, idx) => (
 												<tr key={`empty-${idx}`} className='grid-tr'>
 													<td className='grid-td' colSpan={4}>
 														&nbsp;
@@ -892,7 +892,7 @@ const COMZ010M00Page = () => {
 				</div>
 				{/* 소분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4' style={{ height: '240px' }}>
+					<div className='gridbox-div mb-4' style={{ height: '400px' }}>
 						{/* 고정 헤더 */}
 						<div className='grid-header-container'>
 							<table className='grid-table w-full'>
@@ -972,7 +972,7 @@ const COMZ010M00Page = () => {
 												</tr>
 											))
 										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
-											Array.from({ length: 10 }, (_, idx) => (
+											Array.from({ length: 15 }, (_, idx) => (
 												<tr key={`empty-${idx}`} className='grid-tr'>
 													<td className='grid-td' colSpan={5}>
 														&nbsp;

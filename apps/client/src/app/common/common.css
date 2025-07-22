@@ -336,12 +336,9 @@ body {
 	transform: translateZ(0) !important;
 	isolation: isolate !important;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-}
+	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
+}  
 
-/* === 사용자 그리드 전용 헤더 컨테이너 (스크롤바 패딩 적용) === */
-.gridbox-div[style*='height: 400px'] .grid-header-container {
-	padding-right: 20px !important; /* 스크롤바 너비만큼 패딩 추가 (더 큰 값으로 조정) */
-}
 
 /* === 그리드 데이터 컨테이너 === */
 .grid-data-container {
@@ -349,6 +346,7 @@ body {
 	overflow: auto !important;
 	position: relative !important;
 	z-index: 0 !important;
+	/*padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
 }
 
 /* === 팝업 화면 전용 그리드 스타일 === */
@@ -356,6 +354,7 @@ body {
 	overflow: auto !important;
 	scrollbar-width: thin;
 	scrollbar-color: #3b82c4 #f2f8ff;
+	/*padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
 }
 
 .popup-wrapper .grid-data-container::-webkit-scrollbar {
@@ -376,6 +375,7 @@ body {
 
 .popup-wrapper .grid-header-container {
 	overflow: hidden !important;
+	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
 }
 
 /* 팝업 그리드 테이블 레이아웃 고정 */
