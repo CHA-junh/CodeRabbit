@@ -13,13 +13,13 @@ import { useToast } from '@/contexts/ToastContext'
 
 /**
  * COM0000M00 - 메인프레임 화면
- * 
+ *
  * 주요 기능:
  * - 메뉴 트리 표시 및 네비게이션
  * - 탭 기반 화면 관리 (최대 5개)
  * - 사용자 정보 표시
  * - 로그아웃 처리
- * 
+ *
  * 연관 컴포넌트:
  * - TopFrame (상단 헤더)
  * - LeftFrame (좌측 아이콘바)
@@ -82,7 +82,10 @@ export default function COM0000M00() {
 
 		// 탭 개수 제한 체크 (5개)
 		if (tabs.length >= 5) {
-			showToast('최대 5개의 화면만 열 수 있습니다. 다른 화면을 닫고 다시 시도해주세요.', 'warning')
+			showToast(
+				'최대 5개의 화면만 열 수 있습니다. 다른 화면을 닫고 다시 시도해주세요.',
+				'warning'
+			)
 			return
 		}
 		const menuPath = program.LINK_PATH
