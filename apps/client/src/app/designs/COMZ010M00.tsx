@@ -5,14 +5,7 @@ import './common.css';
 
 export default function CodeManagementPage() {
   return (
-    <div className="popup-wrapper">
-      {/* 상단 헤더 */}
-      <div className="popup-header">
-        <h3 className="popup-title">대분류/소분류코드 관리</h3>
-        <button className="popup-close" type="button">×</button>
-      </div>
-
-      <div className="popup-body">
+    <div className="mdi">
         {/* 🔍 조회 영역 */}
       <div className="search-div mb-3">
         <table className="search-table">
@@ -191,6 +184,5 @@ export default function CodeManagementPage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
