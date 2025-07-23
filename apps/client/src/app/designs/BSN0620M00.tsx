@@ -10,13 +10,14 @@ export default function BSN0620M00() {
       <div className="tit_area flex justify-between items-center">
         <h3>인원별 가동현황</h3>
         <div className="flex gap-2">
-          <button type="button" className="btn-base btn-search">조회</button>
+          
           <button type="button" className="btn-base btn-excel">엑셀</button>
+          <button type="button" className="btn-base btn-search">조회</button>
         </div>
       </div>
 
       {/* 상단 그리드 */}
-      <div className="gridbox-div mb-2">
+      <div className="gridbox-div mb-4">
         <div className="grid-scroll">
           <table className="grid-table">
             <thead>
