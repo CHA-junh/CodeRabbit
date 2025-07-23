@@ -4,14 +4,15 @@
 
 /* 시스템 폰트 사용 (OTS 파싱 에러 방지)  */
 html,
-body, #__next {
+body,
+#__next {
 	font-family:
 		'Malgun Gothic', '맑은 고딕', 'NanumGothic', 'Apple SD Gothic Neo',
 		'Noto Sans KR', sans-serif;
 	background: none !important;
 	height: 100%;
-  	margin: 0;
- 	 padding: 0;
+	margin: 0;
+	padding: 0;
 }
 
 /* input */
@@ -125,8 +126,6 @@ body, #__next {
 	background-position: center;
 	background-size: 16px 16px;
 	border-radius: 6px;
-	
-	
 }
 .icon_search {
 	background-image: url('/icon_search.svg');
@@ -263,7 +262,7 @@ body, #__next {
 	align-items: center;
 }
 .sub-title {
-  @apply text-[13px] text-gray-500 mt-1 ml-2 leading-tight;
+	@apply text-[13px] text-gray-500 mt-1 ml-2 leading-tight;
 }
 /* ==== 투명 테이블 ==== */
 .clearbox-div {
@@ -285,7 +284,7 @@ body, #__next {
 
 /**페이지**/
 .mdi {
-  @apply flex flex-col overflow-auto min-w-[1510px] !h-[100%];
+	@apply flex flex-col overflow-auto min-w-[1510px] !h-[100%];
 }
 
 /**grid**/
@@ -524,7 +523,6 @@ body, #__next {
 	font-family: 'NanumGothic', sans-serif;
 }
 
-
 /* 서브 탭 박스 전체 */
 .sub-tab-container {
 	@apply border border-[#ccc] rounded-md;
@@ -543,13 +541,5 @@ body, #__next {
 }
 /* 탭 패널 영역 */
 .sub-tab-panel {
-<<<<<<< HEAD
-	padding: 16px;
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0; /* ⚠️ 중요! flex item 안에서 overflow 작동하려면 필요 */
-}
-=======
 	@apply p-4 bg-white;
 }
->>>>>>> a9d00991b93165e2b2baeb767ae240975b5aa650
