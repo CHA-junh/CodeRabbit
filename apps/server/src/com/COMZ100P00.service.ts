@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import * as oracledb from 'oracledb';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from './entities/COMZ100P00.entity';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
-import { UserSearchParams, UserSearchResponseDto, ProcedureInfoDto } from './dto/users.dto';
+import { UserSearchParams, UserSearchResponseDto, ProcedureInfoDto } from './dto/COMZ100P00.dto';
 
 @Injectable()
-export class UsersService {
+export class COMZ100P00Service {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly procedureDbParser: ProcedureDbParser
@@ -57,11 +57,31 @@ export class UsersService {
       
       // UserEntity 형태로 변환
       const users = rows.map((row: any) => ({
-        USR_ID: row.USR_ID || row.usrId,
-        USR_NM: row.USR_NM || row.usrNm,
-        HQ_DIV: row.HQ_DIV || row.hqDiv,
-        DEPT_DIV: row.DEPT_DIV || row.deptDiv,
-        USE_YN: row.USE_YN || row.useYn || 'Y'
+        // 실제 DB 컬럼들
+        EMP_NO: row.EMP_NO,
+        EMP_NM: row.EMP_NM,
+        HQ_DIV_CD: row.HQ_DIV_CD,
+        HQ_DIV_NM: row.HQ_DIV_NM,
+        DEPT_DIV_CD: row.DEPT_DIV_CD,
+        DEPT_DIV_NM: row.DEPT_DIV_NM,
+        DUTY_CD: row.DUTY_CD,
+        DUTY_NM: row.DUTY_NM,
+        AUTH_CD: row.AUTH_CD,
+        AUTH_CD_NM: row.AUTH_CD_NM,
+        BSN_USE_YN: row.BSN_USE_YN,
+        WPC_USE_YN: row.WPC_USE_YN,
+        PSM_USE_YN: row.PSM_USE_YN,
+        EMAIL_ADDR: row.EMAIL_ADDR,
+        APV_APOF_ID: row.APV_APOF_ID,
+        DUTY_DIV_CD: row.DUTY_DIV_CD,
+        DUTY_DIV_CD_NM: row.DUTY_DIV_CD_NM,
+        OWN_OUTS_DIV: row.OWN_OUTS_DIV,
+        ENTR_NO: row.ENTR_NO,
+        ENTR_DT: row.ENTR_DT,
+        RETIR_DT: row.RETIR_DT,
+        WMAIL_YN: row.WMAIL_YN,
+        WRK_CNT: row.WRK_CNT,
+        LAST_WRK: row.LAST_WRK
       }));
       
       // DB에서 실시간으로 프로시저 정보 가져오기

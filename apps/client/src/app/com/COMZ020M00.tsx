@@ -227,7 +227,7 @@ export default function MainPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/unit-price/search', {
+      const response = await fetch('/api/COMZ030M00/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -300,7 +300,7 @@ export default function MainPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/unit-price/save', {
+      const response = await fetch('/api/COMZ020M00/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -357,7 +357,7 @@ export default function MainPage() {
       onConfirm: async () => {
         setLoading(true);
         try {
-          const response = await fetch('/api/unit-price/delete', {
+          const response = await fetch('/api/COMZ020M00/delete', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

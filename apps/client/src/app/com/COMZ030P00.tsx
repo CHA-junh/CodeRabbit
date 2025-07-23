@@ -133,7 +133,7 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
 
     setLoading(true);
     try {
-      const res = await fetch('/api/unit-price/search', {
+      const res = await fetch('/api/COMZ030M00/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

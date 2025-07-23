@@ -257,41 +257,41 @@ const EmployeeSearchPopup = forwardRef<EmployeeSearchPopupRef, EmployeeSearchPop
    * ASIS: onSearchClick() 함수와 동일한 역할
    * 
    * TODO: API 연동 구현 필요
-   * - 엔드포인트: /api/employee/search
+   * - 엔드포인트: /api/COMZ080P00/search
    * - 파라미터: 직원명 (empNm)
    * - 응답: 직원 목록 (EmployeeInfo[])
    */
   const handleSearch = async () => {
-    if (!empNm.trim()) {
-      showToast('직원명을 입력해주세요.', 'warning');
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch('/api/employee/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ empNm: empNm.trim() })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setEmployees(data.data);
-        if (data.data.length === 0 && empNm.trim()) {
-          showToast('해당 직원명은 존재하지 않습니다.', 'warning');
-        }
-      } else {
-        const errorData = await res.json();
-        const errorMessage = errorData.message || '검색 중 오류가 발생했습니다.';
-        showToast(errorMessage, 'error');
-        setEmployees([]);
-      }
-    } catch (e) {
-      console.error('검색 실패:', e);
-      showToast('검색 중 오류가 발생했습니다.', 'error');
-      setEmployees([]);
-    } finally {
-      setLoading(false);
-    }
+    // if (!empNm.trim()) {
+    //   showToast('직원명을 입력해주세요.', 'warning');
+    //   return;
+    // }
+    // setLoading(true);
+    // try {
+    //   const res = await fetch('/api/COMZ080P00/search', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ empNm: empNm.trim() })
+    //   });
+    //   if (res.ok) {
+    //     const data = await res.json();
+    //     setEmployees(data.data);
+    //     if (data.data.length === 0 && empNm.trim()) {
+    //       showToast('해당 직원명은 존재하지 않습니다.', 'warning');
+    //     }
+    //   } else {
+    //     const errorData = await res.json();
+    //     const errorMessage = errorData.message || '검색 중 오류가 발생했습니다.';
+    //     showToast(errorMessage, 'error');
+    //     setEmployees([]);
+    //   }
+    // } catch (e) {
+    //   console.error('검색 실패:', e);
+    //   showToast('검색 중 오류가 발생했습니다.', 'error');
+    //   setEmployees([]);
+    // } finally {
+    //   setLoading(false);
+    // }
   }
 
   return (

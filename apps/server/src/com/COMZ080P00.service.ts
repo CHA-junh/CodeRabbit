@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import * as oracledb from 'oracledb';
-import { EmployeeEntity } from './entities/employee.entity';
-import { EmployeeDto, EmployeeSearchRequestDto, EmployeeSearchResponseDto, ProcedureInfoDto } from './dto/employee.dto';
+import { EmployeeEntity } from './entities/COMZ080P00.entity';
+import { EmployeeDto, EmployeeSearchRequestDto, EmployeeSearchResponseDto, ProcedureInfoDto } from './dto/COMZ080P00.dto';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
 
 @Injectable()
-export class EmployeeService {
+export class COMZ080P00Service {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly procedureDbParser: ProcedureDbParser
@@ -56,12 +56,31 @@ export class EmployeeService {
       }
       
       // Entity 형태로 변환
-      const employeeDtos: EmployeeDto[] = rows.map((row: any) => ({
-        EMP_NO: row.EMP_NO || row.empNo,
-        EMP_NM: row.EMP_NM || row.empNm,
-        OWN_OUTS_DIV: row.OWN_OUTS_DIV || row.ownOutsDiv,
-        RETIR_YN: row.RETIR_YN || row.retirYn,
-        DEPT_CD: row.DEPT_CD || row.deptCd || ''
+      const employeeDtos: EmployeeDto[] = rows.map((row: any, idx: number) => ({
+        LIST_NO: String(idx + 1),
+        OWN_OUTS_NM: row.OWN_OUTS_NM,
+        EMP_NM: row.EMP_NM,
+        EMP_NO: row.EMP_NO,
+        DUTY_CD_NM: row.DUTY_CD_NM,
+        TCN_GRD_NM: row.TCN_GRD_NM,
+        PARTY_NM: row.PARTY_NM,
+        ENTR_DT: row.ENTR_DT,
+        EXEC_IN_STRT_DT: row.EXEC_IN_STRT_DT,
+        EXEC_IN_END_DT: row.EXEC_IN_END_DT,
+        WKG_ST_DIV_NM: row.WKG_ST_DIV_NM,
+        EXEC_ING_BSN_NM: row.EXEC_ING_BSN_NM,
+        HQ_DIV_CD: row.HQ_DIV_CD,
+        DEPT_DIV_CD: row.DEPT_DIV_CD,
+        CSF_CO_CD: row.CSF_CO_CD,
+        WKG_ST_DIV: row.WKG_ST_DIV,
+        EXEC_ING_YN: row.EXEC_ING_YN,
+        OWN_OUTS_DIV: row.OWN_OUTS_DIV,
+        OUTS_FIX_YN: row.OUTS_FIX_YN,
+        IN_FIX_DT: row.IN_FIX_DT,
+        IN_FIX_PRJT: row.IN_FIX_PRJT,
+        DUTY_CD: row.DUTY_CD,
+        DUTY_DIV_CD: row.DUTY_DIV_CD,
+        TCN_GRD: row.TCN_GRD,
       }));
       
       // DB에서 실시간으로 프로시저 정보 가져오기
