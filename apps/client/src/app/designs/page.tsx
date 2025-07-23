@@ -9,7 +9,7 @@ import ContentFrame from '../mainframe/ContentFrame' // 콘텐츠 프레임
 import PageTitle from './PageTitle' // ✅ 타이틀 컴포넌트 추가
 import './common.css'
 import BSN0100M00 from './BSN0100M00';
-import BSN0670M00 from './BSN0670M00';
+import BSN0700M00 from './BSN0700M00';
 import BSN0540M00 from './BSN0540M00';
 
 export default function MainLayout() {
@@ -55,8 +55,10 @@ export default function MainLayout() {
 					</div>
 
 					{/* 콘텐츠 프레임 */}
-					<div className='flex-1 overflow-auto pt-0 p-4'>
-						<BSN0670M00 selectedTab={selectedTab.title} />
+					<div className="h-full min-h-0 flex flex-col overflow-hidden">
+						<div className="flex-1 overflow-auto pt-0 p-4">
+							<BSN0700M00 selectedTab={selectedTab.title} />
+						</div>
 					</div>
 				</div>
 			</div>
