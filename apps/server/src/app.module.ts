@@ -39,14 +39,8 @@ import { CommonModule } from './common/common.module';
     ComModule,
     CommonModule,
   ],
-  controllers: [
-    AppController,
-    AuthController,
-  ],
-  providers: [
-    AppService,
-    AuthService,
-  ],
+  controllers: [AppController, AuthController],
+  providers: [AppService, AuthService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {}

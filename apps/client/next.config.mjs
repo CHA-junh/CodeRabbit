@@ -6,9 +6,7 @@ const nextConfig = {
 		optimizePackageImports: [],
 	},
 
-
-
-	// API 프록시 설정
+	// API 프록시 설정 및 designs 폴더 제외
 	async rewrites() {
 		return [
 			{

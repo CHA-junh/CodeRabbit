@@ -10,6 +10,7 @@ import PageTitle from './PageTitle'
 import ContentFrame from './ContentFrame'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import { useToast } from '@/contexts/ToastContext'
+import { TAB_CONSTANTS, MESSAGE_CONSTANTS } from '../../utils/constants'
 
 /**
  * COM0000M00 - 메인프레임 화면
@@ -80,12 +81,9 @@ export default function COM0000M00() {
 			return
 		}
 
-		// 탭 개수 제한 체크 (5개)
-		if (tabs.length >= 5) {
-			showToast(
-				'최대 5개의 화면만 열 수 있습니다. 다른 화면을 닫고 다시 시도해주세요.',
-				'warning'
-			)
+		// 탭 개수 제한 체크
+		if (tabs.length >= TAB_CONSTANTS.MAX_TABS) {
+			showToast(MESSAGE_CONSTANTS.MAX_TABS, 'warning')
 			return
 		}
 		const menuPath = program.LINK_PATH
