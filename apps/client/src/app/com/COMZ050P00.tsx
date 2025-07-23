@@ -1,6 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { AgGridReact } from 'ag-grid-react'
+import { ColDef, SelectionChangedEvent } from 'ag-grid-community'
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-alpine.css'
 import '@/app/common/common.css'
 import { useAuth } from '@/modules/auth/hooks/useAuth'
 import { useToast } from '@/contexts/ToastContext'
@@ -77,6 +81,23 @@ const BusinessNameSearchPopup: React.FC = () => {
 	const initialBsnNm = params?.get('bsnNm') || ''
 	const mode = params?.get('mode') || ''
 
+	// AG-Grid ref
+	const businessGridRef = useRef<AgGridReact<BusinessNameSearchResult>>(null);
+
+	// AG-Grid 컬럼 정의
+	const [businessColDefs] = useState<ColDef[]>([
+		{ headerName: 'No', field: 'index', width: 50, flex: 0.4, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', valueGetter: (params) => params.node?.rowIndex ? params.node.rowIndex + 1 : 1 },
+		{ headerName: '사업번호', field: 'bsnNo', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'bsnNo' },
+		{ headerName: '사업명', field: 'bsnNm', width: 320, flex: 2, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header', tooltipField: 'bsnNm' },
+		{ headerName: '시작일자', field: 'bsnStrtDt', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'bsnStrtDt' },
+		{ headerName: '종료일자', field: 'bsnEndDt', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'bsnEndDt' },
+		{ headerName: '사업부서', field: 'pplsDeptNm', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'pplsDeptNm' },
+		{ headerName: '영업대표', field: 'bizRepnm', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'bizRepnm' },
+		{ headerName: '실행부서', field: 'execDeptNm', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'execDeptNm' },
+		{ headerName: 'PM', field: 'pmNm', width: 80, flex: 0.6, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'pmNm' },
+		{ headerName: '상태', field: 'pgrsStDivNm', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'pgrsStDivNm' },
+	]);
+
 	// 상태
 	const [checkedStates, setCheckedStates] = useState<string[]>(
 		PGRS_STATES.map((s) => s.code)
@@ -119,6 +140,13 @@ const BusinessNameSearchPopup: React.FC = () => {
 		const years = Array.from({ length: 10 }, (_, i) => (now - i).toString())
 		setYearList(['ALL', ...years])
 	}, [])
+
+	// 데이터 변경 시 컬럼 크기 조정
+	useEffect(() => {
+		if (businessGridRef.current?.api) {
+			businessGridRef.current.api.sizeColumnsToFit();
+		}
+	}, [data]);
 
 	// 모두선택 체크박스 핸들러
 	const handleAllCheck = () => {
@@ -205,7 +233,12 @@ const BusinessNameSearchPopup: React.FC = () => {
 		window.close() // 팝업 닫기(실제 환경에 맞게 수정)
 	}
 
-		// 그리드 더블클릭 시 부모창에 값 반환
+	// AG-Grid 준비 완료 이벤트
+	const onBusinessGridReady = (params: any) => {
+		params.api.sizeColumnsToFit();
+	};
+
+	// 그리드 더블클릭 시 부모창에 값 반환
 	const handleRowDoubleClick = (item: BusinessNameSearchResult) => {
 		if (window.opener) {
 			window.opener.postMessage(
@@ -340,72 +373,39 @@ const BusinessNameSearchPopup: React.FC = () => {
 				</div>
 
 				{/* 검색 결과 그리드 */}
-				<div className='gridbox-div mt-4' style={{ height: '480px', overflow: 'auto' }}>
-					<table className='grid-table w-full'>
-						<thead>
-							<tr>
-								<th className='grid-th' style={{ width: '40px' }}>No</th>
-								<th className='grid-th' style={{ width: '120px' }}>사업번호</th>
-								<th className='grid-th' style={{ width: '320px' }}>사업명</th>
-								<th className='grid-th' style={{ width: '100px' }}>시작일자</th>
-								<th className='grid-th' style={{ width: '100px' }}>종료일자</th>
-								<th className='grid-th' style={{ width: '120px' }}>사업부서</th>
-								<th className='grid-th' style={{ width: '120px' }}>영업대표</th>
-								<th className='grid-th' style={{ width: '120px' }}>실행부서</th>
-								<th className='grid-th' style={{ width: '80px' }}>PM</th>
-								<th className='grid-th' style={{ width: '100px' }}>상태</th>
-							</tr>
-						</thead>
-						<tbody>
-							{data.length > 0
-								? data.map((item, idx) => (
-									<tr
-										className='grid-tr cursor-pointer'
-										key={item.bsnNo || item.bsnNo || idx}
-										onDoubleClick={() => handleRowDoubleClick(item)}
-										tabIndex={0}
-										aria-label={`사업번호 ${item.bsnNo || item.bsnNo}`}
-										style={{ cursor: 'pointer' }}
-									>
-										<td className='grid-td text-center' style={{ width: '40px' }}>{idx + 1}</td>
-										<td className='grid-td' style={{ width: '120px' }} title={item.bsnNo || item.bsnNo}>
-											{item.bsnNo || item.bsnNo}
-										</td>
-										<td className='grid-td' style={{ width: '320px' }} title={item.bsnNm || item.bsnNm}>
-											{item.bsnNm || item.bsnNm}
-										</td>
-										<td className='grid-td' style={{ width: '100px' }} title={item.bsnStrtDt || item.bsnStrtDt}>
-											{item.bsnStrtDt || item.bsnStrtDt}
-										</td>
-										<td className='grid-td' style={{ width: '100px' }} title={item.bsnEndDt || item.bsnEndDt}>
-											{item.bsnEndDt || item.bsnEndDt}
-										</td>
-										<td className='grid-td' style={{ width: '120px' }} title={item.pplsDeptNm || item.pplsDeptNm}>
-											{item.pplsDeptNm || item.pplsDeptNm}
-										</td>
-										<td className='grid-td' style={{ width: '120px' }} title={item.bizRepnm || item.bizRepnm}>
-											{item.bizRepnm || item.bizRepnm}
-										</td>
-										<td className='grid-td' style={{ width: '120px' }} title={item.execDeptNm || item.execDeptNm}>
-											{item.execDeptNm || item.execDeptNm}
-										</td>
-										<td className='grid-td' style={{ width: '80px' }} title={item.pmNm || item.pmNm}>
-											{item.pmNm || item.pmNm}
-										</td>
-										<td className='grid-td' style={{ width: '100px' }} title={item.pgrsStDivNm || item.pgrsStDivNm}>
-											{item.pgrsStDivNm || item.pgrsStDivNm}
-										</td>
-									</tr>
-								))
-								: (
-									<tr className='grid-tr'>
-										<td className='grid-td' colSpan={10} style={{ height: '400px', textAlign: 'center', verticalAlign: 'middle', color: '#666', fontSize: '14px' }}>
-											조회 결과가 없습니다
-										</td>
-									</tr>
-								)}
-						</tbody>
-					</table>
+				<div className='gridbox-div mt-4 ag-theme-alpine' style={{ height: '480px' }}>
+					<AgGridReact
+						ref={businessGridRef}
+						rowData={data}
+						columnDefs={businessColDefs}
+						defaultColDef={{
+							resizable: true,
+							sortable: true,
+							filter: true,
+							suppressSizeToFit: false,
+						}}
+						rowSelection='single'
+						onRowDoubleClicked={(event) => {
+							handleRowDoubleClick(event.data);
+						}}
+						onGridReady={onBusinessGridReady}
+						domLayout='normal'
+						rowHeight={40}
+						headerHeight={40}
+						tooltipShowDelay={500}
+						noRowsOverlayComponent={() => (
+							<div style={{ 
+								display: 'flex', 
+								alignItems: 'center', 
+								justifyContent: 'center', 
+								height: '100%',
+								color: '#666',
+								fontSize: '14px'
+							}}>
+								조회 결과가 없습니다
+							</div>
+						)}
+					/>
 				</div>
 
 				{/* 종료 버튼 */}

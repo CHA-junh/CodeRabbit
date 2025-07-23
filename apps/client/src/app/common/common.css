@@ -535,3 +535,13 @@ body {
 	@apply text-left pl-4;
 	text-align: left !important;
 }
+
+/* === ag-grid 헤더 가운데 정렬 === */
+.ag-center-header .ag-header-cell-text {
+	text-align: center !important;
+	justify-content: center !important;
+}
+
+.ag-center-header .ag-header-cell-label {
+	justify-content: center !important;
+}
