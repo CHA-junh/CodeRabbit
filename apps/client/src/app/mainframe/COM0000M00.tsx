@@ -10,7 +10,7 @@ import PageTitle from './PageTitle'
 import ContentFrame from './ContentFrame'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import { useToast } from '@/contexts/ToastContext'
-import { TAB_CONSTANTS, MESSAGE_CONSTANTS } from '../../utils/constants'
+import { TAB_CONSTANTS, MESSAGE_CONSTANTS } from '@/utils/constants'
 
 /**
  * COM0000M00 - 메인프레임 화면
