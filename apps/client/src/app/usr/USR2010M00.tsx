@@ -50,7 +50,7 @@ import {
 	UserData,
 	WorkAuthData,
 } from '../../modules/usr/services/usr-api.service'
-import '../designs/common.css'
+import '../common/common.css'
 import COMZ100P00, { EmpSearchModalRef } from '@/app/com/COMZ100P00'
 
 /**
@@ -615,7 +615,10 @@ const USR2010M00: React.FC = () => {
 			</div>
 
 			{/* 사용자 목록 그리드 */}
-			<div className='gridbox-div mb-4' style={{ height: '400px', overflow: 'auto' }}>
+			<div
+				className='gridbox-div mb-4'
+				style={{ height: '400px', overflow: 'auto' }}
+			>
 				{isLoading && (
 					<div className='flex items-center justify-center h-32 text-gray-500'>
 						사용자 목록을 불러오는 중...
@@ -762,7 +765,10 @@ const USR2010M00: React.FC = () => {
 					<div className='tit_area'>
 						<h2>업무별 사용권한</h2>
 					</div>
-					<div className='gridbox-div' style={{ height: '300px', overflow: 'auto' }}>
+					<div
+						className='gridbox-div'
+						style={{ height: '300px', overflow: 'auto' }}
+					>
 						{workAuthLoading && (
 							<div className='flex items-center justify-center h-32 text-gray-500'>
 								업무권한 목록을 불러오는 중...
@@ -792,10 +798,7 @@ const USR2010M00: React.FC = () => {
 									{workAuthList.length > 0
 										? workAuthList.map((task, idx) => (
 												<tr className='grid-tr' key={idx}>
-													<td
-														className='grid-td'
-														style={{ width: '200px' }}
-													>
+													<td className='grid-td' style={{ width: '200px' }}>
 														{task.smlCsfNm}
 													</td>
 													<td
@@ -808,10 +811,7 @@ const USR2010M00: React.FC = () => {
 															readOnly // 직접 수정 방지
 														/>
 													</td>
-													<td
-														className='grid-td'
-														style={{ width: '120px' }}
-													>
+													<td className='grid-td' style={{ width: '120px' }}>
 														{task.rmk}
 													</td>
 												</tr>
@@ -819,10 +819,7 @@ const USR2010M00: React.FC = () => {
 										: // 데이터가 없을 때 빈 행들을 렌더링하여 높이 유지
 											Array.from({ length: 5 }, (_, idx) => (
 												<tr className='grid-tr' key={`empty-${idx}`}>
-													<td
-														className='grid-td'
-														style={{ width: '200px' }}
-													>
+													<td className='grid-td' style={{ width: '200px' }}>
 														&nbsp;
 													</td>
 													<td
@@ -831,10 +828,7 @@ const USR2010M00: React.FC = () => {
 													>
 														<input type='checkbox' disabled />
 													</td>
-													<td
-														className='grid-td'
-														style={{ width: '120px' }}
-													>
+													<td className='grid-td' style={{ width: '120px' }}>
 														&nbsp;
 													</td>
 												</tr>

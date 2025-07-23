@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import '../designs/common.css'
+import '../common/common.css'
 import { createDynamicComponent } from '@/utils/componentMapping'
 
 interface ContentFrameProps {
