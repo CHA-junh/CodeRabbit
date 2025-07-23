@@ -456,7 +456,7 @@ export default function RoleManagementPage() {
 			const allPgmGrps = await fetchAllProgramGroups();
 			setPgmGrpRowData(allPgmGrps);
 		} catch (error) {
-			console.error(error);
+			console.error(error); 
 			showToast(
 				"프로그램 그룹 목록을 불러오는 중 오류가 발생했습니다.",
 				"error"
