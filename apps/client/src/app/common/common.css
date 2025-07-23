@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 시스템 폰트 사용 (OTS 파싱 에러 방지) */
+/* 시스템 폰트 사용 (OTS 파싱 에러 방지)  */
 html,
 body {
 	font-family:
@@ -314,7 +314,7 @@ body {
 	position: sticky !important;
 	top: 0 !important;
 	z-index: 10 !important;
-	background-color: #EBF1F6 !important;
+	background-color: #ebf1f6 !important;
 }
 
 /* === thead 내부 th 스타일 === */
@@ -326,8 +326,7 @@ body {
 	isolation: isolate !important;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
-}  
-
+}
 
 /* === 그리드 데이터 컨테이너 === */
 .grid-data-container {
