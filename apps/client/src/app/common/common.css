@@ -337,8 +337,7 @@ body {
 	isolation: isolate !important;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
-}  
-
+}
 
 /* === 그리드 데이터 컨테이너 === */
 .grid-data-container {
@@ -537,21 +536,21 @@ body {
 
 /* 서브 탭 박스 전체 */
 .sub-tab-container {
-  @apply border border-[#ccc] rounded-md;
-}    
+	@apply border border-[#ccc] rounded-md;
+}
 /* 탭 리스트 wrapper */
 .sub-tab-list {
-  @apply flex border-b border-[#ccc] pt-2;
+	@apply flex border-b border-[#ccc] pt-2;
 }
 /* 공통 탭 버튼 스타일 */
 .sub-tab-button {
-  @apply px-4 py-2 text-sm font-semibold text-[#798EA2] hover:text-[#0071DB] transition-all;
+	@apply px-4 py-2 text-sm font-semibold text-[#798EA2] hover:text-[#0071DB] transition-all;
 }
 /* 활성화된 탭 */
 .sub-tab-active {
-  @apply text-[#00509A] border-b border-[#00509A] pb-[7px];
+	@apply text-[#00509A] border-b border-[#00509A] pb-[7px];
 }
 /* 탭 패널 영역 */
 .sub-tab-panel {
-  @apply p-4 bg-white;
+	@apply p-4 bg-white;
 }
