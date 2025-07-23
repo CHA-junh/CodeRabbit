@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import BSN0110M00 from './BSN0110M00';
 import BSN0120M00 from './BSN0120M00';
 import BSN0130M00 from './BSN0130M00';
 import BSN0140M00 from './BSN0140M00';
 import BSN0150M00 from './BSN0150M00';
-import BSN0160M00 from './PRJ0090M00';
+import PRJ0090M00 from './PRJ0090M00';
+
 import './common.css';
 
 // 사업예산 프레임
@@ -30,39 +32,48 @@ export default function BSN0100M00() {
     router.push(`?${query.toString()}`);
   };
 
-  const renderTabContent = () => {
-    switch (tab) {
-      case 'BSN0120M00':
-        return <BSN0120M00 />;
-      case 'BSN0120D00':
-        return <BSN0130M00 />;
-      case 'BSN0120E00':
-        return <BSN0140M00 />;
-      case 'BSN0120F00':
-        return <BSN0150M00 />;
-      case 'BSN0120G00':
-        return <PRJ0090M00 />;
-    }
-  };
+const renderTabContent = () => {
+  switch (tab) {
+    case 'BSN0120M00':
+      return <BSN0120M00 />;
+    case 'BSN0130M00':
+      return <BSN0130M00 />;
+    case 'BSN0140M00':
+      return <BSN0140M00 />;
+    case 'BSN0150M00':
+      return <BSN0150M00 />;
+    case 'PRJ0090M00':
+      return <PRJ0090M00 />;
+    default:
+      return null;
+  }
+};
 
-  return (
-    <div className="mdi">
-      {/* 🧩 탭 UI */}
-      <div className="tab-container">
-        {tabs.map(({ label, value }) => (
-          <button
-            key={value}
-            className={`tab-button ${tab === value ? 'tab-active' : 'tab-inactive'}`}
-            onClick={() => handleTabChange(value)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+ return (
+  <div className="mdi flex flex-col h-full">
+    {/* 📌 상단 타이틀 영역 */}
+<div className="shrink-0">
+  <BSN0110M00 />
+</div>
 
-      <div className="tab-panel">
-        {renderTabContent()}
-      </div>
+    {/* 🧩 탭 버튼 영역 */}
+    <div className="tab-container shrink-0">
+      {tabs.map(({ label, value }) => (
+        <button
+          key={value}
+          className={`tab-button ${tab === value ? 'tab-active' : 'tab-inactive'}`}
+          onClick={() => handleTabChange(value)}
+        >
+          {label}
+        </button>
+      ))}
     </div>
-  );
+
+    {/* 🧩 탭 콘텐츠 영역 */}
+    <div className="tab-panel flex-1 overflow-auto">
+      {renderTabContent()}
+    </div>
+  </div>
+);
+
 }

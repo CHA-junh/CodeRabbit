@@ -21,7 +21,7 @@ export default function BSN0110M00() {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   return (
-    <div className="mdi">
+    <div className="">
       {/* 🔷 타이틀 + 버튼 */}
       <div className="tit_area">
         <h3>
@@ -163,23 +163,6 @@ export default function BSN0110M00() {
             </tr>
           </tbody>
         </table>
-      </div>
-
-      {/* 🧩 탭 영역 */}
-      <div className="tab-container">
-        {tabs.map((tab, idx) => (
-          <button
-            key={idx}
-            className={`tab-button ${selectedTab.label === tab.label ? 'tab-active' : 'tab-inactive'}`}
-            onClick={() => setSelectedTab(tab)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="tab-panel">
-        {selectedTab.component}
       </div>
     </div>
   );

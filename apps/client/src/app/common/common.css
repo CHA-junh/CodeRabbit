@@ -523,3 +523,15 @@ body {
 .sub-tab-panel {
   @apply p-4 bg-white;
 }
+
+/* === 우측 정렬 클래스 === */
+.text-right-align {
+	@apply text-right pr-4;
+	text-align: right !important;
+}
+
+/* === 좌측 정렬 클래스 === */
+.text-left-align {
+	@apply text-left pl-4;
+	text-align: left !important;
+}

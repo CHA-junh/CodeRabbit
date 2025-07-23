@@ -221,7 +221,6 @@ export default function MainPage() {
    */
   const handleRowClick = (index: number) => {
     setSelectedRow(index);
-    console.log(rows[index]);
     if (rows[index]) {
       const row = rows[index];
       // ASIS: 폼에 선택된 행 데이터 설정 (검색 조건은 유지)
@@ -405,227 +404,219 @@ export default function MainPage() {
   };
 
   /**
-   * 종료 기능
-   * ASIS: PopUpManager.removePopUp(this)와 동일
+   * 입력 필드 포커스 시 전체 선택
    */
-  const handleClose = () => {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.close();
-    }
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.select();
   };
 
   return (
-    <div className="popup-wrapper">
-      <div className="popup-header">
-        <h3 className="popup-title">등급별단가등록</h3>
-        <button className="popup-close" type="button" onClick={handleClose}>×</button>
+    <div className="mdi">
+      {/* 검색 영역 */}
+      <div className="search-div mb-4">
+        <table className="search-table">
+          <tbody>
+            <tr className="search-tr">
+              <th className="search-th w-[130px]">자사/외주 구분</th>
+              <td className="search-td w-[120px]">
+                <label className="mr-3">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="1"
+                    checked={searchCondition.type === '1'}
+                    onChange={handleSearchConditionChange}
+                    className="mr-1"
+                  />
+                  자사
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="type"
+                    value="2"
+                    checked={searchCondition.type === '2'}
+                    onChange={handleSearchConditionChange}
+                    className="mr-1"
+                  />
+                  외주
+                </label>
+              </td>
+              <th className="search-th w-[80px]">년도</th>
+              <td className="search-td w-[150px]">
+                <select
+                  name="year"
+                  value={searchCondition.year}
+                  onChange={handleSearchConditionChange}
+                  onKeyDown={handleKeyDown}
+                  className="combo-base w-[80px] mr-2"
+                >
+                  {(() => {
+                    const currentYear = new Date().getFullYear();
+                    const years = [];
+                    for (let i = 0; i <= YEAR_RANGE; i++) {
+                      const year = currentYear - i;
+                      years.push(
+                        <option key={year} value={year.toString()}>
+                          {year}
+                        </option>
+                      );
+                    }
+                    return years;
+                  })()}
+                </select>
+              </td>
+              <td className="search-td text-right">
+                <button 
+                  className="btn-base btn-search"
+                  onClick={handleSearch}
+                  disabled={loading}
+                >
+                  {loading ? '조회중...' : '조회'}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div className="popup-body">
-        {/* 검색 영역 */}
-        <div className="search-div mb-4">
-          <table className="search-table table-fixed">
-            <tbody>
-              <tr className="search-tr">
-                {/* 자사/외주 구분 - ASIS: rdIODiv (RadioButtonGroup) */}
-                <th className="search-th w-[130px]">자사/외주 구분</th>
-                <td className="search-td w-[120px]">
-                  <label className="mr-3">
-                    <input
-                      type="radio"
-                      name="type"
-                      value="1"
-                      checked={searchCondition.type === '1'}
-                      onChange={handleSearchConditionChange}
-                      className="mr-1"
-                    />
-                    자사
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="type"
-                      value="2"
-                      checked={searchCondition.type === '2'}
-                      onChange={handleSearchConditionChange}
-                      className="mr-1"
-                    />
-                    외주
-                  </label>
-                </td>
-                {/* 년도 입력 - ASIS: txtYrNm (FInputNumber) */}
-                <th className="search-th w-[80px]">년도</th>
-                <td className="search-td w-[150px]">
-                  <select
-                    name="year"
-                    value={searchCondition.year}
-                    onChange={handleSearchConditionChange}
-                    onKeyDown={handleKeyDown}
-                    className="input-base input-default w-[80px] mr-2"
-                  >
-                    {(() => {
-                      const currentYear = new Date().getFullYear();
-                      const years = [];
-                      for (let i = 0; i <= YEAR_RANGE; i++) {
-                        const year = currentYear - i;
-                        years.push(
-                          <option key={year} value={year.toString()}>
-                            {year}
-                          </option>
-                        );
-                      }
-                      return years;
-                    })()}
-                  </select>
-                </td>
-                {/* 조회 버튼 - ASIS: 조회 버튼 */}
-                <td className="search-td text-right">
-                  <button 
-                    className="btn-base btn-search"
-                    onClick={handleSearch}
-                    disabled={loading}
-                  >
-                    {loading ? '조회중...' : '조회'}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      {/* 그리드 영역 */}
+      <div className="gridbox-div mb-4" style={{ height: '400px' }}>
+        {loading && (
+          <div className="flex items-center justify-center h-32 text-gray-500">
+            단가 목록을 불러오는 중...
+          </div>
+        )}
+        {!loading && (
+          <>
+            {/* 고정 헤더 */}
+            <div className="grid-header-container">
+              <table className="grid-table w-full">
+                <thead>
+                  <tr>
+                    <th className="grid-th w-[120px]">등급</th>
+                    <th className="grid-th w-[120px]">직책</th>
+                    <th className="grid-th w-[150px]">단가</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
 
-        {/* 그리드 영역 - ASIS: grdUntPrc (AdvancedDataGrid) */}
-        <div className="gridbox-div mb-4">
-          <div className="grid-scroll">
-            <table className="grid-table">
-              <thead>
-                <tr>
-                  <th className="grid-th w-[120px]">등급</th>
-                  <th className="grid-th w-[120px]">직책</th>
-                  <th className="grid-th w-[150px]">단가</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, index) => {
-                  console.log(`행 ${index} 데이터:`, row);
-                  return (
+            {/* 스크롤 가능한 데이터 영역 */}
+            <div className="grid-data-container">
+              <table className="grid-table w-full">
+                <tbody>
+                  {rows.map((row, index) => (
                     <tr 
                       key={index} 
-                      className={`grid-tr cursor-pointer ${selectedRow === index ? 'bg-blue-50' : ''}`}
+                      className={`grid-tr cursor-pointer ${selectedRow === index ? 'selected' : ''}`}
                       onClick={() => handleRowClick(index)}
                       data-own-outs-div={row.OWN_OUTS_DIV}
                       data-year={row.YR}
                     >
-                      <td className="grid-td">{row.TCN_GRD_NM}</td>
-                      <td className="grid-td">{row.DUTY_NM}</td>
-                      {/* ASIS: moneyFormat 적용 */}
-                      <td className="grid-td text-right pr-4">
+                      <td className="grid-td w-[120px]">{row.TCN_GRD_NM}</td>
+                      <td className="grid-td w-[120px]">{row.DUTY_NM}</td>
+                      <td className="grid-td w-[150px] text-right-align">
                         {parseInt(row.UPRC).toLocaleString()}
                       </td>
                     </tr>
-                  );
-                })}
-                {rows.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="grid-td text-center text-gray-500">
-                      {loading ? '조회 중...' : '조회 버튼을 클릭하여 데이터를 조회하세요.'}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                  ))}
+                  {rows.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="grid-td text-center text-gray-500">
+                        {loading ? '조회 중...' : '조회 버튼을 클릭하여 데이터를 조회하세요.'}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
 
-        {/* 등록 영역 - ASIS: 하단 입력 폼 영역 */}
-        <div className="mb-3">
-          <table className="form-table mb-4">
-            <tbody>
-              <tr className="form-tr">
-                {/* 기술등급 선택 - ASIS: cbTcnGrd (COM_03_0100) */}
-                <th className="form-th w-[80px]">등급</th>
-                <td className="form-td w-[180px]">
-                  <select
-                    name="grade"
-                    value={formData.grade}
+      {/* 등록 영역 */}
+      <div className="mb-3">
+        <table className="form-table mb-4">
+          <tbody>
+            <tr className="form-tr">
+              <th className="form-th w-[80px]">등급</th>
+              <td className="form-td w-[180px]">
+                <select
+                  name="grade"
+                  value={formData.grade}
+                  onChange={handleChange}
+                  className="combo-base w-full"
+                >
+                  <option value="">선택</option>
+                  {gradeOptions.map((option) => (
+                    <option key={option.codeId} value={option.codeId}>
+                      {option.codeNm}
+                    </option>
+                  ))}
+                </select>
+              </td>
+
+              <th className="form-th w-[80px]">직책</th>
+              <td className="form-td w-[180px]">
+                <select
+                  name="position"
+                  value={formData.position}
+                  onChange={handleChange}
+                  className="combo-base w-full"
+                >
+                  <option value="">선택</option>
+                  {positionOptions.map((option) => (
+                    <option key={option.codeId} value={option.codeId}>
+                      {option.codeNm}
+                    </option>
+                  ))}
+                </select>
+              </td>
+
+              <th className="form-th w-[80px]">단가</th>
+              <td className="form-td w-[180px]">
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price}
                     onChange={handleChange}
-                    className="input-base input-default w-full"
-                  >
-                    <option value="">선택</option>
-                    {gradeOptions.map((option) => (
-                      <option key={option.codeId} value={option.codeId}>
-                        {option.codeNm}
-                      </option>
-                    ))}
-                  </select>
-                </td>
+                    onFocus={handleFocus}
+                    className="input-base input-default w-full text-right-align"
+                    placeholder="0"
+                  />
+                  <span className="m-1">원</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-                {/* 직책 선택 - ASIS: cbDutyCd (COM_03_0100) */}
-                <th className="form-th w-[80px]">직책</th>
-                <td className="form-td w-[180px]">
-                  <select
-                    name="position"
-                    value={formData.position}
-                    onChange={handleChange}
-                    className="input-base input-default w-full"
-                  >
-                    <option value="">선택</option>
-                    {positionOptions.map((option) => (
-                      <option key={option.codeId} value={option.codeId}>
-                        {option.codeNm}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-
-                {/* 단가 입력 - ASIS: txtUnitPrice (FInputCurrency) */}
-                <th className="form-th w-[80px]">단가</th>
-                <td className="form-td w-[180px]">
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleChange}
-                      className="input-base input-default w-full"
-                      placeholder="0"
-                    />
-                    <span className="m-1">원</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* 버튼 영역 - ASIS: 하단 버튼 영역 */}
-        <div className="flex justify-end gap-2">
-          {/* 삭제 버튼 - ASIS: 삭제 버튼 */}
-          <button 
-            className="btn-base btn-delete"
-            onClick={handleDelete}
-            disabled={loading}
-          >
-            삭제
-          </button>
-          {/* 저장 버튼 - ASIS: 저장 버튼 */}
-          <button 
-            className="btn-base btn-act"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            저장
-          </button>
-          {/* 종료 버튼 - ASIS: 종료 버튼 */}
-          <button 
-            className="btn-base btn-delete"
-            onClick={handleClose}
-            disabled={loading}
-          >
-            종료
-          </button>
-        </div>
+      {/* 버튼 영역 */}
+      <div className="flex justify-end gap-2">
+        <button 
+          className="btn-base btn-delete"
+          onClick={handleDelete}
+          disabled={loading}
+        >
+          삭제
+        </button>
+        <button 
+          className="btn-base btn-act"
+          onClick={handleSave}
+          disabled={loading}
+        >
+          저장
+        </button>
+        <button 
+          className="btn-base btn-delete"
+          onClick={() => window.history.back()}
+          disabled={loading}
+        >
+          종료
+        </button>
       </div>
     </div>
   );
