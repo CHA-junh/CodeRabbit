@@ -1,41 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator'
 
-/**
- * 단가 검색 파라미터 타입
- */
-export class UnitPriceSearchParams {
-  @ApiProperty({ 
-    required: true, 
-    description: '내부/외부 구분 (필수) - 1: 자사, 2: 외주', 
-    default: '1',
-    example: '1',
-    type: String
-  })
-  @IsString()
-  @IsNotEmpty({ message: '내부/외부 구분은 필수입니다.' })
-  ownOutsDiv: string = '1'
 
-  @ApiProperty({ 
-    required: true, 
-    description: '년도 (필수) - 검색할 년도를 입력하세요 (예: 2024)', 
-    default: '',
-    example: '2024',
-    type: String
-  })
-  @IsString()
-  @IsNotEmpty({ message: '년도는 필수입니다.' })
-  year: string = ''
-
-  @ApiProperty({ 
-    required: false, 
-    description: '사업자번호 (선택) - 특정 사업자의 단가만 검색할 때 사용', 
-    default: '' 
-  })
-  @IsOptional()
-  @IsString()
-  bsnNo?: string = ''
-}
 
 /**
  * 단가 저장 파라미터 타입
@@ -123,7 +89,7 @@ export class UnitPriceDeleteParams {
     required: true, 
     description: '기술등급 (필수) - 삭제할 단가의 기술등급', 
     default: '',
-    example: 'SENIOR',
+    example: '1',
     type: String
   })
   @IsString()
@@ -134,7 +100,7 @@ export class UnitPriceDeleteParams {
     required: true, 
     description: '직무코드 (필수) - 삭제할 단가의 직무코드', 
     default: '',
-    example: 'DEV',
+    example: '9',
     type: String
   })
   @IsString()
@@ -168,16 +134,4 @@ export class ProcedureInfoDto {
   originalCommentLines: string[]
 }
 
-/**
- * 단가 검색 응답 DTO
- */
-export class UnitPriceSearchResponseDto {
-  @ApiProperty({ description: '단가 목록', type: [Object] })
-  data: UnitPrice[]
-
-  @ApiProperty({ description: '프로시저 정보', type: ProcedureInfoDto })
-  procedureInfo: ProcedureInfoDto
-
-  @ApiProperty({ description: '총 개수' })
-  totalCount: number
-} 
+ 

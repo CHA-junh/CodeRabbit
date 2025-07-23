@@ -1,8 +1,8 @@
 import { Controller, Post, Body, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiResponse, ApiBody, ApiTags } from '@nestjs/swagger';
-import { EmployeeService } from './employee.service';
-import { EmployeeSearchRequestDto, EmployeeSearchResponseDto } from './dto/employee.dto';
+import { COMZ080P00Service } from './COMZ080P00.service';
+import { EmployeeSearchRequestDto, EmployeeSearchResponseDto } from './dto/COMZ080P00.dto';
 
 // express-session 타입 확장
 interface RequestWithSession extends Request {
@@ -10,9 +10,9 @@ interface RequestWithSession extends Request {
 }
 
 @ApiTags('직원 관리')
-@Controller('employee')
-export class EmployeeController {
-  constructor(private readonly employeeService: EmployeeService) {}
+@Controller('COMZ080P00')
+export class COMZ080P00Controller {
+  constructor(private readonly employeeService: COMZ080P00Service) {}
 
   @Post('search')
   @ApiOperation({ 
