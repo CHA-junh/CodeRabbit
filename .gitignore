@@ -48,4 +48,7 @@ temp/
 *.dmp
 
 # TypeScript
-*.tsbuildinfo 
+*.tsbuildinfo
+
+# Designs folder (moved to project root)
+designs/ 
