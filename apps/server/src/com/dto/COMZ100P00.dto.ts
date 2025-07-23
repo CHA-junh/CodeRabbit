@@ -16,11 +16,31 @@ export class ProcedureInfoDto {
  * 사용자 정보 타입
  */
 export interface User {
-  USR_ID: string
-  USR_NM: string
-  HQ_DIV: string
-  DEPT_DIV: string
-  USE_YN: string
+  // 실제 DB 컬럼들
+  EMP_NO: string
+  EMP_NM: string
+  HQ_DIV_CD: string
+  HQ_DIV_NM: string
+  DEPT_DIV_CD: string
+  DEPT_DIV_NM: string
+  DUTY_CD: string
+  DUTY_NM: string
+  AUTH_CD: string
+  AUTH_CD_NM: string
+  BSN_USE_YN: string
+  WPC_USE_YN: string
+  PSM_USE_YN: string
+  EMAIL_ADDR: string
+  APV_APOF_ID: string
+  DUTY_DIV_CD: string
+  DUTY_DIV_CD_NM: string
+  OWN_OUTS_DIV: string
+  ENTR_NO: string
+  ENTR_DT: string
+  RETIR_DT: string
+  WMAIL_YN: string
+  WRK_CNT: string
+  LAST_WRK: string
   [key: string]: any
 }
 

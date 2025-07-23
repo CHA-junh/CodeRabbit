@@ -8,11 +8,11 @@ const TopBar = () => {
 	console.log('🔍 TopBar - 사용자 정보:', user)
 	console.log('🔍 TopBar - 사용자 정보 상세:', {
 		userId: user?.userId,
-		userName: user?.userName,
-		deptNm: user?.deptNm,
-		dutyNm: user?.dutyNm,
-		deptCd: user?.deptCd,
-		dutyCd: user?.dutyCd,
+		name: user?.name,
+		department: user?.department,
+		position: user?.position,
+		empNo: user?.empNo,
+		email: user?.email,
 	})
 	console.log('🔍 TopBar - department:', user?.department)
 	console.log('🔍 TopBar - name:', user?.name)

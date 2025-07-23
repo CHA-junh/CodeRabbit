@@ -6,6 +6,24 @@ const nextConfig = {
 		optimizePackageImports: [],
 	},
 
+	// designs 폴더 빌드 제외 설정 (프로젝트 루트로 이동됨)
+	webpack: (config, { isServer }) => {
+		// designs 폴더의 모든 파일을 빌드에서 제외
+		config.resolve.alias = {
+			...config.resolve.alias,
+			'@/designs': false,
+			designs: false,
+		}
+
+		// designs 폴더의 모든 파일을 무시 (프로젝트 루트 기준)
+		config.module.rules.push({
+			test: /[\\/]designs[\\/].*\.(tsx|ts|jsx|js)$/,
+			use: 'ignore-loader',
+		})
+
+		return config
+	},
+
 	// API 프록시 설정 및 designs 폴더 제외
 	async rewrites() {
 		return [

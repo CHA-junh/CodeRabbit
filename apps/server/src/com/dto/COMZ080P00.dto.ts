@@ -56,20 +56,77 @@ export class EmployeeSearchRequestDto {
  * 직원 정보 DTO (Entity와 매핑)
  */
 export class EmployeeDto {
-  @ApiProperty({ description: '사원번호' })
-  EMP_NO: string;
+  @ApiProperty({ description: '목록 번호' })
+  LIST_NO: string;
 
-  @ApiProperty({ description: '사원명' })
+  @ApiProperty({ description: '자사/외주 구분명' })
+  OWN_OUTS_NM: string;
+
+  @ApiProperty({ description: '직원명' })
   EMP_NM: string;
 
-  @ApiProperty({ description: '내부/외부 구분' })
+  @ApiProperty({ description: '직원번호' })
+  EMP_NO: string;
+
+  @ApiProperty({ description: '직책 코드명' })
+  DUTY_CD_NM: string;
+
+  @ApiProperty({ description: '기술등급명' })
+  TCN_GRD_NM: string;
+
+  @ApiProperty({ description: '소속명' })
+  PARTY_NM: string;
+
+  @ApiProperty({ description: '입사일' })
+  ENTR_DT: string;
+
+  @ApiProperty({ description: '투입시작일' })
+  EXEC_IN_STRT_DT: string;
+
+  @ApiProperty({ description: '투입종료일' })
+  EXEC_IN_END_DT: string;
+
+  @ApiProperty({ description: '상태명' })
+  WKG_ST_DIV_NM: string;
+
+  @ApiProperty({ description: '투입중 프로젝트' })
+  EXEC_ING_BSN_NM: string;
+
+  @ApiProperty({ description: '본부구분코드' })
+  HQ_DIV_CD: string;
+
+  @ApiProperty({ description: '부서구분코드' })
+  DEPT_DIV_CD: string;
+
+  @ApiProperty({ description: '소속코드' })
+  CSF_CO_CD: string;
+
+  @ApiProperty({ description: '상태코드' })
+  WKG_ST_DIV: string;
+
+  @ApiProperty({ description: '투입중유무' })
+  EXEC_ING_YN: string;
+
+  @ApiProperty({ description: '구분코드' })
   OWN_OUTS_DIV: string;
 
-  @ApiProperty({ description: '퇴직 여부' })
-  RETIR_YN: string;
+  @ApiProperty({ description: '외주배정유무' })
+  OUTS_FIX_YN: string;
 
-  @ApiProperty({ description: '부서 코드' })
-  DEPT_CD: string;
+  @ApiProperty({ description: '외주배정확정일자' })
+  IN_FIX_DT: string;
+
+  @ApiProperty({ description: '외주배정프로젝트' })
+  IN_FIX_PRJT: string;
+
+  @ApiProperty({ description: '직책코드' })
+  DUTY_CD: string;
+
+  @ApiProperty({ description: '투입인력직책' })
+  DUTY_DIV_CD: string;
+
+  @ApiProperty({ description: '등급코드' })
+  TCN_GRD: string;
 }
 
 /**

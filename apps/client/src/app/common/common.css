@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 시스템 폰트 사용 (OTS 파싱 에러 방지) */
+/* 시스템 폰트 사용 (OTS 파싱 에러 방지)  */
 html,
 body, #__next {
 	font-family:
@@ -327,7 +327,7 @@ body, #__next {
 	position: sticky !important;
 	top: 0 !important;
 	z-index: 10 !important;
-	background-color: #EBF1F6 !important;
+	background-color: #ebf1f6 !important;
 }
 
 /* === thead 내부 th 스타일 === */
@@ -339,8 +339,7 @@ body, #__next {
 	isolation: isolate !important;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
-}  
-
+}
 
 /* === 그리드 데이터 컨테이너 === */
 .grid-data-container {
@@ -544,8 +543,13 @@ body, #__next {
 }
 /* 탭 패널 영역 */
 .sub-tab-panel {
+<<<<<<< HEAD
 	padding: 16px;
   flex: 1;
   overflow-y: auto;
   min-height: 0; /* ⚠️ 중요! flex item 안에서 overflow 작동하려면 필요 */
 }
+=======
+	@apply p-4 bg-white;
+}
+>>>>>>> a9d00991b93165e2b2baeb767ae240975b5aa650
