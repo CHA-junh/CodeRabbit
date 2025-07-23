@@ -1,6 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { AgGridReact } from "ag-grid-react";
+import { ColDef, SelectionChangedEvent } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
@@ -45,6 +49,7 @@ export default function MainPage() {
   });
 
   /**
+   * 
    * 폼 데이터 상태 관리
    * 단가 저장/삭제 시 사용하는 데이터들
    */
@@ -82,6 +87,46 @@ export default function MainPage() {
   const [positionOptions, setPositionOptions] = useState<Array<{codeId: string, codeNm: string}>>([]);
 
   const { showToast, showConfirm } = useToast();
+
+  // AG Grid 관련
+  const gridRef = useRef<AgGridReact<UnitPriceData>>(null);
+
+  // 컬럼 정의
+  const [colDefs] = useState<ColDef[]>([
+    { 
+      headerName: "등급", 
+      field: "TCN_GRD_NM",
+      type: "textColumn",
+      flex: 1,
+      minWidth: 100,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'text-center',
+    },
+    { 
+      headerName: "직책", 
+      field: "DUTY_NM",
+      type: "textColumn",
+      flex: 1,
+      minWidth: 100,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'text-center',
+    },
+    { 
+      headerName: "단가", 
+      field: "UPRC", 
+      type: "numericColumn",
+      flex: 1,
+      minWidth: 100,
+      cellStyle: { textAlign: 'right' },
+      headerClass: 'text-center',
+      valueFormatter: (params) => {
+        if (params.value) {
+          return Number(params.value).toLocaleString() + '원';
+        }
+        return '';
+      }
+    },
+  ]);
 
   /**
    * 컴포넌트 초기화
@@ -410,6 +455,20 @@ export default function MainPage() {
     e.target.select();
   };
 
+  /**
+   * AG Grid 행 선택 핸들러
+   */
+  const onSelectionChanged = (event: SelectionChangedEvent) => {
+    const selectedRows = event.api.getSelectedRows();
+    if (selectedRows.length > 0) {
+      const row = selectedRows[0];
+      setSelectedRow(rows.findIndex(r => r === row));
+      handleRowClick(rows.findIndex(r => r === row));
+    } else {
+      setSelectedRow(-1);
+    }
+  };
+
   return (
     <div className="mdi">
       {/* 검색 영역 */}
@@ -488,50 +547,45 @@ export default function MainPage() {
           </div>
         )}
         {!loading && (
-          <>
-            {/* 고정 헤더 */}
-            <div className="grid-header-container">
-              <table className="grid-table w-full">
-                <thead>
-                  <tr>
-                    <th className="grid-th w-[120px]">등급</th>
-                    <th className="grid-th w-[120px]">직책</th>
-                    <th className="grid-th w-[150px]">단가</th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-
-            {/* 스크롤 가능한 데이터 영역 */}
-            <div className="grid-data-container">
-              <table className="grid-table w-full">
-                <tbody>
-                  {rows.map((row, index) => (
-                    <tr 
-                      key={index} 
-                      className={`grid-tr cursor-pointer ${selectedRow === index ? 'selected' : ''}`}
-                      onClick={() => handleRowClick(index)}
-                      data-own-outs-div={row.OWN_OUTS_DIV}
-                      data-year={row.YR}
-                    >
-                      <td className="grid-td w-[120px]">{row.TCN_GRD_NM}</td>
-                      <td className="grid-td w-[120px]">{row.DUTY_NM}</td>
-                      <td className="grid-td w-[150px] text-right-align">
-                        {parseInt(row.UPRC).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                  {rows.length === 0 && (
-                    <tr>
-                      <td colSpan={3} className="grid-td text-center text-gray-500">
-                        {loading ? '조회 중...' : '조회 버튼을 클릭하여 데이터를 조회하세요.'}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
+          <div 
+            className="ag-theme-alpine w-full h-full"
+            style={{
+              height: '100%',
+              width: '100%',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              overflow: 'hidden'
+            }}
+          >
+            <AgGridReact
+              ref={gridRef}
+              rowData={rows}
+              columnDefs={colDefs}
+              defaultColDef={{
+                resizable: true,
+                sortable: true,
+                filter: true,
+                suppressSizeToFit: false,
+              }}
+              rowSelection='single'
+              onSelectionChanged={onSelectionChanged}
+              getRowId={(params) => params.data.OWN_OUTS_DIV + params.data.YR + params.data.TCN_GRD + params.data.DUTY_CD}
+              domLayout="normal"
+              onGridReady={(params) => {
+                params.api.sizeColumnsToFit();
+              }}
+              // 커스텀 헤더 컴포넌트 - 모든 헤더를 가운데 정렬 (임시 스타일)
+              components={{
+                agColumnHeader: (props: { displayName: string }) => {
+                  return (
+                    <div style={{ textAlign: 'center', width: '100%' }}>
+                      {props.displayName}
+                    </div>
+                  );
+                }
+              }}
+            />
+          </div>
         )}
       </div>
 

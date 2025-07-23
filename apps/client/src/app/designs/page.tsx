@@ -4,12 +4,12 @@ import React, { useState } from 'react'
 import MenuTree from './menu'
 import COM0070M00 from './COM0070M00' // 좌측 아이콘바
 import COM0010M00 from './COM0010M00' // 상단 헤더
-import TabFrame from './MainTab' // 탭 프레임
+import TabFrame from './maintab' // 탭 프레임
 import ContentFrame from '../mainframe/ContentFrame' // 콘텐츠 프레임
 import PageTitle from './PageTitle' // ✅ 타이틀 컴포넌트 추가
 import './common.css'
 import BSN0100M00 from './BSN0100M00';
-import BSN0610M00 from './BSN0610M00';
+import BSN0670M00 from './BSN0670M00';
 import BSN0540M00 from './BSN0540M00';
 
 export default function MainLayout() {
@@ -56,7 +56,7 @@ export default function MainLayout() {
 
 					{/* 콘텐츠 프레임 */}
 					<div className='flex-1 overflow-auto pt-0 p-4'>
-						<BSN0610M00 selectedTab={selectedTab.title} />
+						<BSN0670M00 selectedTab={selectedTab.title} />
 					</div>
 				</div>
 			</div>

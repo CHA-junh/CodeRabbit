@@ -322,11 +322,20 @@ body {
 .grid-table thead th {
 	border: 1px solid #ccc !important; /* 원본과 동일한 border 스타일 */
 	border-top: none !important;
-	border-left: none !important;
-	border-right: none !important;
-	background-color: #EBF1F6 !important;
-	position: relative !important; /* 가상 요소를 위한 상대 위치 */
-	z-index: 12 !important; /* 높은 z-index */
+	transform: translateZ(0) !important;
+	isolation: isolate !important;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
+}  
+
+
+/* === 그리드 데이터 컨테이너 === */
+.grid-data-container {
+	height: calc(100% - 40px) !important;
+	overflow: auto !important;
+	position: relative !important;
+	z-index: 0 !important;
+	/*padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
 }
 
 /* === 헤더 셀들 사이의 세로 테두리 유지 === */
@@ -505,43 +514,21 @@ body {
 
 /* 서브 탭 박스 전체 */
 .sub-tab-container {
-  @apply border border-[#ccc] rounded-md;
-}    
+	@apply border border-[#ccc] rounded-md;
+}
 /* 탭 리스트 wrapper */
 .sub-tab-list {
-  @apply flex border-b border-[#ccc] pt-2;
+	@apply flex border-b border-[#ccc] pt-2;
 }
 /* 공통 탭 버튼 스타일 */
 .sub-tab-button {
-  @apply px-4 py-2 text-sm font-semibold text-[#798EA2] hover:text-[#0071DB] transition-all;
+	@apply px-4 py-2 text-sm font-semibold text-[#798EA2] hover:text-[#0071DB] transition-all;
 }
 /* 활성화된 탭 */
 .sub-tab-active {
-  @apply text-[#00509A] border-b border-[#00509A] pb-[7px];
+	@apply text-[#00509A] border-b border-[#00509A] pb-[7px];
 }
 /* 탭 패널 영역 */
 .sub-tab-panel {
-  @apply p-4 bg-white;
-}
-
-/* === 우측 정렬 클래스 === */
-.text-right-align {
-	@apply text-right pr-4;
-	text-align: right !important;
-}
-
-/* === 좌측 정렬 클래스 === */
-.text-left-align {
-	@apply text-left pl-4;
-	text-align: left !important;
-}
-
-/* === ag-grid 헤더 가운데 정렬 === */
-.ag-center-header .ag-header-cell-text {
-	text-align: center !important;
-	justify-content: center !important;
-}
-
-.ag-center-header .ag-header-cell-label {
-	justify-content: center !important;
+	@apply p-4 bg-white;
 }
