@@ -11,13 +11,13 @@ import '@/app/common/common.css'
 
 /**
  * COMZ010M00 - 시스템코드관리 화면
- * 
+ *
  * 주요 기능:
  * - 대분류 코드 관리 (등록/수정/삭제)
  * - 소분류 코드 관리 (등록/수정/삭제)
  * - 코드 중복 체크 및 유효성 검증
  * - 권한별 접근 제어
- * 
+ *
  * 연관 테이블:
  * - TBL_LRG_CSF_CD (대분류 코드)
  * - TBL_SML_CSF_CD (소분류 코드)
@@ -163,8 +163,10 @@ const COMZ010M00Page = () => {
 	const [smallForm, setSmallForm] = useState<SmallCode>(defaultSmallCode)
 
 	// 원본 데이터 저장 (변경사항 체크용)
-	const [originalLargeForm, setOriginalLargeForm] = useState<LargeCode>(defaultLargeCode)
-	const [originalSmallForm, setOriginalSmallForm] = useState<SmallCode>(defaultSmallCode)
+	const [originalLargeForm, setOriginalLargeForm] =
+		useState<LargeCode>(defaultLargeCode)
+	const [originalSmallForm, setOriginalSmallForm] =
+		useState<SmallCode>(defaultSmallCode)
 
 	// 로딩/에러 상태
 	const [loading, setLoading] = useState(false)
@@ -274,15 +276,15 @@ const COMZ010M00Page = () => {
 		setLargeForm(row)
 		setOriginalLargeForm(row) // 원본 데이터 저장
 		fetchSmallCodes(row.lrgCsfCd)
-		
+
 		// 소분류코드 등록폼에 선택한 대분류코드 기입
 		setSmallForm((prev) => ({
 			...prev,
-			lrgCsfCd: row.lrgCsfCd
+			lrgCsfCd: row.lrgCsfCd,
 		}))
 		setOriginalSmallForm((prev) => ({
 			...prev,
-			lrgCsfCd: row.lrgCsfCd
+			lrgCsfCd: row.lrgCsfCd,
 		}))
 	}
 
@@ -347,12 +349,12 @@ const COMZ010M00Page = () => {
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
 		const { name, value } = e.target
-		
+
 		// 입력값 검증
 		if (!validateInput(name, value)) {
 			return
 		}
-		
+
 		setLargeForm((prev) => ({ ...prev, [name]: value }))
 	}
 
@@ -374,7 +376,11 @@ const COMZ010M00Page = () => {
 	// 대분류 저장(등록/수정)
 	const handleLargeSave = async () => {
 		// 모든 필수값이 비어있는지 체크
-		if (!largeForm.lrgCsfCd.trim() && !largeForm.lrgCsfNm.trim() && !largeForm.expl.trim()) {
+		if (
+			!largeForm.lrgCsfCd.trim() &&
+			!largeForm.lrgCsfNm.trim() &&
+			!largeForm.expl.trim()
+		) {
 			showToast('대분류코드 와 대분류명을 입력하세요.', 'warning')
 			setTimeout(() => {
 				document
@@ -466,7 +472,7 @@ const COMZ010M00Page = () => {
 			showToast('삭제할 대분류코드를 그리드에서 선택하세요.', 'warning')
 			return
 		}
-		
+
 		showConfirm({
 			message: '정말 삭제하시겠습니까?',
 			type: 'warning',
@@ -501,7 +507,7 @@ const COMZ010M00Page = () => {
 				} finally {
 					setLoading(false)
 				}
-			}
+			},
 		})
 	}
 
@@ -516,15 +522,15 @@ const COMZ010M00Page = () => {
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
 		const { name, value } = e.target
-		
+
 		// 입력값 검증
 		if (!validateInput(name, value)) {
 			return
 		}
-		
+
 		// smallFormLrgCsfCd를 lrgCsfCd로 매핑
 		const fieldName = name === 'smallFormLrgCsfCd' ? 'lrgCsfCd' : name
-		
+
 		setSmallForm((prev) => ({ ...prev, [fieldName]: value }))
 	}
 
@@ -546,7 +552,11 @@ const COMZ010M00Page = () => {
 	// 소분류 저장(등록/수정)
 	const handleSmallSave = async () => {
 		// 모든 필수값이 비어있는지 체크
-		if (!smallForm.smlCsfCd.trim() && !smallForm.smlCsfNm.trim() && !smallForm.expl.trim()) {
+		if (
+			!smallForm.smlCsfCd.trim() &&
+			!smallForm.smlCsfNm.trim() &&
+			!smallForm.expl.trim()
+		) {
 			showToast('소분류코드와 소분류명을 입력하세요.', 'warning')
 			setTimeout(() => {
 				document
@@ -589,7 +599,10 @@ const COMZ010M00Page = () => {
 			showToast('대분류코드를 선택하세요.', 'error')
 			setTimeout(() => {
 				// 소분류코드 등록폼의 대분류코드 필드로 포커스
-				const smallFormLargeCodeInput = document.querySelector<HTMLInputElement>('input[name="smallFormLrgCsfCd"]')
+				const smallFormLargeCodeInput =
+					document.querySelector<HTMLInputElement>(
+						'input[name="smallFormLrgCsfCd"]'
+					)
 				if (smallFormLargeCodeInput) {
 					smallFormLargeCodeInput.focus()
 				}
@@ -598,13 +611,18 @@ const COMZ010M00Page = () => {
 		}
 
 		// 대분류코드가 기존에 존재하는지 체크
-		const largeCodeExists = largeCodes.some((item) => item.lrgCsfCd === smallForm.lrgCsfCd.trim())
+		const largeCodeExists = largeCodes.some(
+			(item) => item.lrgCsfCd === smallForm.lrgCsfCd.trim()
+		)
 		if (!largeCodeExists) {
 			setError('대분류코드를 먼저 등록하세요.')
 			showToast('대분류코드를 먼저 등록하세요.', 'error')
 			setTimeout(() => {
 				// 소분류코드 등록폼의 대분류코드 필드로 포커스
-				const smallFormLargeCodeInput = document.querySelector<HTMLInputElement>('input[name="smallFormLrgCsfCd"]')
+				const smallFormLargeCodeInput =
+					document.querySelector<HTMLInputElement>(
+						'input[name="smallFormLrgCsfCd"]'
+					)
 				if (smallFormLargeCodeInput) {
 					smallFormLargeCodeInput.focus()
 				}
@@ -680,16 +698,18 @@ const COMZ010M00Page = () => {
 			showToast('삭제할 소분류코드를 그리드에서 선택하세요.', 'warning')
 			return
 		}
-		
+
 		// 선택된 소분류코드가 실제로 존재하는지 확인
 		const selectedSmallCode = smallCodes.find(
-			(item) => item.smlCsfCd === smallForm.smlCsfCd && item.lrgCsfCd === smallForm.lrgCsfCd
+			(item) =>
+				item.smlCsfCd === smallForm.smlCsfCd &&
+				item.lrgCsfCd === smallForm.lrgCsfCd
 		)
 		if (!selectedSmallCode) {
 			showToast('삭제할 소분류코드를 그리드에서 선택하세요.', 'warning')
 			return
 		}
-		
+
 		showConfirm({
 			message: '정말 삭제하시겠습니까?',
 			type: 'warning',
@@ -697,7 +717,10 @@ const COMZ010M00Page = () => {
 				setLoading(true)
 				setError(null)
 				try {
-					const param = [selectedSmallCode.lrgCsfCd, selectedSmallCode.smlCsfCd].join('|')
+					const param = [
+						selectedSmallCode.lrgCsfCd,
+						selectedSmallCode.smlCsfCd,
+					].join('|')
 					const res = await fetch(apiUrl + '/delete', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
@@ -722,19 +745,19 @@ const COMZ010M00Page = () => {
 				} finally {
 					setLoading(false)
 				}
-			}
+			},
 		})
 	}
 
 	// 대분류 코드 입력 시 실시간 중복 체크
 	const handleLargeCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target
-		
+
 		// 입력값 검증
 		if (!validateInput(name, value)) {
 			return
 		}
-		
+
 		setLargeForm((prev) => ({ ...prev, [name]: value }))
 		if (name === 'lrgCsfCd' && isLargeCodeDuplicate(value)) {
 			setError('이미 존재하는 대분류코드입니다.')
@@ -745,12 +768,12 @@ const COMZ010M00Page = () => {
 	// 소분류 코드 입력 시 실시간 중복 체크
 	const handleSmallCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target
-		
+
 		// 입력값 검증
 		if (!validateInput(name, value)) {
 			return
 		}
-		
+
 		setSmallForm((prev) => ({ ...prev, [name]: value }))
 		if (name === 'smlCsfCd' && isSmallCodeDuplicate(value)) {
 			setError('이미 존재하는 소분류코드입니다.')
@@ -842,7 +865,10 @@ const COMZ010M00Page = () => {
 			<div className='flex gap-4'>
 				{/* 대분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='ag-theme-alpine' style={{ height: 400, width: "100%" }}>
+					<div
+						className='ag-theme-alpine'
+						style={{ height: 400, width: '100%' }}
+					>
 						<AgGridReact
 							ref={largeCodeGridRef}
 							rowData={largeCodes}
@@ -857,9 +883,10 @@ const COMZ010M00Page = () => {
 								handleLargeRowDoubleClick(event.data)
 							}}
 							onGridReady={onLargeGridReady}
+							suppressCellFocus={true}
 							components={{
 								agColumnHeader: (props: any) => (
-									<div style={{ textAlign: "center", width: "100%" }}>
+									<div style={{ textAlign: 'center', width: '100%' }}>
 										{props.displayName}
 									</div>
 								),
@@ -978,7 +1005,10 @@ const COMZ010M00Page = () => {
 				</div>
 				{/* 소분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='ag-theme-alpine' style={{ height: 400, width: "100%" }}>
+					<div
+						className='ag-theme-alpine'
+						style={{ height: 400, width: '100%' }}
+					>
 						<AgGridReact
 							ref={smallCodeGridRef}
 							rowData={smallCodes}
@@ -993,9 +1023,10 @@ const COMZ010M00Page = () => {
 								handleSmallRowDoubleClick(event.data)
 							}}
 							onGridReady={onSmallGridReady}
+							suppressCellFocus={true}
 							components={{
 								agColumnHeader: (props: any) => (
-									<div style={{ textAlign: "center", width: "100%" }}>
+									<div style={{ textAlign: 'center', width: '100%' }}>
 										{props.displayName}
 									</div>
 								),
