@@ -18,14 +18,7 @@ async function bootstrap() {
   });
 
   // DB 커넥션 풀 초기화 (운영/개발 모두)
-  try {
-    const oracleService = app.get(OracleService);
-    await oracleService.onModuleInit();
-    console.log('✅ Oracle 커넥션 풀 초기화 성공');
-  } catch (err) {
-    console.error('❌ Oracle 커넥션 풀 초기화 실패:', err);
-    process.exit(1); // 운영처럼 장애 감지 시 즉시 종료
-  }
+  // (NestJS 라이프사이클에 맡기므로 직접 호출하지 않음)
 
   // 🔒 보안 헤더 설정 (Helmet)
   app.use(
@@ -116,16 +109,32 @@ async function bootstrap() {
     },
   });
 
-  // 🔒 보안 강화된 CORS 설정
-  app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+  // 🔒 보안 강화된 CORS 설정 (로컬/개발계 모두 지원)
+  let allowedOrigins: string[] = [];
+  if (process.env.ALLOWED_ORIGINS) {
+    allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map((origin) =>
+      origin.trim(),
+    );
+  } else {
+    // 환경변수 없으면 기본값: 로컬, 개발계 IP
+    allowedOrigins = [
       'http://localhost:3000',
-    ],
+      'http://127.0.0.1:3000',
+      'http://172.20.30.176:3000',
+    ];
+  }
+  console.log('🔓 CORS 허용 Origin:', allowedOrigins);
+
+  app.enableCors({
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['X-Total-Count'],
   });
+
+  // 서버 부팅 시점에 OracleService 인스턴스 강제 생성 (onModuleInit은 NestJS가 자동 호출)
+  app.get(OracleService);
 
   const port = process.env.PORT || 8080;
   await app.listen(port);

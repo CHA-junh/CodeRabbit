@@ -52,11 +52,9 @@ import { TblSmlCsfCd } from '../entities/tbl-sml-csf-cd.entity';
 import { CodeService } from '../com/code.service';
 import { OracleService } from '../database/database.provider';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
-import { DatabaseModule } from '../database/database.module';
 
 @Module({
   imports: [
-    DatabaseModule,
     // TypeORM 엔티티 등록
     TypeOrmModule.forFeature([
       User, // 사용자 기본 정보 (로그인, 비밀번호 등)

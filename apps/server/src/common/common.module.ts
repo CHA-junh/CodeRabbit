@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
 import { CommonController } from './common.controller';
 import { CommonService } from './common.service';
-import { DatabaseModule } from '../database/database.module';
+// import { DatabaseModule } from '../database/database.module'; // 제거
 
 /**
  * Common 모듈
@@ -46,7 +46,10 @@ import { DatabaseModule } from '../database/database.module';
  * ```
  */
 @Module({
-  imports: [DatabaseModule],
+  imports: [
+    // DatabaseModule, // 제거
+    // ... 기존 imports 유지
+  ],
   controllers: [CommonController],
   providers: [ProcedureDbParser, CommonService],
   exports: [CommonService],

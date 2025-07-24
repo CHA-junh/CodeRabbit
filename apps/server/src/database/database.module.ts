@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OracleService } from './database.provider';
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({

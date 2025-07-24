@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
-import { DatabaseModule } from '../database/database.module';
+// import { DatabaseModule } from '../database/database.module'; // 제거
 
 // COM 관련 컨트롤러들
 import { COMZ080P00Controller } from './COMZ080P00.controller';
@@ -56,7 +56,10 @@ import { COMZ060P00Service } from './COMZ060P00.service';
  * - COMZ060P00Service: 부서번호검색 비즈니스 로직
  */
 @Module({
-  imports: [DatabaseModule],
+  imports: [
+    // DatabaseModule, // 제거
+    // ... 기존 imports 유지
+  ],
   controllers: [
     COMZ080P00Controller,
     COMZ100P00Controller,
