@@ -76,6 +76,7 @@ const COMZ010M00Page = () => {
 			field: 'lrgCsfCd',
 			width: 120,
 			flex: 0,
+			sortable: false,
 			cellStyle: { textAlign: 'center' },
 			headerClass: 'ag-center-header',
 		},
@@ -84,6 +85,7 @@ const COMZ010M00Page = () => {
 			field: 'lrgCsfNm',
 			width: 180,
 			flex: 1,
+			sortable: false,
 			cellStyle: { textAlign: 'left' },
 			headerClass: 'ag-center-header',
 		},
@@ -111,6 +113,7 @@ const COMZ010M00Page = () => {
 			field: 'smlCsfCd',
 			width: 120,
 			flex: 0,
+			sortable: false,
 			cellStyle: { textAlign: 'center' },
 			headerClass: 'ag-center-header',
 		},
@@ -317,10 +320,18 @@ const COMZ010M00Page = () => {
 	// AG-Grid 준비 완료 이벤트
 	const onLargeGridReady = (params: any) => {
 		params.api.sizeColumnsToFit()
+		// 정렬 방지
+		params.columnApi.applyColumnState({
+			defaultState: { sort: null },
+		})
 	}
 
 	const onSmallGridReady = (params: any) => {
 		params.api.sizeColumnsToFit()
+		// 정렬 방지
+		params.columnApi.applyColumnState({
+			defaultState: { sort: null },
+		})
 	}
 
 	// 대분류 행 더블클릭 시 폼 포커스
@@ -883,6 +894,12 @@ const COMZ010M00Page = () => {
 								handleLargeRowDoubleClick(event.data)
 							}}
 							onGridReady={onLargeGridReady}
+							onSortChanged={(event) => {
+								// 정렬 변경 시 원래 순서로 복원
+								event.columnApi.applyColumnState({
+									defaultState: { sort: null },
+								})
+							}}
 							suppressCellFocus={true}
 							suppressRowClickSelection={false}
 							suppressColumnMoveAnimation={true}
@@ -1025,6 +1042,12 @@ const COMZ010M00Page = () => {
 								handleSmallRowDoubleClick(event.data)
 							}}
 							onGridReady={onSmallGridReady}
+							onSortChanged={(event) => {
+								// 정렬 변경 시 원래 순서로 복원
+								event.columnApi.applyColumnState({
+									defaultState: { sort: null },
+								})
+							}}
 							suppressCellFocus={true}
 							suppressRowClickSelection={false}
 							suppressColumnMoveAnimation={true}
