@@ -41,6 +41,15 @@ interface EmpSelectInfo {
 }
 
 /**
+ * postMessage로 받을 데이터 타입
+ */
+interface PostMessageData {
+  type: 'CHOICE_EMP_INIT';
+  strEmpNm: string;
+  empList: EmpInfo[];
+}
+
+/**
  * 컴포넌트 Props 인터페이스
  * ASIS: pubEmpNm, pubOwnOutDiv 변수와 동일한 역할
  */
@@ -100,6 +109,7 @@ const SAMPLE_EMP_DATA: EmpInfo[] = [
  * 5. Escape 키로 모달 닫기
  * 6. 포커스 시 전체 선택
  * 7. Ref를 통한 외부 제어 가능
+ * 8. postMessage로 데이터 수신 및 부모 창으로 결과 전송
  */
 const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({ 
   defaultEmpNm = '', 
@@ -116,6 +126,21 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
   // 입력 필드 참조 (ASIS: txtEmpNm)
   const inputRef = useRef<HTMLInputElement>(null)
   const { showToast } = useToast()
+
+  // 메시지 수신 상태 관리
+  const [messageReceived, setMessageReceived] = useState(false)
+
+  /**
+   * postMessage 이벤트 핸들러
+   * 부모 창(USR2010M00)에서 전송된 choiceEmpInit 데이터를 처리
+   */
+  const handlePostMessage = (event: MessageEvent) => {
+    const data = event.data;
+    if (data?.type === 'CHOICE_EMP_INIT' && data?.data) {
+      choiceEmpInit(data.data.empNm, data.data.empList);
+      setMessageReceived(true);
+    }
+  }
 
   /**
    * init_Complete 함수
@@ -196,6 +221,7 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
    * 직원 더블클릭 처리 함수
    * ASIS: onDoubleClick(idx:int) 함수와 동일한 로직
    * 더블클릭 시 선택된 직원 정보를 부모 컴포넌트로 전달
+   * 팝업 창인 경우 부모 창(USR2010M00)의 handleApproverSelect 함수 호출
    */
   const handleDoubleClick = (emp: EmpInfo) => {
     const selectInfo: EmpSelectInfo = {
@@ -203,8 +229,32 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
       empNm: emp.EMP_NM,      // ASIS: grdEmpList.selectedItem.EMP_NM
       authCd: emp.AUTH_CD,    // ASIS: grdEmpList.selectedItem.AUTH_CD
     }
-    onSelect(selectInfo)      // ASIS: dispatchEvent(evtDblClck)
-    onClose()                 // ASIS: PopUpManager.removePopUp(this)
+
+    // 팝업 창인 경우 부모 창으로 결과 전송
+    if (window.opener && !window.opener.closed) {
+      try {
+        // 부모 창의 handleApproverSelect 함수 호출
+        const messageData = {
+          type: 'EMP_SELECTED',
+          data: selectInfo,
+          source: 'COMZ100P00',
+          timestamp: new Date().toISOString()
+        };
+        
+        window.opener.postMessage(messageData, '*');
+        
+        // 팝업 창 닫기
+        window.close();
+      } catch (error) {
+        // fallback: 로컬 onSelect 콜백 사용
+        onSelect(selectInfo);
+        onClose();
+      }
+    } else {
+      // 일반 모달인 경우 기존 방식 사용
+      onSelect(selectInfo);
+      onClose();
+    }
   }
 
   /**
@@ -221,10 +271,17 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
    * 키보드 이벤트 처리 함수
    * ASIS: 키보드 이벤트 처리와 동일
    * Enter: 검색 실행
+   * Escape: 팝업 닫기
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch()
+    } else if (e.key === 'Escape') {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+      } else {
+        onClose();
+      }
     }
   }
 
@@ -237,12 +294,43 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
   }
 
   /**
-   * 컴포넌트 초기화
-   * ASIS: 키보드 이벤트 처리와 동일
+   * 컴포넌트 초기화 및 메시지 수신 처리
    */
+  const messageListenerRef = useRef<((event: MessageEvent) => void) | null>(null);
+  const isInitializedRef = useRef(false);
+  
   useEffect(() => {
-    init_Complete()
+    // 이미 초기화되었는지 확인
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+    init_Complete();
+    const hasParent = window.opener && !window.opener.closed;
+    if (hasParent) {
+      setTimeout(() => {
+        try {
+          const readyMessage = {
+            type: 'POPUP_READY',
+            source: 'CHILD',
+            timestamp: new Date().toISOString()
+          };
+          window.opener.postMessage(readyMessage, '*');
+        } catch (error) {}
+      }, 100);
+    }
+    const handleMessage = (event: MessageEvent) => {
+      handlePostMessage(event);
+    };
+    messageListenerRef.current = handleMessage;
+    window.addEventListener('message', handleMessage);
+    return () => {
+      if (messageListenerRef.current) {
+        window.removeEventListener('message', messageListenerRef.current);
+        messageListenerRef.current = null;
+      }
+      isInitializedRef.current = false;
+    };
   }, [])
+
 
 
   /**
@@ -250,7 +338,9 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
    * ASIS: choiceEmpInit 함수를 외부에서 호출할 수 있도록 노출
    */
   useImperativeHandle(ref, () => ({
-    choiceEmpInit
+    choiceEmpInit: (strEmpNm: string, empList: EmpInfo[]) => {
+      choiceEmpInit(strEmpNm, empList);
+    }
   }))
 
   return (
@@ -258,11 +348,23 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
       {/* 팝업 헤더 (ASIS: TitleWindow 헤더) */}
       <div className="popup-header">
         <h3 className="popup-title">사용자명 검색</h3>
-        <button className="popup-close" onClick={onClose}>×</button>
+        <button 
+          className="popup-close" 
+          onClick={() => {
+            if (window.opener && !window.opener.closed) {
+              window.close();
+            } else {
+              onClose();
+            }
+          }}
+        >
+          ×
+        </button>
       </div>
 
       {/* 팝업 본문 (ASIS: VBox 영역) */}
       <div className="popup-body scroll-area">
+
         {/* 검색 조건 (ASIS: HBox 검색 영역) */}
         <div className="search-div mb-4">
           <table className="search-table w-full">
@@ -356,7 +458,18 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
 
         {/* 종료 버튼 하단 우측 정렬 (ASIS: btnClose) */}
         <div className="flex justify-end mt-2">
-          <button className="btn-base btn-delete" onClick={onClose}>종료</button>
+          <button 
+            className="btn-base btn-delete" 
+            onClick={() => {
+              if (window.opener && !window.opener.closed) {
+                window.close();
+              } else {
+                onClose();
+              }
+            }}
+          >
+            종료
+          </button>
         </div>
       </div>
     </div>

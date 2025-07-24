@@ -595,23 +595,16 @@ const USR2010M00: React.FC = () => {
 					url: "/popup/com/COMZ100P00",
 					size: "medium",
 					position: "center",
+					waitForReady: true, // 기본값: 준비 완료 메시지를 기다린 후 데이터 전송
+					readyResponseData: {
+						type: "CHOICE_EMP_INIT",
+						data: {
+							empNm: editedUser.apvApofNm || "",
+							empList: empList,
+						},
+					},
 					onOpen: (popup) => {
-						// ASIS: reg.choiceEmpInit(txtApvNm.text, event.result.result_set.record);
-						// 팝업이 열린 후 postMessage로 choiceEmpInit 데이터 전송
-						setTimeout(() => {
-							if (popup) {
-								popup.postMessage(
-									{
-										type: "CHOICE_EMP_INIT",
-										data: {
-											empNm: editedUser.apvApofNm || "",
-											empList: empList,
-										},
-									},
-									"*"
-								);
-							}
-						}, 100);
+						console.log('📱 USR2010M00 - 팝업 열림');
 					},
 				});
 			}
