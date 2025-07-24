@@ -44,6 +44,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef, SelectionChangedEvent } from "ag-grid-community"; // ColDef 타입 import
 import "ag-grid-community/styles/ag-grid.css";
@@ -64,7 +65,7 @@ import {
 	copyUserRole,
 	fetchMenus,
 } from "../../modules/sys/services"; // 서비스 import
-import PgmSearchPopup from "@/app/designs/SYS1010D00"; // 프로그램 찾기 팝업 컴포넌트
+import { usrApiService } from "../../modules/usr/services/usr-api.service"; // 공통코드 API 서비스
 import { useToast } from "@/contexts/ToastContext";
 import { usePopup } from "@/modules/com/hooks/usePopup";
 
@@ -84,50 +85,80 @@ import { usePopup } from "@/modules/com/hooks/usePopup";
  * - TBL_PGM_GRP (프로그램 그룹)
  */
 
-// --- 공통코드 정의 ---
-const useYnCodes = [
-	{ code: "Y", name: "사용" },
-	{ code: "N", name: "미사용" },
-];
+// 공통코드 타입 정의
+interface CodeData {
+	data: string;
+	label: string;
+}
 
-const athrGrdCodes = [
-	{ code: "1", name: "1등급" },
-	{ code: "2", name: "2등급" },
-	{ code: "3", name: "3등급" },
-	{ code: "4", name: "4등급" },
-	{ code: "5", name: "5등급" },
-];
-
-const orgInqRngCodes = [
-	{ code: "ALL", name: "전체" },
-	{ code: "DEPT", name: "부서" },
-	{ code: "TEAM", name: "팀" },
-	{ code: "SELF", name: "본인" },
-];
-// --------------------
+// API 응답을 CodeData로 매핑하는 유틸리티 함수
+function mapCodeApiToCodeData(apiData: any[]): CodeData[] {
+	return apiData.map((item) => ({
+		data: item.codeId,
+		label: item.codeNm,
+	}));
+}
 
 // 백엔드에서 camelCase로 변환된 데이터 구조에 맞는 타입 정의
 type PgmGrpRow = ProgramGroupData;
 
 export default function RoleManagementPage() {
 	const { showToast, showConfirm } = useToast();
+
+	// 사용자 역할 목록 상태 관리 (ASIS: grdUserRole.dataProvider)
 	const [rowData, setRowData] = useState<TblUserRole[]>([]);
+	// 선택된 사용자 역할 상태 관리 (ASIS: grdUserRole.selectedItem)
 	const [selectedRole, setSelectedRole] = useState<TblUserRole | null>(null);
+	// 프로그램 그룹 목록 상태 관리 (ASIS: grdPgmGrp.dataProvider)
 	const [pgmGrpRowData, setPgmGrpRowData] = useState<PgmGrpRow[]>([]);
-	const { openPopup } = usePopup();
+	// 메뉴 목록 상태 관리 (ASIS: cboMenu.dataProvider)
 	const [menuList, setMenuList] = useState<TblMenuInf[]>([]);
 
-	// 버튼 활성화/비활성화 상태 추가
-	const [isNewMode, setIsNewMode] = useState(false); // 신규 모드 상태
-	const [isCopyButtonEnabled, setIsCopyButtonEnabled] = useState(false); // 역할복사 버튼 활성화 상태
+	// 팝업 관리 훅 (ASIS: PopUpManager와 동일한 역할)
+	const { openPopup } = usePopup();
 
-	// 조회 조건 상태 추가
+	// 신규 모드 상태 관리 (ASIS: isNewMode 변수와 동일)
+	const [isNewMode, setIsNewMode] = useState(false);
+	// 역할복사 버튼 활성화 상태 관리 (ASIS: btnCopy.enabled)
+	const [isCopyButtonEnabled, setIsCopyButtonEnabled] = useState(false);
+
+	// 조회 조건 상태 관리 (ASIS: txtUsrRoleId.text, cboUseYn.selectedItem)
 	const [searchConditions, setSearchConditions] = useState({
-		usrRoleId: "",
-		useYn: "",
+		usrRoleId: "", // 사용자역할코드/명 검색어
+		useYn: "", // 사용여부 필터
 	});
 
-	// 조회 조건 변경 핸들러
+	// 공통코드 API 호출 (ASIS: COM_03_0101_S 프로시저로 조회)
+	const { data: useYnApiData } = useQuery({
+		queryKey: ["useYnCodes"],
+		queryFn: () => usrApiService.getCodes("300"), // 사용여부 코드 (대분류: 300)
+	});
+
+	const { data: athrGrdApiData } = useQuery({
+		queryKey: ["athrGrdCodes"],
+		queryFn: () => usrApiService.getCodes("301"), // 권한등급 코드 (대분류: 301)
+	});
+
+	const { data: orgInqRngApiData } = useQuery({
+		queryKey: ["orgInqRngCodes"],
+		queryFn: () => usrApiService.getCodes("302"), // 조직조회범위 코드 (대분류: 302)
+	});
+
+	// API 응답을 CodeData로 매핑
+	const useYnData = useYnApiData ? mapCodeApiToCodeData(useYnApiData) : [];
+	const athrGrdData = athrGrdApiData
+		? mapCodeApiToCodeData(athrGrdApiData)
+		: [];
+	const orgInqRngData = orgInqRngApiData
+		? mapCodeApiToCodeData(orgInqRngApiData)
+		: [];
+
+	/**
+	 * 조회 조건 변경 핸들러
+	 * ASIS: txtUsrRoleId_change(), cboUseYn_change() 함수와 동일한 역할
+	 * 검색 조건 입력 시 상태를 업데이트
+	 * @param e 입력 이벤트
+	 */
 	const handleSearchChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
@@ -137,7 +168,12 @@ export default function RoleManagementPage() {
 		}));
 	};
 
-	// 엔터키 입력 시 자동조회
+	/**
+	 * 엔터키 입력 시 자동조회 핸들러
+	 * ASIS: 키보드 이벤트 처리와 동일
+	 * Enter 키 입력 시 자동으로 조회 실행
+	 * @param e 키보드 이벤트
+	 */
 	const handleKeyPress = (
 		e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
@@ -251,8 +287,15 @@ export default function RoleManagementPage() {
 		},
 	]);
 
+	/**
+	 * 사용자 역할 목록 조회 함수
+	 * ASIS: fn_srch() 함수와 동일한 역할
+	 * 검색 조건에 따라 사용자 역할 목록을 조회하고 화면에 표시
+	 * 기존 시스템과 동일하게 조회 시에도 프로그램 그룹 목록을 함께 조회
+	 */
 	const loadData = async () => {
 		try {
+			// 사용자 역할 목록 조회 (ASIS: USR_02_0101_S 프로시저 호출)
 			const data = await fetchUserRoles(searchConditions);
 			setRowData(data);
 
@@ -517,11 +560,11 @@ export default function RoleManagementPage() {
 			userRoleGridRef.current.api.deselectAll();
 		}
 
-		// 기존 시스템과 동일하게 신규 버튼 클릭 시 사용여부는 "사용"으로 기본 설정
+		// 신규 버튼 클릭 시 빈 값으로 초기화 (사용자가 직접 선택하도록)
 		const newRole: TblUserRole = {
 			usrRoleId: "",
 			usrRoleNm: "",
-			useYn: "Y", // 기본값을 "사용"으로 설정
+			useYn: "", // 빈 값으로 초기화
 			athrGrdCd: "",
 			orgInqRngCd: "",
 			menuId: "",
@@ -533,7 +576,7 @@ export default function RoleManagementPage() {
 			const allPgmGrps = await fetchAllProgramGroups();
 			setPgmGrpRowData(allPgmGrps);
 		} catch (error) {
-			console.error(error); 
+			console.error(error);
 			showToast(
 				"프로그램 그룹 목록을 불러오는 중 오류가 발생했습니다.",
 				"error"
@@ -705,9 +748,9 @@ export default function RoleManagementPage() {
 									aria-label='사용여부 선택'
 								>
 									<option value=''>전체</option>
-									{useYnCodes.map((item) => (
-										<option key={item.code} value={item.code}>
-											{item.name}
+									{useYnData?.map((item) => (
+										<option key={item.data} value={item.data}>
+											{item.label}
 										</option>
 									))}
 								</select>
@@ -786,14 +829,15 @@ export default function RoleManagementPage() {
 									<select
 										name='useYn'
 										id='useYn'
-										value={selectedRole ? selectedRole.useYn : "Y"}
+										value={selectedRole ? selectedRole.useYn : ""}
 										onChange={handleFormChange}
 										className='combo-base w-full'
 										aria-label='상세 사용여부'
 									>
-										{useYnCodes.map((item) => (
-											<option key={item.code} value={item.code}>
-												{item.name}
+										<option value=''>선택</option>
+										{useYnData?.map((item) => (
+											<option key={item.data} value={item.data}>
+												{item.label}
 											</option>
 										))}
 									</select>
@@ -809,9 +853,9 @@ export default function RoleManagementPage() {
 										aria-label='상세 등급'
 									>
 										<option value=''>선택</option>
-										{athrGrdCodes.map((item) => (
-											<option key={item.code} value={item.code}>
-												{item.name}
+										{athrGrdData?.map((item) => (
+											<option key={item.data} value={item.data}>
+												{item.label}
 											</option>
 										))}
 									</select>
@@ -829,9 +873,9 @@ export default function RoleManagementPage() {
 										aria-label='상세 조직조회범위'
 									>
 										<option value=''>선택</option>
-										{orgInqRngCodes.map((item) => (
-											<option key={item.code} value={item.code}>
-												{item.name}
+										{orgInqRngData?.map((item) => (
+											<option key={item.data} value={item.data}>
+												{item.label}
 											</option>
 										))}
 									</select>
@@ -875,7 +919,7 @@ export default function RoleManagementPage() {
 											className='btn-base btn-etc text-xs px-3 py-1'
 											onClick={() =>
 												openPopup({
-													url: "/designs/SYS1010D00", //임시
+													url: "/popup/designs/SYS1010D00", //임시
 													size: "medium",
 													position: "center",
 												})

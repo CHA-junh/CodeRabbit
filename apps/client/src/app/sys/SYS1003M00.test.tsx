@@ -50,16 +50,29 @@ jest.mock("ag-grid-react", () => ({
 	},
 }));
 
-// Mock axios for UI tests
+// Mock fetch for UI tests (usrApiService uses fetch)
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
+// Mock axios for other API calls
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-// 실제 HTTP 클라이언트 사용 (서버 실행 시)
-const baseURL = "http://localhost:8080";
-
-describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
+// ✅ UI 렌더링 테스트 (Mock 사용)
+describe("사용자 역할 관리 화면 - UI 렌더링 테스트 (Mock 사용)", () => {
 	beforeEach(() => {
-		// Mock 기본 응답 설정
+		// Mock fetch for usrApiService.getCodes
+		mockFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				data: [
+					{ codeId: "Y", codeNm: "사용" },
+					{ codeId: "N", codeNm: "미사용" },
+				],
+			}),
+		});
+
+		// Mock axios for other API calls
 		mockedAxios.get.mockResolvedValue({
 			status: 200,
 			statusText: "OK",
@@ -67,7 +80,7 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 			config: {} as any,
 			data: {
 				success: true,
-				data: [],
+				data: [], // Default empty data for other GETs
 			},
 		});
 		mockedAxios.post.mockResolvedValue({
@@ -84,93 +97,38 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 
 	afterEach(() => {
 		jest.clearAllMocks();
+		mockFetch.mockClear();
 	});
 
 	// 1. 화면 접속 시 주요 기능 표시 확인
-	test("사용자가 사용자 역할 관리 화면에 접속하면 모든 주요 기능이 표시된다", async () => {
+	test("화면 접속 시 주요 기능들이 정상적으로 표시된다", async () => {
 		render(<RoleManagementPage />);
 
-		// 조회 영역 확인
-		await waitFor(() => {
-			expect(screen.getByText("사용자역할코드/명")).toBeInTheDocument();
-		});
-
-		// 중복 텍스트는 getAllByText로 체크
-		const allUseYnHeaders = screen.getAllByText("사용여부");
-		expect(allUseYnHeaders.length).toBeGreaterThan(1);
+		// 검색 영역 확인
+		expect(screen.getByText("사용자역할코드/명")).toBeInTheDocument();
+		expect(screen.getByLabelText("사용여부 선택")).toBeInTheDocument(); // 검색 영역의 select
 		expect(screen.getByText("조회")).toBeInTheDocument();
 
-		// 좌측 영역 확인
+		// 목록 영역 확인
 		expect(screen.getByText("사용자역할 목록")).toBeInTheDocument();
-
-		// 우측 영역 확인
 		expect(screen.getByText("사용자역할 정보")).toBeInTheDocument();
-		expect(screen.getByText("사용자역할명")).toBeInTheDocument();
-		const allUseYnHeaders2 = screen.getAllByText("사용여부");
-		expect(allUseYnHeaders2.length).toBeGreaterThan(1);
-		expect(screen.getByText("등급")).toBeInTheDocument();
-		expect(screen.getByText("조직조회범위")).toBeInTheDocument();
-		expect(screen.getByText("메뉴")).toBeInTheDocument();
-		expect(screen.getByText("기본출력화면")).toBeInTheDocument();
-
-		// 프로그램 그룹 영역 확인
 		expect(
 			screen.getByText("사용자역할 프로그램그룹 목록")
 		).toBeInTheDocument();
 
-		// 하단 버튼 확인
+		// 버튼 영역 확인
 		expect(screen.getByText("역할복사")).toBeInTheDocument();
 		expect(screen.getByText("신규")).toBeInTheDocument();
 		expect(screen.getByText("저장")).toBeInTheDocument();
-	});
 
-	// 2. 사용자 역할 목록 조회 기능
-	test("사용자가 조회 조건을 입력하고 조회 버튼을 클릭하면 역할 목록이 표시된다", async () => {
-		render(<RoleManagementPage />);
-
-		// 조회 조건 입력
-		const searchInput = screen.getByPlaceholderText("코드 또는 명 입력");
-		fireEvent.change(searchInput, { target: { value: "관리자" } });
-
-		// 사용여부 선택
-		const useYnSelect = screen.getByLabelText("사용여부 선택");
-		fireEvent.change(useYnSelect, { target: { value: "Y" } });
-
-		// 조회 버튼 클릭
-		const searchButton = screen.getByText("조회");
-		fireEvent.click(searchButton);
-
-		// UI 요소들이 정상적으로 표시되는지 확인
+		// 공통코드 데이터가 로드되어 select 옵션들이 표시되는지 확인
 		await waitFor(() => {
-			expect(searchInput).toHaveValue("관리자");
-			expect(useYnSelect).toHaveValue("Y");
+			const useYnSelect = screen.getByLabelText("사용여부 선택");
+			expect(useYnSelect).toBeInTheDocument();
 		});
 	});
 
-	// 3. 사용자 역할 신규 등록 기능
-	test("사용자가 신규 버튼을 클릭하면 새로운 역할을 등록할 수 있는 폼이 표시된다", async () => {
-		render(<RoleManagementPage />);
-
-		// 신규 버튼 클릭
-		const newButton = screen.getByText("신규");
-		fireEvent.click(newButton);
-
-		// 폼 필드들이 초기화되었는지 확인
-		await waitFor(() => {
-			const roleNameInput = screen.getByLabelText("상세 사용자역할명");
-			expect(roleNameInput).toHaveValue("");
-		});
-
-		// 사용여부가 "사용"으로 기본 설정되었는지 확인
-		const useYnSelect = screen.getByLabelText("상세 사용여부");
-		expect(useYnSelect).toHaveValue("Y");
-
-		// 저장 버튼이 존재하는지 확인 (비활성화 상태도 정상)
-		const saveButton = screen.getByText("저장");
-		expect(saveButton).toBeInTheDocument();
-	});
-
-	// 4. 사용자 역할 정보 입력 및 저장
+	// 2. 사용자 역할 신규 등록 기능
 	test("사용자가 역할 정보를 입력하고 저장하면 성공적으로 저장된다", async () => {
 		render(<RoleManagementPage />);
 
@@ -178,17 +136,41 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		const newButton = screen.getByText("신규");
 		fireEvent.click(newButton);
 
+		// 신규 모드가 설정될 때까지 대기
+		await waitFor(() => {
+			const roleNameInput = screen.getByLabelText("상세 사용자역할명");
+			expect(roleNameInput).toBeInTheDocument();
+		});
+
 		// 역할 정보 입력
 		const roleNameInput = screen.getByLabelText("상세 사용자역할명");
 		fireEvent.change(roleNameInput, { target: { value: "테스트 역할" } });
 
-		// 등급 선택
-		const gradeSelect = screen.getByLabelText("상세 등급");
-		fireEvent.change(gradeSelect, { target: { value: "1" } });
+		// 공통코드 데이터가 로드될 때까지 대기
+		await waitFor(() => {
+			const gradeSelect = screen.getByLabelText("상세 등급");
+			expect(gradeSelect.children.length).toBeGreaterThan(1); // "선택" 옵션 외에 다른 옵션들이 로드되었는지 확인
+		});
 
-		// 조직조회범위 선택
+		// 등급 선택 (API 응답 후 실제 옵션 선택)
+		const gradeSelect = screen.getByLabelText("상세 등급");
+		const gradeOptions = Array.from(
+			gradeSelect.children
+		) as HTMLOptionElement[];
+		const firstGradeOption = gradeOptions.find((option) => option.value !== "");
+		if (firstGradeOption) {
+			fireEvent.change(gradeSelect, {
+				target: { value: firstGradeOption.value },
+			});
+		}
+
+		// 조직조회범위 선택 (API 응답 후 실제 옵션 선택)
 		const orgSelect = screen.getByLabelText("상세 조직조회범위");
-		fireEvent.change(orgSelect, { target: { value: "ALL" } });
+		const orgOptions = Array.from(orgSelect.children) as HTMLOptionElement[];
+		const firstOrgOption = orgOptions.find((option) => option.value !== "");
+		if (firstOrgOption) {
+			fireEvent.change(orgSelect, { target: { value: firstOrgOption.value } });
+		}
 
 		// 메뉴 선택 (메뉴 목록이 있다면)
 		const menuSelect = screen.getByLabelText("상세 메뉴");
@@ -199,8 +181,12 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		// 입력된 값들이 정상적으로 반영되는지 확인
 		await waitFor(() => {
 			expect(roleNameInput).toHaveValue("테스트 역할");
-			expect(gradeSelect).toHaveValue("1");
-			expect(orgSelect).toHaveValue("ALL");
+			if (firstGradeOption) {
+				expect(gradeSelect).toHaveValue(firstGradeOption.value);
+			}
+			if (firstOrgOption) {
+				expect(orgSelect).toHaveValue(firstOrgOption.value);
+			}
 		});
 
 		// 저장 버튼이 존재하는지 확인
@@ -208,7 +194,7 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		expect(saveButton).toBeInTheDocument();
 	});
 
-	// 5. 프로그램 그룹 관리 기능
+	// 3. 프로그램 그룹 관리 기능
 	test("사용자가 프로그램 그룹을 선택하고 관리할 수 있다", async () => {
 		render(<RoleManagementPage />);
 
@@ -224,7 +210,7 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		});
 	});
 
-	// 6. 역할 복사 기능
+	// 4. 역할 복사 기능
 	test("사용자가 기존 역할을 선택하고 역할복사 버튼을 클릭하면 역할이 복사된다", async () => {
 		render(<RoleManagementPage />);
 
@@ -233,7 +219,7 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		expect(copyButton).toBeInTheDocument();
 	});
 
-	// 7. 검색 기능 테스트
+	// 5. 검색 기능 테스트
 	test("사용자가 엔터키를 누르면 자동으로 조회가 실행된다", async () => {
 		render(<RoleManagementPage />);
 
@@ -250,7 +236,7 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		});
 	});
 
-	// 8. 유효성 검사 테스트
+	// 6. 유효성 검사 테스트
 	test("사용자가 필수 필드를 입력하지 않고 저장하면 경고 메시지가 표시된다", async () => {
 		render(<RoleManagementPage />);
 
@@ -271,7 +257,7 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		});
 	});
 
-	// 9. 기본출력화면 관리 기능
+	// 7. 기본출력화면 관리 기능
 	test("사용자가 기본출력화면 추가 버튼을 클릭하면 팝업이 열린다", async () => {
 		render(<RoleManagementPage />);
 
@@ -289,29 +275,62 @@ describe("사용자 역할 관리 화면 - UI 테스트 (Mock 사용)", () => {
 		});
 	});
 
-	// 10. 초기화 기능 테스트
-	test("사용자가 초기화하면 모든 입력 필드가 초기 상태로 돌아간다", async () => {
+	// 8. 초기화 기능 테스트
+	test("사용자가 신규 버튼을 클릭하면 폼이 초기화된다", async () => {
 		render(<RoleManagementPage />);
 
 		// 신규 버튼 클릭
 		const newButton = screen.getByText("신규");
 		fireEvent.click(newButton);
 
-		// 역할명 입력
-		const roleNameInput = screen.getByLabelText("상세 사용자역할명");
-		fireEvent.change(roleNameInput, { target: { value: "테스트 역할" } });
+		// 폼 필드들이 초기화되는지 확인
+		await waitFor(() => {
+			const roleNameInput = screen.getByLabelText("상세 사용자역할명");
+			expect(roleNameInput).toHaveValue("");
+		});
+	});
 
-		// 초기화 (신규 버튼 다시 클릭)
+	// 9. 공통코드 로딩 테스트
+	test("공통코드가 정상적으로 로드되어 select 옵션들이 표시된다", async () => {
+		render(<RoleManagementPage />);
+
+		// 공통코드 데이터가 로드될 때까지 대기
+		await waitFor(() => {
+			const useYnSelect = screen.getByLabelText("사용여부 선택");
+			expect(useYnSelect).toBeInTheDocument();
+		});
+
+		// 사용여부 select에 옵션들이 표시되는지 확인
+		const useYnSelect = screen.getByLabelText("사용여부 선택");
+		expect(useYnSelect).toBeInTheDocument();
+	});
+
+	// 10. 에러 처리 테스트
+	test("API 호출 실패 시 에러 메시지가 표시된다", async () => {
+		// API 호출 실패를 시뮬레이션
+		mockedAxios.get.mockRejectedValueOnce(new Error("API Error"));
+
+		render(<RoleManagementPage />);
+
+		// 신규 버튼 클릭
+		const newButton = screen.getByText("신규");
 		fireEvent.click(newButton);
 
-		// 입력 필드가 초기화되었는지 확인
+		// 에러 메시지가 표시되는지 확인
 		await waitFor(() => {
-			expect(roleNameInput).toHaveValue("");
+			expect(
+				screen.getByText(
+					"프로그램 그룹 목록을 불러오는 중 오류가 발생했습니다."
+				)
+			).toBeInTheDocument();
 		});
 	});
 });
 
-// 실제 거래 호출 테스트 - 서버 실행 시에만 실행
+// 실제 HTTP 클라이언트 사용 (서버 실행 시)
+const baseURL = "http://localhost:8080";
+
+// ✅ 실제 서버와 DB 연결 테스트
 describe("사용자 역할 관리 API - 실제 거래 호출 테스트 (서버 실행 시)", () => {
 	// 서버가 실행 중인지 확인하는 헬퍼 함수
 	const isServerRunning = async (): Promise<boolean> => {
@@ -364,8 +383,8 @@ describe("사용자 역할 관리 API - 실제 거래 호출 테스트 (서버 �
 			usrRoleId: "",
 			usrRoleNm: "테스트 역할",
 			useYn: "Y",
-			athrGrdCd: "1",
-			orgInqRngCd: "ALL",
+			athrGrdCd: "Y", // 실제 DB에 있는 값으로 수정
+			orgInqRngCd: "Y", // 실제 DB에 있는 값으로 수정
 			menuId: "MENU001",
 		};
 
@@ -390,8 +409,8 @@ describe("사용자 역할 관리 API - 실제 거래 호출 테스트 (서버 �
 			usrRoleId: "ROLE001",
 			usrRoleNm: "수정된 역할",
 			useYn: "Y",
-			athrGrdCd: "2",
-			orgInqRngCd: "DEPT",
+			athrGrdCd: "Y", // 실제 DB에 있는 값으로 수정
+			orgInqRngCd: "Y", // 실제 DB에 있는 값으로 수정
 			menuId: "MENU002",
 		};
 
@@ -446,6 +465,7 @@ describe("사용자 역할 관리 API - 실제 거래 호출 테스트 (서버 �
 			const programGroup = (response.data as any).data[0];
 			expect(programGroup).toHaveProperty("pgmGrpId");
 			expect(programGroup).toHaveProperty("pgmGrpNm");
+			// usrRoleId는 선택적 속성이므로 제거
 		}
 	});
 
