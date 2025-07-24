@@ -4,9 +4,11 @@
 	"description": "BIST_NEW Client Application",
 	"private": true,
 	"scripts": {
-		"dev": "next dev",
+		"dev": "HOSTNAME=0.0.0.0 next dev -H 0.0.0.0",
+		"dev:local": "next dev",
 		"build": "next build",
-		"start": "next start",
+		"start": "HOSTNAME=0.0.0.0 next start -H 0.0.0.0",
+		"start:local": "next start",
 		"lint": "next lint",
 		"clean": "rimraf .next dist build coverage"
 	},
