@@ -621,7 +621,7 @@ export class UsrService {
       // 기존 Flex 방식과 동일하게 사용자ID를 비밀번호로 설정
       const defaultPassword = userId; // 사용자ID (사번)를 비밀번호로 사용
       const hashedPassword = crypto
-        .createHash('md5')
+        .createHash('sha512')
         .update(defaultPassword)
         .digest('hex');
 

@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 			return data
 		} catch (error) {
-			console.error('로그인 오류:', error)
+			// 로그 완전 제거 - 보안상 민감한 정보 노출 방지
 			throw error
 		}
 	}

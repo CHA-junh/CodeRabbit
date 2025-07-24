@@ -553,7 +553,8 @@ export const popupUtils = {
    * 사용자에게 팝업 차단 해제 방법을 안내합니다.
    */
   showBlockedMessage: (): void => {
-    alert('팝업이 차단되었습니다. 브라우저 설정에서 팝업 차단을 해제해주세요.');
+		// 토스트 메시지로 변경 예정 - useToast 훅 사용 필요
+		console.warn('팝업이 차단되었습니다. 브라우저 설정에서 팝업 차단을 해제해주세요.');
   },
 
   /**

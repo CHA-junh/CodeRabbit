@@ -195,6 +195,11 @@ export class AuthController {
 
       const userInfo = req.session.user;
 
+      // needsPasswordChange가 true인 경우 세션을 유효하지 않음으로 처리
+      if (userInfo.needsPasswordChange) {
+        return { success: false, user: null, needsPasswordChange: true };
+      }
+
       // 메뉴와 프로그램 데이터 로드
       let menuList: any[] = [];
       let programList: any[] = [];
@@ -229,7 +234,6 @@ export class AuthController {
   }
 
   @Post('change-password')
-  @UseGuards(AuthGuard)
   async changePassword(
     @Body() body: { userId: string; newPassword: string },
     @Req() req: RequestWithSession,
@@ -238,8 +242,8 @@ export class AuthController {
       const { userId, newPassword } = body;
       const currentUser = req.session.user;
 
-      // 현재 로그인한 사용자만 비밀번호 변경 가능
-      if (currentUser.userId !== userId) {
+      // 세션이 있는 경우 현재 로그인한 사용자만 비밀번호 변경 가능
+      if (currentUser && currentUser.userId !== userId) {
         throw new UnauthorizedException(
           '자신의 비밀번호만 변경할 수 있습니다.',
         );
@@ -251,8 +255,10 @@ export class AuthController {
       );
 
       if (isSuccess) {
-        // 비밀번호 변경 성공 시 세션에서 needsPasswordChange 제거
-        req.session.user = { ...currentUser, needsPasswordChange: false };
+        // 비밀번호 변경 성공 시 세션이 있으면 needsPasswordChange 제거
+        if (currentUser) {
+          req.session.user = { ...currentUser, needsPasswordChange: false };
+        }
 
         return {
           success: true,

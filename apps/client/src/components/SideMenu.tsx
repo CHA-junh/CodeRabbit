@@ -18,7 +18,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 		try {
 			setIsLoading(true)
 			const res = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
+				`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/logout`,
 				{
 					method: 'POST',
 					credentials: 'include',

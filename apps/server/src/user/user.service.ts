@@ -45,7 +45,7 @@ export class UserService {
       .createHash('sha512')
       .update(input)
       .digest('hex')
-      .toLowerCase();
+      .toUpperCase();
   }
 
   /**
@@ -118,32 +118,19 @@ export class UserService {
 
       const user = await this.userRepository.findOne({ where: { userId } });
       if (!user || !user.userPwd) {
-        console.log(
-          `❌ 비밀번호 검증 실패 (${userId}): 사용자 또는 비밀번호가 없음`,
-        );
+        // 로그 완전 제거 - 보안상 민감한 정보 노출 방지
         return false;
       }
-
-      console.log(`🔍 비밀번호 검증 시작 (${userId}):`);
-      console.log(`   - 입력 비밀번호 길이: ${password.length}`);
-      console.log(`   - DB 비밀번호 길이: ${user.userPwd.length}`);
-      console.log(`   - DB 비밀번호 형식: ${user.userPwd.substring(0, 10)}...`);
 
       // 1. SHA512 해시 검증 (기존 방식, 128자 16진수)
       const isSHA512Pattern =
         user.userPwd.length === 128 && /^[A-Fa-f0-9]{128}$/.test(user.userPwd);
-      console.log(
-        `   - SHA512 패턴 확인: ${isSHA512Pattern} (길이: ${user.userPwd.length}, 패턴: ${/^[A-Fa-f0-9]{128}$/.test(user.userPwd)})`,
-      );
 
       if (isSHA512Pattern) {
-        console.log(`   - SHA512 검증 시도`);
         const sha512Hash = this.generateSHA512Hash(password);
-        console.log(`   - 생성된 SHA512: ${sha512Hash.substring(0, 10)}...`);
-        console.log(`   - DB SHA512: ${user.userPwd.substring(0, 10)}...`);
 
-        if (user.userPwd === sha512Hash) {
-          console.log(`   - SHA512 검증 성공`);
+        // 대소문자 구분 없이 비교
+        if (user.userPwd.toUpperCase() === sha512Hash.toUpperCase()) {
           // 로그인 성공 시 자동으로 bcrypt로 마이그레이션
           this.migratePasswordToBcrypt(userId, password).catch((error) => {
             console.warn(
@@ -153,7 +140,15 @@ export class UserService {
           });
           return true;
         }
-        console.log(`   - SHA512 검증 실패`);
+
+        // 사용자 ID와 동일한 경우도 시도
+        if (userId === password) {
+          const userIdHash = this.generateSHA512Hash(userId);
+          if (user.userPwd.toUpperCase() === userIdHash.toUpperCase()) {
+            return true;
+          }
+        }
+
         return false;
       }
 
@@ -162,16 +157,12 @@ export class UserService {
         user.userPwd.length >= 60 &&
         (user.userPwd.startsWith('$2b$') || user.userPwd.startsWith('$2a$'))
       ) {
-        console.log(`   - bcrypt 검증 시도`);
         const bcryptResult = await bcrypt.compare(password, user.userPwd);
-        console.log(`   - bcrypt 검증 결과: ${bcryptResult}`);
         return bcryptResult;
       }
 
       // 3. 평문 비밀번호 검증 (레거시 방식)
-      console.log(`   - 평문 검증 시도`);
       if (user.userPwd === password) {
-        console.log(`   - 평문 검증 성공`);
         // 로그인 성공 시 자동으로 bcrypt로 마이그레이션
         this.migratePasswordToBcrypt(userId, password).catch((error) => {
           console.warn(
@@ -181,12 +172,10 @@ export class UserService {
         });
         return true;
       }
-      console.log(`   - 평문 검증 실패`);
 
-      console.log(`❌ 모든 검증 방식 실패 (${userId})`);
       return false;
     } catch (error) {
-      console.error(`❌ 비밀번호 검증 오류 (${userId}):`, error);
+      // 로그 완전 제거 - 보안상 민감한 정보 노출 방지
       return false;
     }
   }

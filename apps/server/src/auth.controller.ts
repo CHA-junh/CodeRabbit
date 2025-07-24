@@ -66,7 +66,7 @@ export class AuthController {
         user: { ...userInfo, needsPasswordChange },
       };
     } catch (error) {
-      console.error('로그인 오류:', error);
+      // 로그 완전 제거 - 보안상 민감한 정보 노출 방지
       return {
         success: false,
         message: '로그인 중 오류가 발생했습니다.',

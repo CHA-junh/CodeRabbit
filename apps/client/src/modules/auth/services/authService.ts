@@ -4,7 +4,7 @@
 
 class AuthService {
 	private static readonly API_BASE_URL =
-		process.env.NEXT_PUBLIC_API_URL + '/api/auth'
+		(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080') + '/api/auth'
 
 	/**
 	 * 사용자 로그인
@@ -20,10 +20,40 @@ class AuthService {
 				body: JSON.stringify({ empNo, password }),
 			})
 
+			// 응답 상태 확인
+			if (!response.ok) {
+				// HTTP 상태 코드별 사용자 친화적 메시지
+				let userMessage = '로그인에 실패했습니다.'
+				switch (response.status) {
+					case 401:
+						userMessage = '사번 또는 비밀번호가 올바르지 않습니다.'
+						break
+					case 403:
+						userMessage = '접근 권한이 없습니다.'
+						break
+					case 404:
+						userMessage = '서버에 연결할 수 없습니다.'
+						break
+					case 500:
+						userMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+						break
+					default:
+						userMessage = '로그인 중 오류가 발생했습니다.'
+				}
+
+				throw new Error(userMessage)
+			}
+
+			// Content-Type 확인
+			const contentType = response.headers.get('content-type')
+			if (!contentType || !contentType.includes('application/json')) {
+				throw new Error('서버에서 JSON 응답을 반환하지 않았습니다.')
+			}
+
 			const data = await response.json()
 			return data
 		} catch (error) {
-			console.error('로그인 API 오류:', error)
+			// 로그 완전 제거 - 보안상 민감한 정보 노출 방지
 			throw error
 		}
 	}
@@ -40,7 +70,7 @@ class AuthService {
 
 			if (response.status === 401) {
 				// 인증 실패: 콘솔 에러 없이 실패 응답만 반환
-				return { success: false, user: null };
+				return { success: false, user: null }
 			}
 
 			const data = await response.json()

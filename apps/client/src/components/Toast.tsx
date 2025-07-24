@@ -4,7 +4,7 @@ import React, { useEffect } from 'react'
 
 interface ToastProps {
 	message: string
-	type?: 'info' | 'warning' | 'error'
+	type?: 'success' | 'info' | 'warning' | 'error'
 	isVisible: boolean
 	onClose: () => void
 	duration?: number
@@ -30,12 +30,14 @@ export default function Toast({
 	if (!isVisible) return null
 
 	const bgColor = {
+		success: 'bg-[#E8F5E8] border-[#4CAF50] text-[#2A2A2A]',
 		info: 'bg-[#F2F8FF] border-[#BDD6EE] text-[#2A2A2A]',
 		warning: 'bg-[#FFF8E1] border-[#FFD54F] text-[#2A2A2A]',
 		error: 'bg-[#FFEBEE] border-[#EF5350] text-[#2A2A2A]',
 	}[type]
 
 	const icon = {
+		success: '✅',
 		info: '💡',
 		warning: '⚠️',
 		error: '❌',
