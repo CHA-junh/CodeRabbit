@@ -29,7 +29,11 @@
 		"convert:server:excel": "node scripts/convert-jest-to-excel.js --server",
 		"convert:unified:excel": "node scripts/convert-jest-to-excel.js --unified",
 		"convert:all:excel": "node scripts/convert-jest-to-excel.js --all",
-		"test:all:unified-excel": "npm-run-all --sequential test:client:json test:server test:unified:excel"
+		"test:all:unified-excel": "npm-run-all --sequential test:client:json test:server test:unified:excel",
+		"test:COMZ010M00": "jest --testPathPatterns=COMZ010M00",
+		"test:COMZ010M00:client": "jest --testPathPatterns=COMZ010M00 --testPathIgnorePatterns=server",
+		"test:COMZ010M00:server": "jest --config jest.server.config.js --testPathPatterns=COMZ010M00",
+		"test:COMZ010M00:excel": "npm run test:COMZ010M00:client && npm run test:COMZ010M00:server && node scripts/convert-jest-to-excel.js --COMZ010M00"
 	},
 	"dependencies": {
 		"@nestjs/config": "^4.0.2",

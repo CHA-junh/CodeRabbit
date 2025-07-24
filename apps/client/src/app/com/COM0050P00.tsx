@@ -87,7 +87,7 @@ export default function TestLoginPopup() {
 	}
 
 	// 엔터키 처리
-	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === 'Enter') {
 			handleTestLogin()
 		}
@@ -132,7 +132,7 @@ export default function TestLoginPopup() {
 										type='text'
 										value={userId}
 										onChange={handleUserIdChange}
-										onKeyPress={handleKeyPress}
+										onKeyDown={handleKeyDown}
 										className='input-base input-default w-[120px] text-center'
 										placeholder='사원번호'
 										autoFocus
