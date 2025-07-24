@@ -18,7 +18,7 @@ import { PsmModule } from './psm/psm.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '../../.env',
+      envFilePath: ['.env.development', '.env'],
     }),
     DatabaseModule,
     AuthModule,

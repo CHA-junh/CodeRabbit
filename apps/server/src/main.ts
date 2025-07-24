@@ -8,6 +8,11 @@ import session = require('express-session');
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { OracleService } from './database/database.provider';
+import * as dotenv from 'dotenv';
+
+// 환경변수 파일 로드 (.env.development 우선)
+dotenv.config({ path: '.env.development' });
+dotenv.config({ path: '.env' });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -137,9 +142,10 @@ async function bootstrap() {
   app.get(OracleService);
 
   const port = process.env.PORT || 8080;
-  const host = process.env.NODE_ENV === 'development'
-    ? process.env.DEV_SERVER_IP || '0.0.0.0'
-    : 'localhost';
+  const host =
+    process.env.NODE_ENV === 'development'
+      ? process.env.DEV_SERVER_IP || '0.0.0.0'
+      : 'localhost';
   await app.listen(port, host);
 
   console.log(`🚀 서버가 http://${host}:${port} 에서 실행 중입니다.`);
