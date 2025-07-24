@@ -242,7 +242,7 @@ export default function RoleManagementPage() {
 			headerCheckboxSelection: true,
 			width: 50,
 			flex: 0,
-			suppressMenu: true,
+			suppressHeaderMenuButton: true,
 			sortable: false,
 			filter: false,
 			cellStyle: { textAlign: "center" },
