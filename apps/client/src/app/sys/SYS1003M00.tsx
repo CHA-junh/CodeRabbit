@@ -150,28 +150,105 @@ export default function RoleManagementPage() {
 	const pgmGrpGridRef = useRef<AgGridReact<PgmGrpRow>>(null);
 
 	const [colDefs] = useState<ColDef[]>([
-		// ColDef 타입 명시
-		{ headerName: "사용자역할코드", field: "usrRoleId", width: 150 },
-		{ headerName: "사용자역할명", field: "usrRoleNm", width: 150 },
-		{ headerName: "메뉴", field: "menuNm", width: 120 },
-		{ headerName: "사용여부", field: "useYn", width: 100 },
-		{ headerName: "사용자수", field: "cnt", width: 100, type: "numericColumn" },
+		// 사용자역할코드 (코드/ID) - 가운데 정렬
+		{
+			headerName: "사용자역할코드",
+			field: "usrRoleId",
+			width: 150,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+		},
+		// 사용자역할명 (텍스트/이름) - 왼쪽 정렬
+		{
+			headerName: "사용자역할명",
+			field: "usrRoleNm",
+			width: 150,
+			flex: 1,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		// 메뉴 (텍스트/이름) - 왼쪽 정렬
+		{
+			headerName: "메뉴",
+			field: "menuNm",
+			width: 120,
+			flex: 1,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		// 사용여부 (체크박스/아이콘) - 가운데 정렬
+		{
+			headerName: "사용여부",
+			field: "useYn",
+			width: 100,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+		},
+		// 사용자수 (숫자형) - 오른쪽 정렬
+		{
+			headerName: "사용자수",
+			field: "cnt",
+			width: 100,
+			flex: 0,
+			type: "numericColumn",
+			cellStyle: { textAlign: "right" },
+			headerClass: "ag-center-header",
+		},
 	]);
 
 	const [pgmGrpColDefs] = useState<ColDef[]>([
+		// 체크박스 컬럼 - 가운데 정렬
 		{
 			headerName: " ",
 			checkboxSelection: true,
 			headerCheckboxSelection: true,
 			width: 50,
+			flex: 0,
 			suppressMenu: true,
 			sortable: false,
 			filter: false,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
 		},
-		{ headerName: "프로그램그룹 코드", field: "pgmGrpId", width: 150 },
-		{ headerName: "프로그램그룹명", field: "pgmGrpNm", width: 200 },
-		{ headerName: "사용여부", field: "pgmGrpUseYn", width: 100 },
-		{ headerName: "사용자수", field: "cnt", width: 100, type: "numericColumn" },
+		// 프로그램그룹 코드 (코드/ID) - 가운데 정렬
+		{
+			headerName: "프로그램그룹 코드",
+			field: "pgmGrpId",
+			width: 150,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+		},
+		// 프로그램그룹명 (텍스트/이름) - 왼쪽 정렬
+		{
+			headerName: "프로그램그룹명",
+			field: "pgmGrpNm",
+			width: 200,
+			flex: 2,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		// 사용여부 (체크박스/아이콘) - 가운데 정렬
+		{
+			headerName: "사용여부",
+			field: "pgmGrpUseYn",
+			width: 100,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+		},
+		// 사용자수 (숫자형) - 오른쪽 정렬
+		{
+			headerName: "사용자수",
+			field: "cnt",
+			width: 100,
+			flex: 0,
+			type: "numericColumn",
+			cellStyle: { textAlign: "right" },
+			headerClass: "ag-center-header",
+		},
 	]);
 
 	const loadData = async () => {
@@ -656,7 +733,10 @@ export default function RoleManagementPage() {
 					<div className='tit_area mb-2'>
 						<h3>사용자역할 목록</h3>
 					</div>
-					<div className='gridbox-div flex-1 overflow-auto ag-theme-alpine'>
+					<div
+						className='gridbox-div flex-1 overflow-auto ag-theme-alpine'
+						style={{ width: "100%" }}
+					>
 						<AgGridReact
 							ref={userRoleGridRef}
 							rowData={rowData}
@@ -668,6 +748,13 @@ export default function RoleManagementPage() {
 							}}
 							rowSelection='single'
 							onSelectionChanged={onSelectionChanged}
+							components={{
+								agColumnHeader: (props: any) => (
+									<div style={{ textAlign: "center", width: "100%" }}>
+										{props.displayName}
+									</div>
+								),
+							}}
 						/>
 					</div>
 				</div>
@@ -835,11 +922,19 @@ export default function RoleManagementPage() {
 					<div className='tit_area mb-2'>
 						<h3>사용자역할 프로그램그룹 목록</h3>
 					</div>
-					<div className='gridbox-div flex-1 overflow-auto ag-theme-alpine'>
+					<div
+						className='gridbox-div flex-1 overflow-auto ag-theme-alpine'
+						style={{ width: "100%" }}
+					>
 						<AgGridReact
 							ref={pgmGrpGridRef}
 							rowData={pgmGrpRowData}
 							columnDefs={pgmGrpColDefs}
+							defaultColDef={{
+								resizable: true,
+								sortable: true,
+								filter: true,
+							}}
 							rowSelection='multiple'
 							suppressRowClickSelection={true} // 행 클릭으로 선택되는 것 방지
 							getRowId={(params) => params.data.pgmGrpId}
@@ -847,6 +942,13 @@ export default function RoleManagementPage() {
 								params.api.forEachNode((node) => {
 									if (node.data.isSelected) node.setSelected(true);
 								});
+							}}
+							components={{
+								agColumnHeader: (props: any) => (
+									<div style={{ textAlign: "center", width: "100%" }}>
+										{props.displayName}
+									</div>
+								),
 							}}
 						/>
 					</div>
