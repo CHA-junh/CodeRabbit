@@ -105,12 +105,28 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
           await cursor.close();
           return { data: rows, totalCount: rows.length };
         } else {
-          // 일반 프로시저: STRING 반환
+          // 일반 프로시저: STRING 반환 + COMMIT 처리
+          await connection.commit();
           return { result: outBinds.o_result };
         }
       }
 
+      // 결과가 없는 경우에도 C/U/D 프로시저는 COMMIT 처리
+      if (!isSelectProc) {
+        await connection.commit();
+      }
+
       return isSelectProc ? { data: [], totalCount: 0 } : { result: null };
+    } catch (error) {
+      // 프로시저 실행 실패 시 ROLLBACK 처리
+      if (!isSelectProc) {
+        try {
+          await connection.rollback();
+        } catch (rollbackError) {
+          console.error('ROLLBACK 실패:', rollbackError);
+        }
+      }
+      throw error;
     } finally {
       await connection.close();
     }
