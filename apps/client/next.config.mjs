@@ -12,6 +12,8 @@ const nextConfig = {
 			'http://127.0.0.1:3000',
 			'http://127.0.0.1:*',
 		],
+		// WebSocket HMR 설정
+		webSocketUrl: 'ws://172.20.30.176:3000',
 	},
 
 	// designs 폴더 빌드 제외 설정 (프로젝트 루트로 이동됨)
