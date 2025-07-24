@@ -875,7 +875,7 @@ const COMZ010M00Page = () => {
 							columnDefs={largeCodeColDefs}
 							defaultColDef={{
 								resizable: true,
-								sortable: true,
+								sortable: false,
 							}}
 							rowSelection='single'
 							onSelectionChanged={onLargeCodeSelectionChanged}
@@ -884,6 +884,8 @@ const COMZ010M00Page = () => {
 							}}
 							onGridReady={onLargeGridReady}
 							suppressCellFocus={true}
+							suppressRowClickSelection={false}
+							suppressColumnMoveAnimation={true}
 							components={{
 								agColumnHeader: (props: any) => (
 									<div style={{ textAlign: 'center', width: '100%' }}>
@@ -1015,7 +1017,7 @@ const COMZ010M00Page = () => {
 							columnDefs={smallCodeColDefs}
 							defaultColDef={{
 								resizable: true,
-								sortable: true,
+								sortable: false,
 							}}
 							rowSelection='single'
 							onSelectionChanged={onSmallCodeSelectionChanged}
@@ -1024,6 +1026,8 @@ const COMZ010M00Page = () => {
 							}}
 							onGridReady={onSmallGridReady}
 							suppressCellFocus={true}
+							suppressRowClickSelection={false}
+							suppressColumnMoveAnimation={true}
 							components={{
 								agColumnHeader: (props: any) => (
 									<div style={{ textAlign: 'center', width: '100%' }}>
