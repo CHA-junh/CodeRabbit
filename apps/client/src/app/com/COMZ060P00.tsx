@@ -50,12 +50,60 @@ export default function DeptNumberSearchPopup() {
 
 	// AG-Grid 컬럼 정의
 	const [deptColDefs] = useState<ColDef[]>([
-		{ headerName: '부서번호', field: 'deptNo', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'deptNo' },
-		{ headerName: '부서명', field: 'deptNm', width: 180, flex: 1.5, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header', tooltipField: 'deptNm' },
-		{ headerName: '시작일자', field: 'strtDt', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'strtDt' },
-		{ headerName: '종료일자', field: 'endDt', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'endDt' },
-		{ headerName: '본부구분', field: 'hqDivNm', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'hqDivNm' },
-		{ headerName: '부서구분', field: 'deptDivNm', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'deptDivNm' },
+		{
+			headerName: '부서번호',
+			field: 'deptNo',
+			width: 120,
+			flex: 0.5,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+			tooltipField: 'deptNo',
+		},
+		{
+			headerName: '부서명',
+			field: 'deptNm',
+			width: 150,
+			flex: 0.5,
+			cellStyle: { textAlign: 'left' },
+			headerClass: 'ag-center-header',
+			tooltipField: 'deptNm',
+		},
+		{
+			headerName: '시작일자',
+			field: 'strtDt',
+			width: 120,
+			flex: 0,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+			tooltipField: 'strtDt',
+		},
+		{
+			headerName: '종료일자',
+			field: 'endDt',
+			width: 120,
+			flex: 0,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+			tooltipField: 'endDt',
+		},
+		{
+			headerName: '본부구분',
+			field: 'hqDivNm',
+			width: 120,
+			flex: 0.5,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+			tooltipField: 'hqDivNm',
+		},
+		{
+			headerName: '부서구분',
+			field: 'deptDivNm',
+			width: 120,
+			flex: 0.5,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+			tooltipField: 'deptDivNm',
+		},
 	]);
 
 	const [form, setForm] = useState({
@@ -67,13 +115,6 @@ export default function DeptNumberSearchPopup() {
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState('')
 	const deptDivCodes = useDeptDivCodes()
-
-	// 데이터 변경 시 컬럼 크기 조정
-	useEffect(() => {
-		if (deptGridRef.current?.api) {
-			deptGridRef.current.api.sizeColumnsToFit();
-		}
-	}, [results]);
 
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -219,7 +260,7 @@ export default function DeptNumberSearchPopup() {
 				{/* 에러 메시지 */}
 				{error && <div className='text-red-600 mb-2'>{error}</div>}
 				{/* 그리드 영역 */}
-				<div className='gridbox-div mb-4 ag-theme-alpine' style={{ height: '480px' }}>
+				<div className='ag-theme-alpine' style={{ height: 400, width: "100%" }}>
 					<AgGridReact
 						ref={deptGridRef}
 						rowData={results}
@@ -227,31 +268,19 @@ export default function DeptNumberSearchPopup() {
 						defaultColDef={{
 							resizable: true,
 							sortable: true,
-							filter: true,
-							suppressSizeToFit: false,
-							tooltipField: 'deptNo', // 툴팁을 표시할 필드 설정
 						}}
 						rowSelection='single'
 						onRowDoubleClicked={(event) => {
 							handleRowDoubleClick(event.data);
 						}}
 						onGridReady={onDeptGridReady}
-						domLayout='normal'
-						rowHeight={40}
-						headerHeight={40}
-						tooltipShowDelay={500}
-						noRowsOverlayComponent={() => (
-							<div style={{ 
-								display: 'flex', 
-								alignItems: 'center', 
-								justifyContent: 'center', 
-								height: '100%',
-								color: '#666',
-								fontSize: '14px'
-							}}>
-								조회 결과가 없습니다
-							</div>
-						)}
+						components={{
+							agColumnHeader: (props: any) => (
+								<div style={{ textAlign: "center", width: "100%" }}>
+									{props.displayName}
+								</div>
+							),
+						}}
 					/>
 				</div>
 				{/* 종료 버튼 (우측 정렬) */}
