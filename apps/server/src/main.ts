@@ -137,8 +137,11 @@ async function bootstrap() {
   app.get(OracleService);
 
   const port = process.env.PORT || 8080;
-  await app.listen(port);
+  const host = process.env.NODE_ENV === 'development'
+    ? process.env.DEV_SERVER_IP || '0.0.0.0'
+    : 'localhost';
+  await app.listen(port, host);
 
-  console.log(`🚀 서버가 http://localhost:${port} 에서 실행 중입니다.`);
+  console.log(`🚀 서버가 http://${host}:${port} 에서 실행 중입니다.`);
 }
 bootstrap();

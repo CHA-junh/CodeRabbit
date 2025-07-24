@@ -4,7 +4,14 @@ const nextConfig = {
 	optimizeFonts: false,
 	experimental: {
 		optimizePackageImports: [],
-		allowedDevOrigins: ['http://172.20.30.176:3000', 'http://localhost:3000'],
+		allowedDevOrigins: [
+			'http://172.20.30.176:3000',
+			'http://172.20.30.176:*',
+			'http://localhost:3000',
+			'http://localhost:*',
+			'http://127.0.0.1:3000',
+			'http://127.0.0.1:*',
+		],
 	},
 
 	// designs 폴더 빌드 제외 설정 (프로젝트 루트로 이동됨)
