@@ -110,9 +110,13 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       const outBinds = result.outBinds as any;
       if (outBinds?.o_result) {
         if (isSelectProc) {
-          // 조회 프로시저: CURSOR 반환
+          // 조회 프로시저: CURSOR 반환 (대용량 안전, getRow 루프)
           const cursor = outBinds.o_result;
-          const rows = await cursor.getRows();
+          let rows: any[] = [];
+          let row;
+          while ((row = await cursor.getRow())) {
+            rows.push(row);
+          }
           await cursor.close();
           return { data: rows, totalCount: rows.length };
         } else {

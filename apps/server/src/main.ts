@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import session = require('express-session');
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { OracleService } from './database/database.provider';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -15,6 +16,16 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['error', 'warn', 'log', 'debug', 'verbose'],
   });
+
+  // DB 커넥션 풀 초기화 (운영/개발 모두)
+  try {
+    const oracleService = app.get(OracleService);
+    await oracleService.onModuleInit();
+    console.log('✅ Oracle 커넥션 풀 초기화 성공');
+  } catch (err) {
+    console.error('❌ Oracle 커넥션 풀 초기화 실패:', err);
+    process.exit(1); // 운영처럼 장애 감지 시 즉시 종료
+  }
 
   // 🔒 보안 헤더 설정 (Helmet)
   app.use(
