@@ -318,7 +318,7 @@ const COMZ010M00Page = () => {
 	const onLargeGridReady = (params: any) => {
 		params.api.sizeColumnsToFit()
 		// 정렬 방지
-		params.columnApi.applyColumnState({
+		params.api.applyColumnState({
 			defaultState: { sort: null },
 		})
 	}
@@ -326,7 +326,7 @@ const COMZ010M00Page = () => {
 	const onSmallGridReady = (params: any) => {
 		params.api.sizeColumnsToFit()
 		// 정렬 방지
-		params.columnApi.applyColumnState({
+		params.api.applyColumnState({
 			defaultState: { sort: null },
 		})
 	}
@@ -893,7 +893,7 @@ const COMZ010M00Page = () => {
 							onGridReady={onLargeGridReady}
 							onSortChanged={(event) => {
 								// 정렬 변경 시 원래 순서로 복원
-								event.columnApi.applyColumnState({
+								event.api.applyColumnState({
 									defaultState: { sort: null },
 								})
 							}}
@@ -1041,7 +1041,7 @@ const COMZ010M00Page = () => {
 							onGridReady={onSmallGridReady}
 							onSortChanged={(event) => {
 								// 정렬 변경 시 원래 순서로 복원
-								event.columnApi.applyColumnState({
+								event.api.applyColumnState({
 									defaultState: { sort: null },
 								})
 							}}
