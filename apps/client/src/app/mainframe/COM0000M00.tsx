@@ -46,12 +46,14 @@ export default function COM0000M00() {
 	const [tabs, setTabs] = useState<TabItem[]>([])
 	const [activeTab, setActiveTab] = useState<string>('')
 
+	// 컴포넌트 마운트 시점 로그
+
+	// 슬라이드 상태 추적 및 강제 동기화
+
 	// 인증되지 않은 경우 아무것도 렌더링하지 않음 (상위 컴포넌트에서 처리)
 	if (!isAuthenticated || !user) return null
 
 	const handleMenuClick = (pgmId: string) => {
-		// console.log('[handleMenuClick] 호출됨, pgmId:', pgmId)
-
 		// 클릭한 메뉴의 정보 확인
 		const menu = (session.user?.menuList || []).find(
 			(m: any) => m.PGM_ID === pgmId
@@ -59,7 +61,6 @@ export default function COM0000M00() {
 
 		// PGM_ID가 없는 메뉴(폴더)는 처리하지 않음
 		if (!menu || !menu.PGM_ID) {
-			// console.log('[handleMenuClick] PGM_ID가 없는 메뉴(폴더), 처리하지 않음')
 			return
 		}
 
@@ -67,17 +68,18 @@ export default function COM0000M00() {
 		const program = (session.user?.programList || []).find(
 			(p: any) => p.PGM_ID === pgmId
 		)
-		// console.log('programList에서 찾은 프로그램:', program)
 
 		if (!program) {
-			// console.log('[handleMenuClick] programList에서 프로그램을 찾을 수 없음:', pgmId)
 			return
 		}
 
 		// 이미 열린 탭이면 포커스만 이동
 		if (tabs.some((tab) => tab.programId === pgmId)) {
-			// console.log('[handleMenuClick] 이미 열린 탭, setActiveTab 후 return')
 			setActiveTab(pgmId)
+			if (!menuTreeLocked) {
+				setShowMenuTree(false)
+				setTimeout(() => setShowMenuTree(false), 0)
+			}
 			return
 		}
 
@@ -97,21 +99,13 @@ export default function COM0000M00() {
 		const newTab: TabItem = { programId: pgmId, title, menuPath }
 		setTabs((prev) => {
 			const next = [...prev, newTab]
-			// setTimeout(() => {
-			// 	console.log('[handleMenuClick] tabs(after, async):', next)
-			// }, 0)
 			return next
 		})
-		// 자물쇠가 잠겨있지 않으면 메뉴 영역 즉시 닫기
+		setActiveTab(pgmId)
 		if (!menuTreeLocked) {
 			setShowMenuTree(false)
+			setTimeout(() => setShowMenuTree(false), 0)
 		}
-
-		setActiveTab(pgmId)
-
-		// setTimeout(() => {
-		// 	console.log('[handleMenuClick] setActiveTab(async):', pgmId)
-		// }, 0)
 	}
 
 	const handleTabClick = (programId: string) => setActiveTab(programId)
@@ -127,7 +121,6 @@ export default function COM0000M00() {
 
 	// 로그아웃 핸들러
 	const handleLogout = async () => {
-		// console.log('🚪 로그아웃 시작')
 		await logout()
 	}
 
