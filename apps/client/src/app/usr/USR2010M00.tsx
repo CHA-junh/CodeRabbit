@@ -1,5 +1,5 @@
 /**
- * USR2010M00 - 사용자 관리 화면 
+ * USR2010M00 - 사용자 관리 화면
  *
  * 주요 기능:
  * - 사용자 목록 조회 및 검색 (본부/부서/사용자명 조건)
@@ -107,19 +107,44 @@ function mapCodeApiToCodeData(apiData: any[]): CodeData[] {
 const USR2010M00: React.FC = () => {
 	const { showToast, showConfirm } = useToast();
 	const { user } = useAuth();
+
+	// 검색 조건 상태 관리 (ASIS: txtHqDiv.text, txtDeptDiv.text, txtUserNm.text)
 	const [searchParams, setSearchParams] = useState(initialSearch);
+	// 선택된 사용자 상태 관리 (ASIS: grdUser.selectedItem)
 	const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+	// 편집 중인 사용자 정보 상태 관리 (ASIS: 폼 필드들의 값들)
 	const [editedUser, setEditedUser] = useState<Partial<UserSaveData>>({});
-	// 업무권한 목록 상태
+
+	// 업무권한 목록 상태 관리 (ASIS: grdWorkAuth.dataProvider)
 	const [workAuthList, setWorkAuthList] = useState<WorkAuthData[]>([]);
+	// 업무권한 로딩 상태 관리 (ASIS: showBusyCursor="true")
 	const [workAuthLoading, setWorkAuthLoading] = useState(false);
+	// 업무권한 에러 상태 관리 (ASIS: Alert.show() 메시지)
 	const [workAuthError, setWorkAuthError] = useState<string | null>(null);
+	// 선택된 업무권한 코드 상태 관리 (ASIS: cboWorkAuth.selectedItem)
 	const [selectedWorkAuthCode, setSelectedWorkAuthCode] = useState<string>("");
+	// 업무권한 액션 상태 관리 (ASIS: rdoGrant.selected, rdoRevoke.selected)
 	const [workAuthAction, setWorkAuthAction] = useState<"1" | "0">("1");
+	// 폼 데이터 상태 관리 (ASIS: 폼 필드들의 초기값)
 	const [formData, setFormData] = useState(initialFormData);
 
-	const [potentialApprovers, setPotentialApprovers] = useState<any[]>([]); // COMZ100P00 호환을 위해 any[]
+	// 승인결재자 후보 목록 상태 관리 (ASIS: COMZ100P00 팝업에서 사용)
+	const [potentialApprovers, setPotentialApprovers] = useState<any[]>([]);
+	// 팝업 관리 훅 (ASIS: PopUpManager와 동일한 역할)
 	const { openPopup } = usePopup();
+
+	// postMessage 이벤트 리스너 추가
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			if (event.data.type === "EMP_SELECTED") {
+				const empData = event.data.data;
+				handleApproverSelect(empData);
+			}
+		};
+
+		window.addEventListener("message", handleMessage);
+		return () => window.removeEventListener("message", handleMessage);
+	}, []); // handleApproverSelect는 useCallback으로 메모이제이션되어 있어서 의존성에서 제거
 
 	const [hqCodeList, setHqCodeList] = useState<CodeData[]>([]);
 	const [deptCodeList, setDeptCodeList] = useState<CodeData[]>([]);
@@ -213,22 +238,28 @@ const USR2010M00: React.FC = () => {
 		}
 	}, [selectedWorkAuthCode, workAuthList]);
 
+	/**
+	 * 검색 조건 변경 핸들러
+	 * ASIS: txtHqDiv_change(), txtDeptDiv_change(), txtUserNm_change() 함수와 동일한 역할
+	 * 검색 조건 입력 시 상태를 업데이트하고, 본부 변경 시 부서 콤보를 동적으로 업데이트
+	 * @param e 입력 이벤트
+	 */
 	const handleSearchParamChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
 		const { name, value } = e.target;
 		setSearchParams((prev) => ({ ...prev, [name]: value }));
 
-		// 본부 변경 시 부서 콤보 업데이트
+		// 본부 변경 시 부서 콤보 업데이트 (ASIS: cboHqDiv_change() 함수와 동일)
 		if (name === "hqDiv") {
-			// 부서를 'ALL'로 초기화
+			// 부서를 'ALL'로 초기화 (ASIS: cboDeptDiv.selectedIndex = 0)
 			setSearchParams((prev) => ({ ...prev, deptDiv: "ALL" }));
 
 			if (value === "ALL") {
 				// 본부가 "전체"일 때는 부서 콤보에 "전체"만 표시
 				setDeptCodeList([{ data: "ALL", label: "전체" }]);
 			} else {
-				// 특정 본부 선택 시 해당 본부의 부서 목록 조회
+				// 특정 본부 선택 시 해당 본부의 부서 목록 조회 (ASIS: COM_03_0201_S 프로시저 호출)
 				usrApiService
 					.getDeptDivCodesByHq(value)
 					.then((deptList) => {
@@ -244,12 +275,26 @@ const USR2010M00: React.FC = () => {
 		}
 	};
 
+	/**
+	 * 사용자 검색 실행 함수
+	 * ASIS: btnSearch_click() 함수와 동일한 역할
+	 * 현재 검색 조건으로 사용자 목록을 조회
+	 */
 	const handleSearch = () => {
 		refetchUserList();
 	};
 
+	/**
+	 * 사용자 선택 처리 함수
+	 * ASIS: grdUser_change() 함수와 동일한 역할
+	 * 사용자 목록에서 사용자를 선택했을 때 폼에 사용자 정보를 설정하고 업무권한 목록을 조회
+	 * @param user 선택된 사용자 정보
+	 */
 	const handleUserSelect = (user: UserData) => {
+		// 선택된 사용자 상태 설정 (ASIS: grdUser.selectedItem = user)
 		setSelectedUser(user);
+
+		// 폼 데이터 설정 (ASIS: 폼 필드들에 사용자 정보 설정)
 		setFormData({
 			empNo: user.empNo,
 			empNm: user.empNm,
@@ -259,6 +304,8 @@ const USR2010M00: React.FC = () => {
 			apvApofNm: user.apvApofNm,
 			usrRoleId: user.usrRoleId,
 		});
+
+		// 편집용 사용자 정보 초기화 (ASIS: 편집 모드 진입)
 		const initialEditedUser: Partial<UserSaveData> = {
 			empNo: user.empNo,
 			empNm: user.empNm,
@@ -270,16 +317,23 @@ const USR2010M00: React.FC = () => {
 			usrRoleId: user.usrRoleId,
 		};
 
+		// 사용자별 업무권한 목록 조회 (ASIS: USR_01_0202_S 프로시저 호출)
 		usrApiService.getWorkAuthList(user.empNo).then((list) => {
 			setWorkAuthList(list);
 			setEditedUser({ ...initialEditedUser, workAuthList: list });
-			// 업무권한 콤보박스 초기값 설정
+			// 업무권한 콤보박스 초기값 설정 (ASIS: cboWorkAuth.selectedIndex = 0)
 			if (list.length > 0) {
 				setSelectedWorkAuthCode(list[0].smlCsfCd);
 			}
 		});
 	};
 
+	/**
+	 * 사용자 정보 입력 변경 핸들러
+	 * ASIS: 폼 필드들의 change 이벤트 핸들러와 동일한 역할
+	 * 사용자 정보 입력 시 편집 상태를 업데이트
+	 * @param e 입력 이벤트
+	 */
 	const handleUserInputChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
@@ -287,7 +341,14 @@ const USR2010M00: React.FC = () => {
 		setEditedUser((prev) => ({ ...prev, [name]: value }));
 	};
 
+	/**
+	 * 업무권한 변경 처리 함수
+	 * ASIS: rdoGrant_click(), rdoRevoke_click() 함수와 동일한 역할
+	 * 선택된 업무권한에 대해 부여/해제 액션을 적용
+	 * @param action 권한 액션 ("1": 부여, "0": 해제)
+	 */
 	const handleWorkAuthChange = (action: "1" | "0") => {
+		// 업무권한이 선택되지 않은 경우 경고 메시지 표시
 		if (!selectedWorkAuthCode) {
 			showConfirm({
 				message: "수정할 업무권한을 선택하세요.",
@@ -298,66 +359,94 @@ const USR2010M00: React.FC = () => {
 			return;
 		}
 
+		// 업무권한 목록에서 선택된 항목의 권한 상태를 업데이트 (ASIS: grdWorkAuth 데이터 업데이트)
 		const updatedList = workAuthList.map((auth) =>
 			auth.smlCsfCd === selectedWorkAuthCode
 				? { ...auth, wrkUseYn: action }
 				: auth
 		);
 
+		// 업데이트된 목록으로 상태 갱신
 		setWorkAuthList(updatedList);
 		setEditedUser((prev) => ({ ...prev, workAuthList: updatedList }));
 	};
 
 	// useEffect 제거 - 무한 루프 방지
 
-	const proceedWithSave = async (approver: { id: string; name: string }) => {
-		showConfirm({
-			message: "저장하시겠습니까?",
-			type: "info",
-			onConfirm: async () => {
-				// 현재 업무권한 목록에서 부여된 권한만 필터링
-				const currentWorkAuthList = editedUser.workAuthList || workAuthList;
+	/**
+	 * 사용자 정보 저장 진행 함수
+	 * ASIS: fnUserInfoSave() 함수와 동일한 역할
+	 * 승인결재자 정보와 함께 사용자 정보를 저장하고 결과를 처리
+	 * @param approver 승인결재자 정보 (id: 승인결재자ID, name: 승인결재자명)
+	 */
+	const proceedWithSave = useCallback(
+		async (approver: { id: string; name: string }) => {
+			// 저장 확인 메시지 표시 (ASIS: Alert.show("저장하시겠습니까?"))
+			showConfirm({
+				message: "저장하시겠습니까?",
+				type: "info",
+				onConfirm: async () => {
+					// 현재 업무권한 목록에서 부여된 권한만 필터링
+					const currentWorkAuthList = editedUser.workAuthList || workAuthList;
 
-				const saveData: UserSaveData = {
-					...selectedUser!,
-					...editedUser,
-					apvApofId: approver.id,
-					apvApofNm: approver.name,
-					workAuthList: currentWorkAuthList,
-					regUserId: user && "empNo" in user ? (user as any).empNo : "",
-				};
+					// 저장할 데이터 구성 (ASIS: 저장할 객체 구성)
+					const saveData: UserSaveData = {
+						...selectedUser!,
+						...editedUser,
+						apvApofId: approver.id, // 승인결재자ID
+						apvApofNm: approver.name, // 승인결재자명
+						workAuthList: currentWorkAuthList,
+						regUserId: user && "empNo" in user ? (user as any).empNo : "",
+					};
 
-				try {
-					await usrApiService.saveUser(saveData);
-					showToast("성공적으로 저장되었습니다.", "info");
+					try {
+						// 사용자 정보 저장 (ASIS: USR_01_0203_T 프로시저 호출)
+						await usrApiService.saveUser(saveData);
+						showToast("성공적으로 저장되었습니다.", "info");
 
-					// 저장 후 사용자 목록 새로고침
-					await refetchUserList();
+						// 저장 후 사용자 목록 새로고침 (ASIS: fn_srch() 호출)
+						await refetchUserList();
 
-					// 현재 선택된 사용자가 있다면 업데이트된 정보로 다시 설정
-					if (selectedUser) {
-						const updatedUserList =
-							await usrApiService.getUserList(searchParams);
-						const updatedUser = updatedUserList.find(
-							(u) => u.empNo === selectedUser.empNo
-						);
-						if (updatedUser) {
-							handleUserSelect(updatedUser);
+						// 현재 선택된 사용자가 있다면 업데이트된 정보로 다시 설정
+						if (selectedUser) {
+							const updatedUserList =
+								await usrApiService.getUserList(searchParams);
+							const updatedUser = updatedUserList.find(
+								(u) => u.empNo === selectedUser.empNo
+							);
+							if (updatedUser) {
+								handleUserSelect(updatedUser);
+							}
 						}
+					} catch (error) {
+						console.error("Failed to save user:", error);
+						showConfirm({
+							message: `저장 중 오류가 발생했습니다: ${(error as Error).message}`,
+							type: "error",
+							onConfirm: () => {},
+							confirmOnly: true,
+						});
 					}
-				} catch (error) {
-					console.error("Failed to save user:", error);
-					showConfirm({
-						message: `저장 중 오류가 발생했습니다: ${(error as Error).message}`,
-						type: "error",
-						onConfirm: () => {},
-						confirmOnly: true,
-					});
-				}
-			},
-		});
-	};
+				},
+			});
+		},
+		[
+			editedUser,
+			workAuthList,
+			selectedUser,
+			user,
+			searchParams,
+			showConfirm,
+			showToast,
+			refetchUserList,
+		]
+	);
 
+	/**
+	 * 사용자 정보 저장 함수
+	 * ASIS: btnSave_click() 함수와 동일한 역할
+	 * 사용자 정보 유효성 검사 후 승인결재자 검색 및 저장 진행
+	 */
 	const handleSave = async () => {
 		if (!selectedUser || !editedUser.empNo) {
 			showConfirm({
@@ -475,14 +564,55 @@ const USR2010M00: React.FC = () => {
 				}));
 				proceedWithSave({ id: approver.empNo, name: approver.empNm });
 			} else {
-				// 여러 명일 경우 팝업 열기
-				setPotentialApprovers(
-					approvers.map((a, i) => ({ ...a, LIST_NO: i + 1 }))
-				);
-				openPopup({
-					url: "/com/COMZ100P00",
+				// 여러 명일 경우 팝업 열기 (ASIS: COM_02_0600 팝업과 동일)
+				// ASIS: var reg:COM_02_0600 = COM_02_0600(PopUpManager.createPopUp( this, COM_02_0600 , true));
+				// ASIS: reg.choiceEmpInit(txtApvNm.text, event.result.result_set.record);
+
+				// 승인결재자 후보 목록을 COMZ100P00 형식으로 변환
+				const empList = approvers.map((approver, index) => ({
+					LIST_NO: String(index + 1),
+					EMP_NO: approver.empNo,
+					EMP_NM: approver.empNm,
+					HQ_DIV_NM: approver.hqDivNm,
+					DEPT_DIV_NM: approver.deptDivNm,
+					DUTY_NM: approver.dutyNm,
+					AUTH_CD_NM: approver.authCdNm,
+					BSN_USE_YN: approver.bsnUseYn,
+					WPC_USE_YN: approver.wpcUseYn,
+					PSM_USE_YN: approver.psmUseYn,
+					RMK: "",
+					HQ_DIV_CD: approver.hqDivCd,
+					DEPT_DIV_CD: approver.deptDivCd,
+					DUTY_CD: approver.dutyCd,
+					DUTY_DIV_CD: approver.dutyDivCd,
+					AUTH_CD: approver.authCd,
+					APV_APOF_ID: approver.apvApofId,
+					EMAIL_ADDR: approver.emailAddr,
+				}));
+
+				// 팝업 열기 (ASIS: PopUpManager.createPopUp와 동일)
+				const popupInstance = openPopup({
+					url: "/popup/com/COMZ100P00",
 					size: "medium",
 					position: "center",
+					onOpen: (popup) => {
+						// ASIS: reg.choiceEmpInit(txtApvNm.text, event.result.result_set.record);
+						// 팝업이 열린 후 postMessage로 choiceEmpInit 데이터 전송
+						setTimeout(() => {
+							if (popup) {
+								popup.postMessage(
+									{
+										type: "CHOICE_EMP_INIT",
+										data: {
+											empNm: editedUser.apvApofNm || "",
+											empList: empList,
+										},
+									},
+									"*"
+								);
+							}
+						}, 100);
+					},
 				});
 			}
 		} catch (error) {
@@ -496,29 +626,54 @@ const USR2010M00: React.FC = () => {
 		}
 	};
 
-	const handleApproverSelect = (approver: {
-		empNo: string;
-		empNm: string;
-		authCd: string;
-	}) => {
-		if (approver.authCd !== "10" && approver.authCd !== "00") {
-			showToast(
-				"승인결재자는 부서장 이상이어야 합니다.\n다른 사람을 선택해주세요.",
-				"warning"
-			);
-			// COMZ100P00에서는 팝업을 닫지 않고 다시 선택을 유도하기 어려우므로,
-			// 일단 팝업을 닫고 사용자에게 재시도를 안내합니다.
-			return;
-		}
+	/**
+	 * 팝업에서 승인결재자 선택 시 처리 함수
+	 * ASIS: DblClick_COM_02_0600_Save() 함수와 동일한 로직
+	 * COMZ100P00 팝업에서 직원을 더블클릭하여 선택했을 때 호출되는 함수
+	 * 승인결재자 권한 체크 후 사용자 정보 저장을 진행
+	 * @param approver 선택된 승인결재자 정보 (empNo: 사번, empNm: 성명, authCd: 권한코드)
+	 */
+	const handleApproverSelect = useCallback(
+		(approver: { empNo: string; empNm: string; authCd: string }) => {
+			// ASIS: arr[0]: 직원번호, arr[1]: 직원명, arr[2]: 권한코드
+			// 권한 체크 (ASIS: fnApvNmAuthorityYn)
+			if (approver.authCd !== "10" && approver.authCd !== "00") {
+				showConfirm({
+					message:
+						"승인결재자는 부서장 이상이어야 합니다.\n재 입력 해 주십시요.",
+					type: "warning",
+					onConfirm: () => {
+						// 승인결재자 입력 필드에 포커스
+						const apvApofInput = document.getElementById(
+							"apvApofNm"
+						) as HTMLInputElement;
+						if (apvApofInput) {
+							apvApofInput.focus();
+						}
+					},
+					confirmOnly: true,
+				});
+				return;
+			}
 
-		setEditedUser((prev) => ({
-			...prev,
-			apvApofId: approver.empNo,
-			apvApofNm: approver.empNm,
-		}));
-		proceedWithSave({ id: approver.empNo, name: approver.empNm });
-	};
+			// ASIS: txtApvId.text = arr[0]; txtApvNm.text = arr[1];
+			setEditedUser((prev) => ({
+				...prev,
+				apvApofId: approver.empNo, // 승인결재자ID
+				apvApofNm: approver.empNm, // 승인결재자명
+			}));
 
+			// ASIS: fnUserInfoSave() 호출
+			proceedWithSave({ id: approver.empNo, name: approver.empNm });
+		},
+		[showConfirm, proceedWithSave]
+	);
+
+	/**
+	 * 비밀번호 초기화 함수
+	 * ASIS: btnPasswordInit_click() 함수와 동일한 역할
+	 * 선택된 사용자의 비밀번호를 초기화하고 결과를 처리
+	 */
 	const handlePasswordReset = async () => {
 		if (!selectedUser) {
 			showConfirm({

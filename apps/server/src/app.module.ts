@@ -13,6 +13,7 @@ import { SysModule } from './sys/sys.module';
 import { UsrModule } from './usr/usr.module';
 import { ComModule } from './com/com.module';
 import { CommonModule } from './common/common.module';
+import { PsmModule } from './psm/psm.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CommonModule } from './common/common.module';
     UsrModule,
     ComModule,
     CommonModule,
+    PsmModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService],
