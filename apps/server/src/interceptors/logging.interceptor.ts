@@ -29,7 +29,7 @@ export class LoggingInterceptor implements NestInterceptor {
       timestamp: new Date().toISOString(),
     };
 
-    this.logger.log(`📥 요청 시작: ${method} ${url}`, logData);
+    // this.logger.log(`📥 요청 시작: ${method} ${url}`, logData);
 
     return next.handle().pipe(
       tap((data) => {
@@ -43,10 +43,10 @@ export class LoggingInterceptor implements NestInterceptor {
           timestamp: new Date().toISOString(),
         };
 
-        this.logger.log(
-          `📤 응답 완료: ${method} ${url} - ${response.statusCode} (${duration}ms)`,
-          responseData,
-        );
+        // this.logger.log(
+        //   `📤 응답 완료: ${method} ${url} - ${response.statusCode} (${duration}ms)`,
+        //   responseData,
+        // );
       }),
       catchError((error) => {
         const endTime = Date.now();
@@ -60,10 +60,10 @@ export class LoggingInterceptor implements NestInterceptor {
           errorType: error.constructor.name,
         };
 
-        this.logger.error(
-          `❌ 요청 실패: ${method} ${url} - ${errorData.statusCode} (${duration}ms)`,
-          errorData,
-        );
+        // this.logger.error(
+        //   `❌ 요청 실패: ${method} ${url} - ${errorData.statusCode} (${duration}ms)`,
+        //   errorData,
+        // );
 
         throw error;
       }),

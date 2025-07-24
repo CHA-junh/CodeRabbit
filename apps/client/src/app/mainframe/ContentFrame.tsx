@@ -27,7 +27,6 @@ export default function ContentFrame({
 		}
 
 		setError(null)
-		console.log('[ContentFrame] menuPath:', menuPath)
 
 		// 동적 컴포넌트 생성 및 즉시 설정
 		const component = createDynamicComponent(menuPath)
