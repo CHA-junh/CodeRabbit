@@ -4,7 +4,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-// Redis 세션 미들웨어 관련 import
 import session = require('express-session');
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -58,12 +57,12 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // HTTPS 환경에서만 secure
-        sameSite: 'strict', // CSRF 공격 방지
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
         path: '/',
-        maxAge: parseInt(process.env.SESSION_COOKIE_MAX_AGE || '86400000'), // 24시간
+        maxAge: parseInt(process.env.SESSION_COOKIE_MAX_AGE || '86400000'),
       },
-      name: 'bist-session', // 기본 세션명 변경
+      name: 'bist-session',
     }),
   );
 

@@ -69,16 +69,88 @@ export default function ProjectSearchPopup() {
 
   // AG-Grid 컬럼 정의
   const [businessColDefs] = useState<ColDef[]>([
-    //{ headerName: 'No', field: 'index', width: 60, flex: 0.4, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', valueGetter: (params) => params.node?.rowIndex ? params.node.rowIndex + 1 : 1 },
-    { headerName: '사업번호', field: 'bsnNo', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'bsnNo' },
-    { headerName: '사업명', field: 'bsnNm', width: 400, flex: 2.5, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header', tooltipField: 'bsnNm' },
-    { headerName: '시작일자', field: 'bsnStrtDt', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'bsnStrtDt' },
-    { headerName: '종료일자', field: 'bsnEndDt', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'bsnEndDt' },
-    { headerName: '영업부서', field: 'pplsDeptNm', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'pplsDeptNm' },
-    { headerName: '영업대표', field: 'bizRepnm', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', valueGetter: (params) => params.data?.bizRepnm || '미지정', tooltipField: 'bizRepnm' },
-    { headerName: '실행부서', field: 'execDeptNm', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'execDeptNm' },
-    { headerName: 'PM', field: 'pmNm', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'pmNm' },
-    { headerName: '진행상태', field: 'pgrsStDivNm', width: 100, flex: 0.8, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'pgrsStDivNm' },
+    {
+      headerName: '사업번호',
+      field: 'bsnNo',
+      width: 120,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'bsnNo',
+    },
+    {
+      headerName: '사업명',
+      field: 'bsnNm',
+      width: 400,
+      flex: 1,
+      cellStyle: { textAlign: 'left' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'bsnNm',
+    },
+    {
+      headerName: '시작일자',
+      field: 'bsnStrtDt',
+      width: 100,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'bsnStrtDt',
+    },
+    {
+      headerName: '종료일자',
+      field: 'bsnEndDt',
+      width: 100,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'bsnEndDt',
+    },
+    {
+      headerName: '영업부서',
+      field: 'pplsDeptNm',
+      width: 120,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'pplsDeptNm',
+    },
+    {
+      headerName: '영업대표',
+      field: 'bizRepnm',
+      width: 100,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      valueGetter: (params) => params.data?.bizRepnm || '미지정',
+      tooltipField: 'bizRepnm',
+    },
+    {
+      headerName: '실행부서',
+      field: 'execDeptNm',
+      width: 120,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'execDeptNm',
+    },
+    {
+      headerName: 'PM',
+      field: 'pmNm',
+      width: 100,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'pmNm',
+    },
+    {
+      headerName: '진행상태',
+      field: 'pgrsStDivNm',
+      width: 100,
+      flex: 0,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-center-header',
+      tooltipField: 'pgrsStDivNm',
+    },
   ]);
 
   const [searchType, setSearchType] = useState(''); // 초기값을 빈 문자열로 설정
@@ -583,13 +655,13 @@ export default function ProjectSearchPopup() {
     // 사업예산품의서일 경우
     if (planYn) {
       if (!progressStates.new && !progressStates.sales) {
-        showToast('진행상태를 선택하세요.', 'warning');
+        showToast('진행상태를 선택하세요. (신규 또는 영업진행 중 하나 이상)', 'warning');
         return false;
       }
     } else {
       // 사업확정품의서일 경우 - 수주확정, 계약, 완료 중 하나라도 선택되어야 함
       if (!progressStates.confirmed && !progressStates.contract && !progressStates.completed) {
-        showToast('진행상태를 선택하세요.', 'warning');
+        showToast('진행상태를 선택하세요. (수주확정, 계약, 완료 중 하나 이상)', 'warning');
         return false;
       }
     }
@@ -628,13 +700,6 @@ export default function ProjectSearchPopup() {
   }, [progressStates.new, progressStates.sales, progressStates.confirmed, 
       progressStates.contract, progressStates.completed, progressStates.failed, 
       progressStates.cancelled]);
-
-  // 데이터 변경 시 컬럼 크기 조정
-  useEffect(() => {
-    if (businessGridRef.current?.api) {
-      businessGridRef.current.api.sizeColumnsToFit();
-    }
-  }, [businessList]);
 
   return (
     <div className="popup-wrapper">
@@ -871,41 +936,30 @@ export default function ProjectSearchPopup() {
         )}
 
         {/* 그리드 영역 */}
-        <div className="gridbox-div mt-4 ag-theme-alpine" style={{ height: '400px' }}>
-          <AgGridReact
-            ref={businessGridRef}
-            rowData={businessList}
-            columnDefs={businessColDefs}
-            defaultColDef={{
-              resizable: true,
-              sortable: true,
-              filter: true,
-              suppressSizeToFit: false,
-            }}
-            rowSelection='single'
-            onSelectionChanged={onBusinessSelectionChanged}
-            onRowDoubleClicked={(event) => {
-              handleDoubleClick(event.data);
-            }}
-            onGridReady={onBusinessGridReady}
-            domLayout='normal'
-            rowHeight={35}
-            headerHeight={40}
-            tooltipShowDelay={500}
-            noRowsOverlayComponent={() => (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                height: '100%',
-                color: '#666',
-                fontSize: '14px'
-              }}>
-                조회 결과가 없습니다
-              </div>
-            )}
-          />
-        </div>
+        <div className='ag-theme-alpine' style={{ height: 400, width: "100%" }}>
+			<AgGridReact
+				ref={businessGridRef}
+				rowData={businessList}
+				columnDefs={businessColDefs}
+				defaultColDef={{
+					resizable: true,
+					sortable: true,
+				}}
+				rowSelection='single'
+				onSelectionChanged={onBusinessSelectionChanged}
+				onRowDoubleClicked={(event) => {
+					handleDoubleClick(event.data);
+				}}
+				onGridReady={onBusinessGridReady}
+				components={{
+					agColumnHeader: (props: any) => (
+						<div style={{ textAlign: "center", width: "100%" }}>
+							{props.displayName}
+						</div>
+					),
+				}}
+			/>
+		</div>
 
         {/* 종료 버튼 */}
         <div className="flex justify-end mt-4">

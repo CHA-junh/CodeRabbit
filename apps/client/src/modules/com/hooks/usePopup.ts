@@ -414,13 +414,81 @@ export function usePopup() {
  * 단순 팝업 열기 함수 (usePopup 훅 없이 사용)
  */
 export function openPopup(url: string, options: PopupOptions = {}): Window | null {
-  try {
-    const features = options.features || buildPopupFeatures('medium', 'center', options);
-    const popupName = options.name || `popup_${Date.now()}`;
-    
-    return window.open(url, popupName, features);
-  } catch (error) {
-    console.error('팝업 열기 실패:', error);
-    return null;
+  const { openPopup: openPopupHook } = usePopup();
+  
+  return openPopupHook({
+    url,
+    options,
+    position: 'center',
+    size: 'medium'
+  })?.window || null;
+}
+
+/**
+ * 팝업 관련 유틸리티 함수들을 모아놓은 객체
+ * 
+ * 팝업 관리와 관련된 다양한 헬퍼 함수들을 제공합니다.
+ */
+export const popupUtils = {
+  /**
+   * 팝업이 브라우저에 의해 차단되었는지 확인하는 함수
+   * 
+   * 테스트 팝업을 열어서 차단 여부를 확인합니다.
+   * 
+   * @returns 팝업이 차단되었으면 true, 아니면 false
+   */
+  isPopupBlocked: (): boolean => {
+    try {
+      // 1x1 크기의 테스트 팝업 열기
+      const testPopup = window.open('', '_blank', 'width=1,height=1');
+      if (testPopup) {
+        // 성공적으로 열렸으면 즉시 닫기
+        testPopup.close();
+        return false;
+      }
+      return true;
+    } catch {
+      // 에러 발생 시 차단된 것으로 간주
+      return true;
+    }
+  },
+
+  /**
+   * 팝업 차단 안내 메시지를 표시하는 함수
+   * 
+   * 사용자에게 팝업 차단 해제 방법을 안내합니다.
+   */
+  showBlockedMessage: (): void => {
+    alert('팝업이 차단되었습니다. 브라우저 설정에서 팝업 차단을 해제해주세요.');
+  },
+
+  /**
+   * 열린 팝업 창의 크기를 조정하는 함수
+   * 
+   * @param popup - 크기를 조정할 팝업 창
+   * @param width - 새로운 너비
+   * @param height - 새로운 높이
+   */
+  resizePopup: (popup: Window, width: number, height: number): void => {
+    try {
+      popup.resizeTo(width, height);
+    } catch (error) {
+      console.warn('팝업 크기 조정 실패:', error);
+    }
+  },
+
+  /**
+   * 열린 팝업 창의 위치를 이동하는 함수
+   * 
+   * @param popup - 위치를 이동할 팝업 창
+   * @param left - 새로운 X 좌표
+   * @param top - 새로운 Y 좌표
+   */
+  movePopup: (popup: Window, left: number, top: number): void => {
+    try {
+      popup.moveTo(left, top);
+    } catch (error) {
+      console.warn('팝업 위치 이동 실패:', error);
+    }
   }
 } 

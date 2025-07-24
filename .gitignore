@@ -51,7 +51,7 @@ temp/
 *.tsbuildinfo
 
 # Designs folder (moved to project root)
-# designs/ - Removed to allow designs folder to be tracked by Git 
+**/designs/
 
 # Test reports
 test-reports/

@@ -17,16 +17,15 @@ export function getSystemName(): string {
 		}
 	}
 
-	// 2. NODE_ENV 확인
-	if (process.env.NODE_ENV === 'development') {
-		return 'BIST (Dev)'
-	}
-
-	// 3. 호스트명 기반 (백업용)
+	// 2. 호스트명 기반 확인 (localhost는 Local 환경)
 	const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
-
 	if (hostname === 'localhost' || hostname === '127.0.0.1') {
 		return 'BIST (Local)'
+	}
+
+	// 3. NODE_ENV 확인 (localhost가 아닌 경우)
+	if (process.env.NODE_ENV === 'development') {
+		return 'BIST (Dev)'
 	}
 
 	// 운영 환경 (기본값)

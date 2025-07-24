@@ -6,7 +6,7 @@ import { PasswordChangePopup } from './PasswordChangePopup'
 import { useAuth } from '../hooks/useAuth'
 
 export default function LoginForm() {
-	console.log('LoginForm 렌더링')
+	// 보안: 민감한 정보 로그 제거
 	const [rightPanelActive, setRightPanelActive] = useState(false)
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [signUpId, setSignUpId] = useState('')
@@ -45,16 +45,14 @@ export default function LoginForm() {
 		e.preventDefault()
 		setLoginError(null)
 		try {
-			const result = await login({ empNo: signInId, password: signInPw })
-			console.log('login result:', result)
+			const result = await login(signInId, signInPw)
+			// 보안: 민감한 정보 로그 제거
 			if (result.success) {
 				window.location.reload()
 			} else if (result.needsPasswordChange) {
-				console.log('needsPasswordChange:', result.needsPasswordChange)
 				setPwdChangeUserId(signInId)
 				setPendingLogin({ empNo: signInId, password: signInPw })
 				setPendingNeedsPwdChange(true)
-				console.log('setPendingNeedsPwdChange(true) 호출')
 				setLoginError(
 					result.message ||
 						'초기 비밀번호입니다. 비밀번호를 변경해야 로그인할 수 있습니다.'
@@ -63,12 +61,15 @@ export default function LoginForm() {
 				setLoginError(result.message || '로그인 실패')
 			}
 		} catch (err) {
-			setLoginError('서버 오류')
+			// 사용자 친화적 오류 메시지 처리
+			const errorMessage =
+				(err as any)?.message || '로그인 중 오류가 발생했습니다.'
+			setLoginError(errorMessage)
 		}
 	}
 
 	useEffect(() => {
-		console.log('showPwdChange:', showPwdChange)
+		// 보안: 민감한 정보 로그 제거
 		if (pendingNeedsPwdChange && !showPwdChange) {
 			setShowPwdChange(true)
 			setPendingNeedsPwdChange(false)
@@ -93,16 +94,14 @@ export default function LoginForm() {
 			const data = await res.json()
 			if (data.success) {
 				setPwdChangeMsg(
-					'비밀번호가 성공적으로 변경되었습니다. 다시 로그인합니다...'
+					'비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.'
 				)
-				setTimeout(async () => {
+				setTimeout(() => {
 					setShowPwdChange(false)
 					setPwdChangeMsg(null)
-					// 비밀번호 변경 성공 시 자동 로그인 재시도
-					if (pendingLogin) {
-						await handleAutoLogin(pendingLogin.empNo, newPassword)
-						setPendingLogin(null)
-					}
+					setPendingLogin(null)
+					// 로그인 화면으로 돌아가기
+					window.location.reload()
 				}, 1200)
 			} else {
 				setPwdChangeMsg(data.message || '비밀번호 변경 실패')
@@ -119,36 +118,9 @@ export default function LoginForm() {
 		setPwdChangeMsg(null)
 	}
 
-	const handleAutoLogin = async (empNo: string, password: string) => {
-		try {
-			// API URL 환경변수 기반 설정
-			const apiUrl =
-				typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
-					? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/login`
-					: '/api/auth/login'
-
-			const response = await fetch(apiUrl, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ empNo, password }),
-				credentials: 'include',
-			})
-			const data = await response.json()
-			if (data.success && !data.user?.needsPasswordChange) {
-				window.location.reload()
-			} else if (data.user?.needsPasswordChange) {
-				setLoginError(
-					'비밀번호 변경 후에도 초기 비밀번호와 동일합니다. 다시 시도해 주세요.'
-				)
-			}
-		} catch (err) {
-			setLoginError('자동 로그인 중 오류가 발생했습니다.')
-		}
-	}
-
 	return (
 		<>
-			{showPwdChange && console.log('PasswordChangePopup 렌더링됨')}
+			{/* 보안: 민감한 정보 로그 제거 */}
 			<PasswordChangePopup
 				isOpen={showPwdChange}
 				onClose={handlePwdChangeClose}

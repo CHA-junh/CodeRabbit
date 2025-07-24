@@ -7,6 +7,7 @@ dotenv.config();
 @Injectable()
 export class OracleService implements OnModuleInit, OnModuleDestroy {
   private pool: oracledb.Pool | null = null;
+  private static isInitialized = false; // 중복 초기화 방지
 
   // 🟡 환경변수 확인
   private checkEnvironmentVariables(): { valid: boolean; missing: string[] } {
@@ -33,6 +34,12 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
 
   // ✅ NestJS가 시작될 때 자동으로 실행됨
   async onModuleInit() {
+    // 중복 초기화 방지
+    if (OracleService.isInitialized) {
+      console.log('ℹ️ Oracle 커넥션 풀이 이미 초기화되었습니다.');
+      return;
+    }
+
     try {
       const envCheck = this.checkEnvironmentVariables();
       if (!envCheck.valid) {
@@ -50,6 +57,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
         poolIncrement: 1,
       });
 
+      OracleService.isInitialized = true;
       console.log('✅ Oracle 커넥션 풀 생성 완료');
     } catch (error) {
       console.error('❌ 커넥션 풀 생성 실패:', error);
@@ -72,20 +80,23 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   }
 
   // 📋 프로시저 실행
-  async executeProcedure(procedureName: string, params: any[] = []): Promise<any> {
+  async executeProcedure(
+    procedureName: string,
+    params: any[] = [],
+  ): Promise<any> {
     const connection = await this.getConnection();
-    
+
     // OUT 파라미터 타입 분기: 조회(_S)면 CURSOR, 아니면 STRING
     const isSelectProc = procedureName.endsWith('_S');
-    
+
     try {
       const bindVars: any = {
-        o_result: { 
-          type: isSelectProc ? oracledb.CURSOR : oracledb.STRING, 
-          dir: oracledb.BIND_OUT 
+        o_result: {
+          type: isSelectProc ? oracledb.CURSOR : oracledb.STRING,
+          dir: oracledb.BIND_OUT,
         },
       };
-      
+
       params.forEach((param, i) => {
         bindVars[`p${i + 1}`] = param;
       });
@@ -93,7 +104,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       const result = await connection.execute(
         `BEGIN ${procedureName}(:o_result${params.length > 0 ? ', ' + params.map((_, i) => `:p${i + 1}`).join(', ') : ''}); END;`,
         bindVars,
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        { outFormat: oracledb.OUT_FORMAT_OBJECT },
       );
 
       const outBinds = result.outBinds as any;
@@ -135,8 +146,9 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   // 🔌 NestJS 종료 시 자동 호출
   async onModuleDestroy() {
     try {
-      if (this.pool) {
+      if (this.pool && OracleService.isInitialized) {
         await this.pool.close(10); // 10초 안에 안전하게 종료
+        OracleService.isInitialized = false;
         console.log('🔌 Oracle 커넥션 풀 종료 완료');
       }
     } catch (error) {
@@ -145,4 +157,3 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     }
   }
 }
-

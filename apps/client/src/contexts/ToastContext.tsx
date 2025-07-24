@@ -10,7 +10,14 @@ import ConfirmDialog from '@/components/ConfirmDialog'
  * - showConfirm: 확인 다이얼로그를 표시하는 함수
  */
 interface ToastContextType {
-	showToast: (message: string, type?: 'info' | 'warning' | 'error') => void
+	showToast: (
+		message: string,
+		type?: 'success' | 'info' | 'warning' | 'error'
+	) => void
+	showSuccess: (message: string) => void
+	showError: (message: string) => void
+	showWarning: (message: string) => void
+	showInfo: (message: string) => void
 	showConfirm: (config: ConfirmConfig) => void
 }
 
@@ -34,12 +41,12 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined)
 
 /**
  * ToastProvider 컴포넌트
- * 
+ *
  * 역할:
  * 1. Toast와 ConfirmDialog의 전역 상태 관리
  * 2. 전역에서 사용할 수 있는 showToast, showConfirm 함수 제공
  * 3. 실제 Toast와 ConfirmDialog 컴포넌트 렌더링
- * 
+ *
  * 사용법:
  * - layout.tsx에서 전체 앱을 감싸서 모든 컴포넌트에서 사용 가능
  * - useToast() 훅을 통해 showToast, showConfirm 함수 사용
@@ -53,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 	 */
 	const [toastConfig, setToastConfig] = useState<{
 		message: string
-		type: 'info' | 'warning' | 'error'
+		type: 'success' | 'info' | 'warning' | 'error'
 		isVisible: boolean
 	}>({
 		message: '',
@@ -86,15 +93,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 	/**
 	 * 토스트 알림을 표시하는 함수
-	 * 
+	 *
 	 * @param message - 토스트에 표시할 메시지
 	 * @param type - 토스트 타입 (기본값: 'info')
-	 * 
+	 *
 	 * 사용 예시:
 	 * showToast('저장되었습니다.', 'info')
 	 * showToast('오류가 발생했습니다.', 'error')
 	 */
-	const showToast = (message: string, type: 'info' | 'warning' | 'error' = 'info') => {
+	const showToast = (
+		message: string,
+		type: 'success' | 'info' | 'warning' | 'error' = 'info'
+	) => {
 		setToastConfig({
 			message,
 			type,
@@ -102,12 +112,28 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
+	const showSuccess = (message: string) => {
+		showToast(message, 'success')
+	}
+
+	const showError = (message: string) => {
+		showToast(message, 'error')
+	}
+
+	const showWarning = (message: string) => {
+		showToast(message, 'warning')
+	}
+
+	const showInfo = (message: string) => {
+		showToast(message, 'info')
+	}
+
 	/**
 	 * 토스트 알림을 숨기는 함수
 	 * - Toast 컴포넌트에서 자동으로 호출됨
 	 */
 	const hideToast = () => {
-		setToastConfig(prev => ({
+		setToastConfig((prev) => ({
 			...prev,
 			isVisible: false,
 		}))
@@ -115,9 +141,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 	/**
 	 * 확인 다이얼로그를 표시하는 함수
-	 * 
+	 *
 	 * @param config - 다이얼로그 설정 객체
-	 * 
+	 *
 	 * 사용 예시:
 	 * showConfirm({
 	 *   message: '정말 삭제하시겠습니까?',
@@ -138,11 +164,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 			isVisible: true,
 			onConfirm: () => {
 				config.onConfirm()
-				setConfirmConfig(prev => ({ ...prev, isVisible: false }))
+				setConfirmConfig((prev) => ({ ...prev, isVisible: false }))
 			},
 			onCancel: () => {
 				config.onCancel?.()
-				setConfirmConfig(prev => ({ ...prev, isVisible: false }))
+				setConfirmConfig((prev) => ({ ...prev, isVisible: false }))
 			},
 			confirmOnly: config.confirmOnly || false,
 		})
@@ -153,15 +179,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 	 * - 현재는 사용되지 않지만 향후 확장을 위해 유지
 	 */
 	const hideConfirm = () => {
-		setConfirmConfig(prev => ({ ...prev, isVisible: false }))
+		setConfirmConfig((prev) => ({ ...prev, isVisible: false }))
 	}
 
 	return (
-		<ToastContext.Provider value={{ showToast, showConfirm }}>
+		<ToastContext.Provider value={{ 
+			showToast, 
+			showSuccess, 
+			showError, 
+			showWarning, 
+			showInfo, 
+			showConfirm 
+		}}>
 			{/* 자식 컴포넌트들 렌더링 */}
 			{children}
-			
-			{/* 
+
+			{/*
 			 * Toast 컴포넌트 렌더링
 			 * - toastConfig 상태에 따라 자동으로 표시/숨김
 			 * - 3초 후 자동으로 사라짐
@@ -175,7 +208,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 				duration={3000}
 			/>
 
-			{/* 
+			{/*
 			 * ConfirmDialog 컴포넌트 렌더링
 			 * - confirmConfig 상태에 따라 자동으로 표시/숨김
 			 * - 화면 중앙에 모달 형태로 표시
@@ -195,14 +228,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 /**
  * useToast 훅
- * 
+ *
  * ToastContext에서 제공하는 함수들을 사용하기 위한 커스텀 훅
- * 
+ *
  * @returns {ToastContextType} showToast, showConfirm 함수를 포함한 객체
- * 
+ *
  * 사용 예시:
  * const { showToast, showConfirm } = useToast()
- * 
+ *
  * @throws {Error} ToastProvider 외부에서 사용할 경우 에러 발생
  */
 export function useToast() {
@@ -211,4 +244,4 @@ export function useToast() {
 		throw new Error('useToast must be used within a ToastProvider')
 	}
 	return context
-} 
+}

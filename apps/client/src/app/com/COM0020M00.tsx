@@ -5,9 +5,11 @@ import { useAuth } from '../../modules/auth/hooks/useAuth'
 import { LoginRequest } from '../../modules/auth/types'
 import { PasswordChangePopup } from '../../modules/auth/components/PasswordChangePopup'
 import { getSystemName } from '../../utils/environment'
+import { useToast } from '../../contexts/ToastContext'
 
 export default function COM0020M00() {
 	const { login, loading } = useAuth()
+	const { showSuccess, showError } = useToast()
 	const [empNo, setEmpNo] = useState('')
 	const [password, setPassword] = useState('')
 	const [error, setError] = useState<string | null>(null)
@@ -29,7 +31,7 @@ export default function COM0020M00() {
 	// 로그인 처리
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
-		console.log('로그인 시도! (1)')
+		// 보안: 로그인 시도 로그 제거
 		setError(null)
 
 		if (!empNo || !password) {
@@ -43,19 +45,16 @@ export default function COM0020M00() {
 				empNo,
 				password,
 			}
-			console.log('loginData:', loginData, '(3)')
+			// 보안: 민감한 정보 로그 제거
 
 			const result = await login(empNo, password)
-			console.log('login result:', result, '(4)')
 
 			// 1. 비밀번호 변경 필요 분기(최우선)
 			if (result.needsPasswordChange) {
-				console.log('needsPasswordChange:', result.needsPasswordChange, '(5)')
 				setPwdChangeUserId(empNo)
 				setPendingLogin({ empNo, password })
 				setPendingNeedsPwdChange(true)
 				setShowPwdChange(true) // 팝업이 반드시 뜨도록 직접 호출
-				console.log('setPendingNeedsPwdChange(true) 호출 (6)')
 				setError(
 					result.message ||
 						'초기 비밀번호입니다. 비밀번호를 변경해야 로그인할 수 있습니다.'
@@ -65,7 +64,6 @@ export default function COM0020M00() {
 
 			// 2. 로그인 성공
 			if (result.success) {
-				console.log('로그인 성공! (7)')
 				window.location.reload()
 				return
 			}
@@ -80,18 +78,13 @@ export default function COM0020M00() {
 							? result
 							: JSON.stringify(result)
 			)
-			console.log('로그인 실패! (8)', result)
 		} catch (err) {
-			setError(
-				typeof (err as any)?.message === 'string'
-					? (err as any).message
-					: (err as any)?.message
-						? JSON.stringify((err as any).message)
-						: typeof err === 'string'
-							? err
-							: JSON.stringify(err)
-			)
-			console.log('로그인 중 오류! (9)', err)
+			// 사용자 친화적 오류 메시지 처리
+			const errorMessage =
+				(err as any)?.message || '로그인 중 오류가 발생했습니다.'
+			setError(errorMessage)
+
+			// 로그 완전 제거 - 보안상 민감한 정보 노출 방지
 		}
 	}
 
@@ -118,7 +111,7 @@ export default function COM0020M00() {
 			const data = await response.json()
 
 			if (data.success) {
-				alert(
+				showSuccess(
 					data.message ||
 						'비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 다시 로그인하세요.'
 				)
@@ -126,19 +119,14 @@ export default function COM0020M00() {
 				setPendingNeedsPwdChange(false) // 상태 꼬임 방지
 				setEmpNo('')
 				setPassword('')
-				window.location.reload() // 로그인 화면 리프레시
+				setTimeout(() => {
+					window.location.reload() // 로그인 화면으로 돌아가기
+				}, 1500)
 			} else {
-				alert(data.message || '비밀번호 변경에 실패했습니다.')
+				showError(data.message || '비밀번호 변경에 실패했습니다.')
 			}
 		} catch (err) {
-			alert('비밀번호 변경 중 오류가 발생했습니다.')
-		}
-	}
-
-	const handleAutoLogin = async (empNo: string, password: string) => {
-		const result = await login(empNo, password)
-		if (result.success) {
-			window.location.reload()
+			showError('비밀번호 변경 중 오류가 발생했습니다.')
 		}
 	}
 

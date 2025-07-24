@@ -71,18 +71,82 @@ const COMZ010M00Page = () => {
 
 	// AG-Grid 컬럼 정의
 	const [largeCodeColDefs] = useState<ColDef[]>([
-		{ headerName: '대분류코드', field: 'lrgCsfCd', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
-		{ headerName: '대분류명', field: 'lrgCsfNm', width: 180, flex: 1.2, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
-		{ headerName: '사용여부', field: 'useYn', width: 80, flex: 0.5, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
-		{ headerName: '설명', field: 'expl', width: 200, flex: 1.5, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header' },
+		{
+			headerName: '대분류코드',
+			field: 'lrgCsfCd',
+			width: 120,
+			flex: 0,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+		},
+		{
+			headerName: '대분류명',
+			field: 'lrgCsfNm',
+			width: 180,
+			flex: 1,
+			cellStyle: { textAlign: 'left' },
+			headerClass: 'ag-center-header',
+		},
+		{
+			headerName: '사용여부',
+			field: 'useYn',
+			width: 80,
+			flex: 0,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+		},
+		{
+			headerName: '설명',
+			field: 'expl',
+			width: 200,
+			flex: 1,
+			cellStyle: { textAlign: 'left' },
+			headerClass: 'ag-center-header',
+		},
 	])
 
 	const [smallCodeColDefs] = useState<ColDef[]>([
-		{ headerName: '소분류코드', field: 'smlCsfCd', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
-		{ headerName: '소분류명', field: 'smlCsfNm', width: 180, flex: 1.2, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
-		{ headerName: '정렬순서', field: 'sortOrd', width: 80, flex: 0.5, type: 'numericColumn', cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
-		{ headerName: '사용여부', field: 'useYn', width: 80, flex: 0.5, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
-		{ headerName: '설명', field: 'expl', width: 200, flex: 1, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header' },
+		{
+			headerName: '소분류코드',
+			field: 'smlCsfCd',
+			width: 120,
+			flex: 0,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+		},
+		{
+			headerName: '소분류명',
+			field: 'smlCsfNm',
+			width: 180,
+			flex: 1,
+			cellStyle: { textAlign: 'left' },
+			headerClass: 'ag-center-header',
+		},
+		{
+			headerName: '정렬순서',
+			field: 'sortOrd',
+			width: 80,
+			flex: 0,
+			type: 'numericColumn',
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+		},
+		{
+			headerName: '사용여부',
+			field: 'useYn',
+			width: 80,
+			flex: 0,
+			cellStyle: { textAlign: 'center' },
+			headerClass: 'ag-center-header',
+		},
+		{
+			headerName: '설명',
+			field: 'expl',
+			width: 200,
+			flex: 1,
+			cellStyle: { textAlign: 'left' },
+			headerClass: 'ag-center-header',
+		},
 	])
 
 	// 검색 상태
@@ -722,19 +786,6 @@ const COMZ010M00Page = () => {
 		setSmallCodes([]) // 초기화
 	}, [])
 
-	// 데이터 변경 시 컬럼 크기 조정
-	useEffect(() => {
-		if (largeCodeGridRef.current?.api) {
-			largeCodeGridRef.current.api.sizeColumnsToFit()
-		}
-	}, [largeCodes])
-
-	useEffect(() => {
-		if (smallCodeGridRef.current?.api) {
-			smallCodeGridRef.current.api.sizeColumnsToFit()
-		}
-	}, [smallCodes])
-
 	return (
 		<div className='mdi'>
 			{/* 🔍 조회 영역 */}
@@ -791,7 +842,7 @@ const COMZ010M00Page = () => {
 			<div className='flex gap-4'>
 				{/* 대분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4 ag-theme-alpine' style={{ height: '400px', overflow: 'auto' }}>
+					<div className='ag-theme-alpine' style={{ height: 400, width: "100%" }}>
 						<AgGridReact
 							ref={largeCodeGridRef}
 							rowData={largeCodes}
@@ -799,8 +850,6 @@ const COMZ010M00Page = () => {
 							defaultColDef={{
 								resizable: true,
 								sortable: true,
-								filter: true,
-								suppressSizeToFit: false,
 							}}
 							rowSelection='single'
 							onSelectionChanged={onLargeCodeSelectionChanged}
@@ -808,6 +857,13 @@ const COMZ010M00Page = () => {
 								handleLargeRowDoubleClick(event.data)
 							}}
 							onGridReady={onLargeGridReady}
+							components={{
+								agColumnHeader: (props: any) => (
+									<div style={{ textAlign: "center", width: "100%" }}>
+										{props.displayName}
+									</div>
+								),
+							}}
 						/>
 					</div>
 					{/* 대분류 등록 폼 */}
@@ -922,7 +978,7 @@ const COMZ010M00Page = () => {
 				</div>
 				{/* 소분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4 ag-theme-alpine' style={{ height: '400px', overflow: 'auto' }}>
+					<div className='ag-theme-alpine' style={{ height: 400, width: "100%" }}>
 						<AgGridReact
 							ref={smallCodeGridRef}
 							rowData={smallCodes}
@@ -930,8 +986,6 @@ const COMZ010M00Page = () => {
 							defaultColDef={{
 								resizable: true,
 								sortable: true,
-								filter: true,
-								suppressSizeToFit: false,
 							}}
 							rowSelection='single'
 							onSelectionChanged={onSmallCodeSelectionChanged}
@@ -939,6 +993,13 @@ const COMZ010M00Page = () => {
 								handleSmallRowDoubleClick(event.data)
 							}}
 							onGridReady={onSmallGridReady}
+							components={{
+								agColumnHeader: (props: any) => (
+									<div style={{ textAlign: "center", width: "100%" }}>
+										{props.displayName}
+									</div>
+								),
+							}}
 						/>
 					</div>
 					{/* 소분류 등록 폼 */}
