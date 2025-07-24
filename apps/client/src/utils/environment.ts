@@ -2,17 +2,31 @@
  * 환경별 시스템명 반환
  */
 export function getSystemName(): string {
-	const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
-	const port = typeof window !== 'undefined' ? window.location.port : ''
-
-	// 로컬 환경 (localhost:3000)
-	if (hostname === 'localhost' || hostname === '127.0.0.1') {
-		return 'BIST (Local)'
+	// 1. 환경 변수 우선 확인 (가장 확실한 방법)
+	const appEnv = process.env.NEXT_PUBLIC_APP_ENV
+	if (appEnv) {
+		switch (appEnv.toLowerCase()) {
+			case 'development':
+			case 'dev':
+				return 'BIST (Dev)'
+			case 'production':
+			case 'prod':
+				return 'BIST (Prod)'
+			case 'local':
+				return 'BIST (Local)'
+		}
 	}
 
-	// 개발 환경 (dev.example.com 또는 개발 서버)
-	if (hostname.includes('dev') || hostname.includes('staging')) {
+	// 2. NODE_ENV 확인
+	if (process.env.NODE_ENV === 'development') {
 		return 'BIST (Dev)'
+	}
+
+	// 3. 호스트명 기반 (백업용)
+	const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+
+	if (hostname === 'localhost' || hostname === '127.0.0.1') {
+		return 'BIST (Local)'
 	}
 
 	// 운영 환경 (기본값)

@@ -160,7 +160,7 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
     if (!empNm.trim()) return
     setLoading(true)
     try {
-      const res = await fetch('/api/users/search', {
+      const res = await fetch('/api/COMZ100P00/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

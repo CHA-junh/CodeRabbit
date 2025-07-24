@@ -1,5 +1,9 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { AgGridReact } from 'ag-grid-react'
+import { ColDef, SelectionChangedEvent } from 'ag-grid-community'
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-alpine.css'
 import { useDeptDivCodes } from '@/modules/auth/hooks/useCommonCodes'
 import { useSearchParams } from 'next/navigation'
 import { useToast } from '@/contexts/ToastContext'
@@ -33,13 +37,27 @@ interface DeptNoSearchResult {
 
 const apiUrl =
 	typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
-		? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/search-dept-no`
-		: '/api/search-dept-no'
+		? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/COMZ060P00`
+		: '/api/COMZ060P00'
 
 export default function DeptNumberSearchPopup() {
 	const params = useSearchParams()
 	const initialDeptNo = params?.get('deptNo') || ''
 	const { showToast } = useToast()
+	
+	// AG-Grid ref
+	const deptGridRef = useRef<AgGridReact<DeptNoSearchResult>>(null);
+
+	// AG-Grid 컬럼 정의
+	const [deptColDefs] = useState<ColDef[]>([
+		{ headerName: '부서번호', field: 'deptNo', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'deptNo' },
+		{ headerName: '부서명', field: 'deptNm', width: 180, flex: 1.5, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header', tooltipField: 'deptNm' },
+		{ headerName: '시작일자', field: 'strtDt', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'strtDt' },
+		{ headerName: '종료일자', field: 'endDt', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'endDt' },
+		{ headerName: '본부구분', field: 'hqDivNm', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'hqDivNm' },
+		{ headerName: '부서구분', field: 'deptDivNm', width: 100, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header', tooltipField: 'deptDivNm' },
+	]);
+
 	const [form, setForm] = useState({
 		deptNo: initialDeptNo,
 		year: new Date().getFullYear().toString(),
@@ -49,6 +67,13 @@ export default function DeptNumberSearchPopup() {
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState('')
 	const deptDivCodes = useDeptDivCodes()
+
+	// 데이터 변경 시 컬럼 크기 조정
+	useEffect(() => {
+		if (deptGridRef.current?.api) {
+			deptGridRef.current.api.sizeColumnsToFit();
+		}
+	}, [results]);
 
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -67,13 +92,27 @@ export default function DeptNumberSearchPopup() {
 		setError('')
 		setResults([])
 		try {
-			const searchParams = new URLSearchParams({
-				deptNo: form.deptNo,
-				year: form.year,
-				deptDivCd: form.deptDivCd || '', // 빈 문자열도 명시적으로 전달
+			const requestBody = {
+				sp: 'COM_02_0301_S', // 프로시저명
+				param: [
+					form.deptNo,      // 부서번호
+					form.year,        // 년도
+					form.deptDivCd || '', // 부서구분코드
+				]
+			}
+			
+			const res = await fetch(apiUrl + '/search', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(requestBody),
 			})
-			const url = `${apiUrl}?${searchParams.toString()}`
-			const res = await fetch(url)
+			
+			if (!res.ok) {
+				throw new Error(`HTTP error! status: ${res.status}`)
+			}
+			
 			const data = await res.json()
 			const results = Array.isArray(data) ? data : (data.data ?? [])
 			setResults(results)
@@ -93,6 +132,11 @@ export default function DeptNumberSearchPopup() {
 		}
 		window.close()
 	}
+
+	// AG-Grid 준비 완료 이벤트
+	const onDeptGridReady = (params: any) => {
+		params.api.sizeColumnsToFit();
+	};
 
 	return (
 		<div className='popup-wrapper'>
@@ -175,62 +219,40 @@ export default function DeptNumberSearchPopup() {
 				{/* 에러 메시지 */}
 				{error && <div className='text-red-600 mb-2'>{error}</div>}
 				{/* 그리드 영역 */}
-				<div className='gridbox-div mb-4' style={{ height: '480px' }}>
-					{/* 고정 헤더 */}
-					<div className='grid-header-container'>
-						<table className='grid-table w-full'>
-							<thead>
-								<tr>
-									<th className='grid-th' style={{ width: '100px' }}>부서번호</th>
-									<th className='grid-th' style={{ width: '180px' }}>부서명</th>
-									<th className='grid-th' style={{ width: '100px' }}>시작일자</th>
-									<th className='grid-th' style={{ width: '100px' }}>종료일자</th>
-									<th className='grid-th' style={{ width: '100px' }}>본부구분</th>
-									<th className='grid-th' style={{ width: '100px' }}>부서구분</th>
-								</tr>
-							</thead>
-						</table>
-					</div>
-					{/* 스크롤 가능한 데이터 영역 */}
-					<div className='grid-data-container'>
-						<table className='grid-table w-full'>
-							<tbody>
-								{results.length > 0
-									? results.map((item, idx) => (
-										<tr
-											key={idx}
-											className='grid-tr cursor-pointer'
-											onDoubleClick={() => handleRowDoubleClick(item)}
-											style={{ cursor: 'pointer' }}
-										>
-											<td className='grid-td' style={{ width: '100px' }} title={item.deptNo}>
-												{item.deptNo}
-											</td>
-											<td className='grid-td' style={{ width: '180px' }} title={item.deptNm}>
-												{item.deptNm}
-											</td>
-											<td className='grid-td' style={{ width: '100px' }} title={item.strtDt}>
-												{item.strtDt}
-											</td>
-											<td className='grid-td' style={{ width: '100px' }} title={item.endDt}>
-												{item.endDt}
-											</td>
-											<td className='grid-td' style={{ width: '100px' }} title={item.hqDivNm}>
-												{item.hqDivNm}
-											</td>
-											<td className='grid-td' style={{ width: '100px' }} title={item.deptDivNm}>
-												{item.deptDivNm}
-											</td>
-										</tr>
-									))
-									: Array.from({ length: 10 }, (_, idx) => (
-										<tr key={`empty-${idx}`} className='grid-tr'>
-											<td className='grid-td' colSpan={6}>&nbsp;</td>
-										</tr>
-									))}
-							</tbody>
-						</table>
-					</div>
+				<div className='gridbox-div mb-4 ag-theme-alpine' style={{ height: '480px' }}>
+					<AgGridReact
+						ref={deptGridRef}
+						rowData={results}
+						columnDefs={deptColDefs}
+						defaultColDef={{
+							resizable: true,
+							sortable: true,
+							filter: true,
+							suppressSizeToFit: false,
+							tooltipField: 'deptNo', // 툴팁을 표시할 필드 설정
+						}}
+						rowSelection='single'
+						onRowDoubleClicked={(event) => {
+							handleRowDoubleClick(event.data);
+						}}
+						onGridReady={onDeptGridReady}
+						domLayout='normal'
+						rowHeight={40}
+						headerHeight={40}
+						tooltipShowDelay={500}
+						noRowsOverlayComponent={() => (
+							<div style={{ 
+								display: 'flex', 
+								alignItems: 'center', 
+								justifyContent: 'center', 
+								height: '100%',
+								color: '#666',
+								fontSize: '14px'
+							}}>
+								조회 결과가 없습니다
+							</div>
+						)}
+					/>
 				</div>
 				{/* 종료 버튼 (우측 정렬) */}
 				<div className='flex justify-end'>

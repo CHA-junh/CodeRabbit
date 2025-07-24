@@ -48,4 +48,14 @@ temp/
 *.dmp
 
 # TypeScript
-*.tsbuildinfo 
+*.tsbuildinfo
+
+# Designs folder (moved to project root)
+# designs/ - Removed to allow designs folder to be tracked by Git 
+
+# Test reports
+test-reports/
+*.xlsx
+*.json
+!package.json
+!package-lock.json 

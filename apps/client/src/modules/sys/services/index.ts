@@ -5,7 +5,7 @@ const API_URL = "/api/sys";
 // 메뉴 목록 조회
 export const fetchMenus = async () => {
 	const response = await fetch(`${API_URL}/menus`);
-	if (!response.ok) {
+	if (response.status !== 200) {
 		throw new Error("Failed to fetch menus");
 	}
 	return response.json();
@@ -38,7 +38,7 @@ export const fetchUserRoles = async (searchConditions?: {
 		? `${API_URL}/user-roles?${params.toString()}`
 		: `${API_URL}/user-roles`;
 	const response = await fetch(url);
-	if (!response.ok) {
+	if (response.status !== 200) {
 		throw new Error("사용자 역할 조회에 실패했습니다.");
 	}
 	return response.json();
@@ -68,7 +68,7 @@ export const saveUserRoles = async (
 		body: JSON.stringify(cleanPayload),
 	});
 
-	if (!response.ok) {
+	if (response.status !== 200) {
 		const errorData = await response.json();
 		throw new Error(errorData.message || "저장에 실패했습니다.");
 	}
@@ -87,7 +87,7 @@ export const fetchProgramGroups = async (
 	const response = await fetch(
 		`${API_URL}/user-roles/${usrRoleId}/program-groups`
 	);
-	if (!response.ok) {
+	if (response.status !== 200) {
 		throw new Error("프로그램 그룹 조회에 실패했습니다.");
 	}
 	return response.json();
@@ -99,7 +99,7 @@ export const fetchProgramGroups = async (
  */
 export const fetchAllProgramGroups = async (): Promise<ProgramGroupData[]> => {
 	const response = await fetch(`${API_URL}/program-groups`);
-	if (!response.ok) {
+	if (response.status !== 200) {
 		throw new Error("프로그램 그룹 조회에 실패했습니다.");
 	}
 	return response.json();
@@ -123,7 +123,7 @@ export const saveProgramGroups = async (
 		}
 	);
 
-	if (!response.ok) {
+	if (response.status !== 200) {
 		const errorData = await response.json();
 		throw new Error(errorData.message || "저장에 실패했습니다.");
 	}
@@ -141,7 +141,7 @@ export const copyUserRole = async (
 		method: "POST",
 	});
 
-	if (!response.ok) {
+	if (response.status !== 200) {
 		const errorData = await response.json();
 		throw new Error(errorData.message || "역할 복사에 실패했습니다.");
 	}
@@ -154,9 +154,12 @@ export const fetchDeptCodesByHq = async (hqDivCd: string) => {
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ hqDivCd }),
 	});
-	if (!response.ok) {
+	if (response.status !== 200) {
 		throw new Error("부서 코드 조회 실패");
 	}
 	const result = await response.json();
+	if (!result.success) {
+		throw new Error("부서 코드 조회 실패");
+	}
 	return result.data;
 };

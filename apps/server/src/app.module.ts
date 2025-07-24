@@ -41,14 +41,8 @@ import { PsmModule } from './psm/psm.module';
     CommonModule,
     PsmModule,
   ],
-  controllers: [
-    AppController,
-    AuthController,
-  ],
-  providers: [
-    AppService,
-    AuthService,
-  ],
+  controllers: [AppController, AuthController],
+  providers: [AppService, AuthService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {}

@@ -12,7 +12,7 @@ export default function BSN0500M00() {
     { label: '사업실적조회', component: <BSN0510M00 /> },
     { label: '담당자별사업실적조회', component: <BSN0520M00 /> },
     { label: '사업계획등록', component: <BSN0570M00 /> },
-  ];
+  ]; 
 
   const [activeTab, setActiveTab] = useState(0);
 

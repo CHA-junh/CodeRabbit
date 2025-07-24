@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export class COMZ060P00RequestDto {
+  @ApiProperty({ description: '부서번호', required: true })
+  deptNo: string;
+
+  @ApiProperty({ description: '년도', required: true })
+  year: string;
+
+  @ApiProperty({ description: '부서구분코드', required: false })
+  deptDivCd?: string;
+}
+
 export class COMZ060P00ResultDto {
   @ApiProperty({ description: '부서번호' })
   deptNo: string;

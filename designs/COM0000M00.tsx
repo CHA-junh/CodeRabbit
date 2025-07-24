@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import MenuTree from './menu'
 import COM0070M00 from './COM0070M00' // 좌측 아이콘바
 import COM0010M00 from './COM0010M00' // 상단 헤더
-import TabFrame from './MainTab' // 탭 프레임
+import TabFrame from './maintab' // 탭 프레임
 import ContentFrame from './SYS1000M00' // 콘텐츠 프레임
 import PageTitle from './PageTitle' // ✅ 타이틀 컴포넌트 추가
 import './common.css'

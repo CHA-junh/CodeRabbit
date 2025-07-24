@@ -1,5 +1,5 @@
 /**
- * USR2010M00 - 사용자 관리 화면
+ * USR2010M00 - 사용자 관리 화면 
  *
  * 주요 기능:
  * - 사용자 목록 조회 및 검색 (본부/부서/사용자명 조건)
@@ -37,21 +37,26 @@
  * 연관 화면:
  * - SYS1003M00: 사용자 역할 관리 (역할 정보 연동)
  */
-'use client'
+"use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '../../contexts/AuthContext'
-import { useToast } from '../../contexts/ToastContext'
-import { usePopup } from '../../modules/com/hooks/usePopup'
-import { usrApiService } from '../../modules/usr/services/usr-api.service'
-import { commonApiService } from '../../modules/common/services/common-api.service'
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "../../contexts/ToastContext";
+import { usePopup } from "../../modules/com/hooks/usePopup";
+import { usrApiService } from "../../modules/usr/services/usr-api.service";
 import {
 	UserData,
 	WorkAuthData,
-} from '../../modules/usr/services/usr-api.service'
-import '../designs/common.css'
-import COMZ100P00, { EmpSearchModalRef } from '@/app/com/COMZ100P00'
+	CodeData,
+	UserSaveData,
+} from "../../modules/usr/services/usr-api.service";
+import "../common/common.css";
+import COMZ100P00, { EmpSearchModalRef } from "@/app/com/COMZ100P00";
+import { useAuth } from "../../modules/auth/hooks/useAuth";
+import { AgGridReact } from "ag-grid-react";
+import { ColDef } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
 
 /**
  * USR2010M00 - 사용자 관리 화면
@@ -79,50 +84,51 @@ import COMZ100P00, { EmpSearchModalRef } from '@/app/com/COMZ100P00'
  * - COM_03_0201_S: 부서코드 조회 (본부별 부서 목록)
  */
 
-const initialSearch = { hqDiv: 'ALL', deptDiv: 'ALL', userNm: '' }
+const initialSearch = { hqDiv: "ALL", deptDiv: "ALL", userNm: "" };
 
 const initialFormData = {
-	empNo: '',
-	empNm: '',
-	authCd: '',
-	dutyDivCd: '',
-	apvApofId: '',
-	apvApofNm: '',
-	usrRoleId: '',
-}
+	empNo: "",
+	empNm: "",
+	authCd: "",
+	dutyDivCd: "",
+	apvApofId: "",
+	apvApofNm: "",
+	usrRoleId: "",
+};
 
 // API 응답을 CodeData로 매핑
 function mapCodeApiToCodeData(apiData: any[]): CodeData[] {
 	return apiData.map((item) => ({
 		data: item.codeId,
 		label: item.codeNm,
-	}))
+	}));
 }
 
 const USR2010M00: React.FC = () => {
-	const { showToast, showConfirm } = useToast()
-	const [searchParams, setSearchParams] = useState(initialSearch)
-	const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
-	const [editedUser, setEditedUser] = useState<Partial<UserSaveData>>({})
+	const { showToast, showConfirm } = useToast();
+	const { user } = useAuth();
+	const [searchParams, setSearchParams] = useState(initialSearch);
+	const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+	const [editedUser, setEditedUser] = useState<Partial<UserSaveData>>({});
 	// 업무권한 목록 상태
-	const [workAuthList, setWorkAuthList] = useState<WorkAuthData[]>([])
-	const [workAuthLoading, setWorkAuthLoading] = useState(false)
-	const [workAuthError, setWorkAuthError] = useState<string | null>(null)
-	const [selectedWorkAuthCode, setSelectedWorkAuthCode] = useState<string>('')
-	const [workAuthAction, setWorkAuthAction] = useState<'1' | '0'>('1')
-	const [formData, setFormData] = useState(initialFormData)
+	const [workAuthList, setWorkAuthList] = useState<WorkAuthData[]>([]);
+	const [workAuthLoading, setWorkAuthLoading] = useState(false);
+	const [workAuthError, setWorkAuthError] = useState<string | null>(null);
+	const [selectedWorkAuthCode, setSelectedWorkAuthCode] = useState<string>("");
+	const [workAuthAction, setWorkAuthAction] = useState<"1" | "0">("1");
+	const [formData, setFormData] = useState(initialFormData);
 
-	const [potentialApprovers, setPotentialApprovers] = useState<any[]>([]) // COMZ100P00 호환을 위해 any[]
-	const { openPopup } = usePopup()
+	const [potentialApprovers, setPotentialApprovers] = useState<any[]>([]); // COMZ100P00 호환을 위해 any[]
+	const { openPopup } = usePopup();
 
-	const [hqCodeList, setHqCodeList] = useState<CodeData[]>([])
-	const [deptCodeList, setDeptCodeList] = useState<CodeData[]>([])
-	const [authCodeList, setAuthCodeList] = useState<CodeData[]>([])
-	const [dutyDivCodeList, setDutyDivCodeList] = useState<CodeData[]>([])
-	const [workAuthCodeList, setWorkAuthCodeList] = useState<CodeData[]>([])
+	const [hqCodeList, setHqCodeList] = useState<CodeData[]>([]);
+	const [deptCodeList, setDeptCodeList] = useState<CodeData[]>([]);
+	const [authCodeList, setAuthCodeList] = useState<CodeData[]>([]);
+	const [dutyDivCodeList, setDutyDivCodeList] = useState<CodeData[]>([]);
+	const [workAuthCodeList, setWorkAuthCodeList] = useState<CodeData[]>([]);
 	const [userRoleList, setUserRoleList] = useState<
 		{ usrRoleId: string; usrRoleNm: string }[]
-	>([])
+	>([]);
 
 	const {
 		data: userData,
@@ -130,120 +136,120 @@ const USR2010M00: React.FC = () => {
 		isLoading,
 		error,
 	} = useQuery<UserData[]>({
-		queryKey: ['userList', searchParams],
+		queryKey: ["userList", searchParams],
 		queryFn: () => usrApiService.getUserList(searchParams),
-	})
+	});
 
 	const { data: hqData } = useQuery<CodeData[]>({
-		queryKey: ['hqCodes'],
+		queryKey: ["hqCodes"],
 		queryFn: () => usrApiService.getHqDivCodes(),
-	})
+	});
 	const { data: deptData } = useQuery<CodeData[]>({
-		queryKey: ['deptCodes'],
-		queryFn: () => Promise.resolve([{ data: 'ALL', label: '전체' }]),
-	})
+		queryKey: ["deptCodes"],
+		queryFn: () => Promise.resolve([{ data: "ALL", label: "전체" }]),
+	});
 	const { data: authData } = useQuery<CodeData[]>({
-		queryKey: ['authCodes'],
+		queryKey: ["authCodes"],
 		queryFn: () => usrApiService.getAuthCodes(),
-	})
+	});
 	const { data: dutyDivData } = useQuery<CodeData[]>({
-		queryKey: ['dutyDivCodes'],
+		queryKey: ["dutyDivCodes"],
 		queryFn: () => usrApiService.getDutyDivCodes(),
-	})
+	});
 	const { data: workAuthData } = useQuery<CodeData[]>({
-		queryKey: ['workAuthCodes'],
-		queryFn: () => usrApiService.getCodes('991'),
-	})
+		queryKey: ["workAuthCodes"],
+		queryFn: () => usrApiService.getCodes("991"),
+	});
 	const { data: rolesData } = useQuery({
-		queryKey: ['userRoles'],
+		queryKey: ["userRoles"],
 		queryFn: () => usrApiService.getUserRoles(),
-	})
+	});
 
 	useEffect(() => {
-		if (hqData) setHqCodeList(mapCodeApiToCodeData(hqData))
-		if (deptData) setDeptCodeList(deptData) // 이미 올바른 형태이므로 변환하지 않음
-		if (authData) setAuthCodeList(mapCodeApiToCodeData(authData))
-		if (dutyDivData) setDutyDivCodeList(mapCodeApiToCodeData(dutyDivData))
-		if (workAuthData) setWorkAuthCodeList(mapCodeApiToCodeData(workAuthData))
-		if (rolesData) setUserRoleList(rolesData)
-	}, [hqData, deptData, authData, dutyDivData, workAuthData, rolesData])
+		if (hqData) setHqCodeList(mapCodeApiToCodeData(hqData));
+		if (deptData) setDeptCodeList(deptData); // 이미 올바른 형태이므로 변환하지 않음
+		if (authData) setAuthCodeList(mapCodeApiToCodeData(authData));
+		if (dutyDivData) setDutyDivCodeList(mapCodeApiToCodeData(dutyDivData));
+		if (workAuthData) setWorkAuthCodeList(mapCodeApiToCodeData(workAuthData));
+		if (rolesData) setUserRoleList(rolesData);
+	}, [hqData, deptData, authData, dutyDivData, workAuthData, rolesData]);
 
 	useEffect(() => {
 		if (userData) {
 			// 사용자 조회 결과가 있을 때
 			if (userData.length === 0) {
-				setSelectedUser(null)
-				setFormData(initialFormData)
-				setEditedUser({})
+				setSelectedUser(null);
+				setFormData(initialFormData);
+				setEditedUser({});
 			}
 
 			// Flex 소스와 동일하게 사용자 조회 결과와 관계없이 항상 업무권한 조회
-			setWorkAuthLoading(true)
-			setWorkAuthError(null)
+			setWorkAuthLoading(true);
+			setWorkAuthError(null);
 
 			usrApiService
-				.getWorkAuthList('')
+				.getWorkAuthList("")
 				.then((list: WorkAuthData[]) => {
-					setWorkAuthList(list)
-					setWorkAuthLoading(false)
+					setWorkAuthList(list);
+					setWorkAuthLoading(false);
 				})
 				.catch((error: any) => {
-					console.error('업무권한 목록 조회 실패:', error)
-					setWorkAuthError('업무권한 목록을 불러올 수 없습니다.')
-					setWorkAuthLoading(false)
-				})
+					console.error("업무권한 목록 조회 실패:", error);
+					setWorkAuthError("업무권한 목록을 불러올 수 없습니다.");
+					setWorkAuthLoading(false);
+				});
 		}
-	}, [userData])
+	}, [userData]);
 
 	// 업무권한 콤보박스 변경 시 라디오 버튼 상태 동기화
 	useEffect(() => {
 		if (selectedWorkAuthCode) {
 			const selectedAuth = workAuthList.find(
 				(auth) => auth.smlCsfCd === selectedWorkAuthCode
-			)
+			);
 			if (selectedAuth) {
-				setWorkAuthAction(selectedAuth.wrkUseYn as '1' | '0')
+				setWorkAuthAction(selectedAuth.wrkUseYn as "1" | "0");
 			}
 		}
-	}, [selectedWorkAuthCode, workAuthList])
+	}, [selectedWorkAuthCode, workAuthList]);
 
 	const handleSearchParamChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
-		const { name, value } = e.target
-		setSearchParams((prev) => ({ ...prev, [name]: value }))
+		const { name, value } = e.target;
+		setSearchParams((prev) => ({ ...prev, [name]: value }));
 
 		// 본부 변경 시 부서 콤보 업데이트
-		if (name === 'hqDiv') {
+		if (name === "hqDiv") {
 			// 부서를 'ALL'로 초기화
-			setSearchParams((prev) => ({ ...prev, deptDiv: 'ALL' }))
+			setSearchParams((prev) => ({ ...prev, deptDiv: "ALL" }));
 
-			if (value === 'ALL') {
+			if (value === "ALL") {
 				// 본부가 "전체"일 때는 부서 콤보에 "전체"만 표시
-				setDeptCodeList([{ data: 'ALL', label: '전체' }])
+				setDeptCodeList([{ data: "ALL", label: "전체" }]);
 			} else {
 				// 특정 본부 선택 시 해당 본부의 부서 목록 조회
 				usrApiService
 					.getDeptDivCodesByHq(value)
 					.then((deptList) => {
-						const mappedList = mapCodeApiToCodeData(deptList)
-						setDeptCodeList(mappedList)
+						const mappedList = mapCodeApiToCodeData(deptList);
+						setDeptCodeList(mappedList);
 					})
 					.catch((error) => {
-						console.error('본부별 부서 조회 실패:', error)
+						console.error("본부별 부서 조회 실패:", error);
 						// 실패 시 "전체"만 표시
-						setDeptCodeList([{ data: 'ALL', label: '전체' }])
-					})
+						setDeptCodeList([{ data: "ALL", label: "전체" }]);
+					});
 			}
 		}
-	}
+	};
 
 	const handleSearch = () => {
-		refetchUserList()
-	}
+		refetchUserList();
+	};
 
 	const handleUserSelect = (user: UserData) => {
-		setSelectedUser(user)
+		setSelectedUser(user);
 		setFormData({
 			empNo: user.empNo,
 			empNm: user.empNm,
@@ -252,7 +258,7 @@ const USR2010M00: React.FC = () => {
 			apvApofId: user.apvApofId,
 			apvApofNm: user.apvApofNm,
 			usrRoleId: user.usrRoleId,
-		})
+		});
 		const initialEditedUser: Partial<UserSaveData> = {
 			empNo: user.empNo,
 			empNm: user.empNm,
@@ -262,55 +268,55 @@ const USR2010M00: React.FC = () => {
 			apvApofNm: user.apvApofNm, // 승인결재자 추가
 			emailAddr: user.emailAddr,
 			usrRoleId: user.usrRoleId,
-		}
+		};
 
 		usrApiService.getWorkAuthList(user.empNo).then((list) => {
-			setWorkAuthList(list)
-			setEditedUser({ ...initialEditedUser, workAuthList: list })
+			setWorkAuthList(list);
+			setEditedUser({ ...initialEditedUser, workAuthList: list });
 			// 업무권한 콤보박스 초기값 설정
 			if (list.length > 0) {
-				setSelectedWorkAuthCode(list[0].smlCsfCd)
+				setSelectedWorkAuthCode(list[0].smlCsfCd);
 			}
-		})
-	}
+		});
+	};
 
 	const handleUserInputChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 	) => {
-		const { name, value } = e.target
-		setEditedUser((prev) => ({ ...prev, [name]: value }))
-	}
+		const { name, value } = e.target;
+		setEditedUser((prev) => ({ ...prev, [name]: value }));
+	};
 
-	const handleWorkAuthChange = (action: '1' | '0') => {
+	const handleWorkAuthChange = (action: "1" | "0") => {
 		if (!selectedWorkAuthCode) {
 			showConfirm({
-				message: '수정할 업무권한을 선택하세요.',
-				type: 'warning',
+				message: "수정할 업무권한을 선택하세요.",
+				type: "warning",
 				onConfirm: () => {},
 				confirmOnly: true,
-			})
-			return
+			});
+			return;
 		}
 
 		const updatedList = workAuthList.map((auth) =>
 			auth.smlCsfCd === selectedWorkAuthCode
 				? { ...auth, wrkUseYn: action }
 				: auth
-		)
+		);
 
-		setWorkAuthList(updatedList)
-		setEditedUser((prev) => ({ ...prev, workAuthList: updatedList }))
-	}
+		setWorkAuthList(updatedList);
+		setEditedUser((prev) => ({ ...prev, workAuthList: updatedList }));
+	};
 
 	// useEffect 제거 - 무한 루프 방지
 
 	const proceedWithSave = async (approver: { id: string; name: string }) => {
 		showConfirm({
-			message: '저장하시겠습니까?',
-			type: 'info',
+			message: "저장하시겠습니까?",
+			type: "info",
 			onConfirm: async () => {
 				// 현재 업무권한 목록에서 부여된 권한만 필터링
-				const currentWorkAuthList = editedUser.workAuthList || workAuthList
+				const currentWorkAuthList = editedUser.workAuthList || workAuthList;
 
 				const saveData: UserSaveData = {
 					...selectedUser!,
@@ -318,233 +324,381 @@ const USR2010M00: React.FC = () => {
 					apvApofId: approver.id,
 					apvApofNm: approver.name,
 					workAuthList: currentWorkAuthList,
-					regUserId: 'SYSTEM', // TODO: 실제 로그인한 사용자 ID로 변경 필요
-				}
+					regUserId: user && "empNo" in user ? (user as any).empNo : "",
+				};
 
 				try {
-					await usrApiService.saveUser(saveData)
-					showToast('성공적으로 저장되었습니다.', 'info')
+					await usrApiService.saveUser(saveData);
+					showToast("성공적으로 저장되었습니다.", "info");
 
 					// 저장 후 사용자 목록 새로고침
-					await refetchUserList()
+					await refetchUserList();
 
 					// 현재 선택된 사용자가 있다면 업데이트된 정보로 다시 설정
 					if (selectedUser) {
 						const updatedUserList =
-							await usrApiService.getUserList(searchParams)
+							await usrApiService.getUserList(searchParams);
 						const updatedUser = updatedUserList.find(
 							(u) => u.empNo === selectedUser.empNo
-						)
+						);
 						if (updatedUser) {
-							handleUserSelect(updatedUser)
+							handleUserSelect(updatedUser);
 						}
 					}
 				} catch (error) {
-					console.error('Failed to save user:', error)
+					console.error("Failed to save user:", error);
 					showConfirm({
 						message: `저장 중 오류가 발생했습니다: ${(error as Error).message}`,
-						type: 'error',
+						type: "error",
 						onConfirm: () => {},
 						confirmOnly: true,
-					})
+					});
 				}
 			},
-		})
-	}
+		});
+	};
 
 	const handleSave = async () => {
 		if (!selectedUser || !editedUser.empNo) {
 			showConfirm({
-				message: '저장할 사용자를 선택해주세요.',
-				type: 'warning',
+				message: "저장할 사용자를 선택해주세요.",
+				type: "warning",
 				onConfirm: () => {},
 				confirmOnly: true,
-			})
-			return
+			});
+			return;
 		}
 
 		if (!editedUser.apvApofNm) {
 			showConfirm({
-				message: '승인결재자를 입력해 주십시요.',
-				type: 'warning',
+				message: "승인결재자를 입력해 주십시요.",
+				type: "warning",
 				onConfirm: () => {
 					// 승인결재자 입력 필드에 포커스
 					const apvApofInput = document.getElementById(
-						'apvApofNm'
-					) as HTMLInputElement
+						"apvApofNm"
+					) as HTMLInputElement;
 					if (apvApofInput) {
-						apvApofInput.focus()
+						apvApofInput.focus();
 					}
 				},
 				confirmOnly: true,
-			})
-			return
+			});
+			return;
 		}
 
 		if (!editedUser.authCd) {
 			showConfirm({
-				message: '사용자권한을 선택해 주십시요.',
-				type: 'warning',
+				message: "사용자권한을 선택해 주십시요.",
+				type: "warning",
 				onConfirm: () => {
 					// 사용자권한 콤보박스에 포커스
 					const authSelect = document.getElementById(
-						'authCd'
-					) as HTMLSelectElement
+						"authCd"
+					) as HTMLSelectElement;
 					if (authSelect) {
-						authSelect.focus()
+						authSelect.focus();
 					}
 				},
 				confirmOnly: true,
-			})
-			return
+			});
+			return;
 		}
 
 		if (!editedUser.dutyDivCd) {
 			showConfirm({
-				message: '직책구분을 선택해 주십시요.',
-				type: 'warning',
+				message: "직책구분을 선택해 주십시요.",
+				type: "warning",
 				onConfirm: () => {
 					// 직책구분 콤보박스에 포커스
 					const dutyDivSelect = document.getElementById(
-						'dutyDivCd'
-					) as HTMLSelectElement
+						"dutyDivCd"
+					) as HTMLSelectElement;
 					if (dutyDivSelect) {
-						dutyDivSelect.focus()
+						dutyDivSelect.focus();
 					}
 				},
 				confirmOnly: true,
-			})
-			return
+			});
+			return;
 		}
 
 		try {
 			const approvers = await usrApiService.getUserList({
-				hqDiv: 'ALL',
-				deptDiv: 'ALL',
+				hqDiv: "ALL",
+				deptDiv: "ALL",
 				userNm: editedUser.apvApofNm,
-			})
+			});
 
 			if (approvers.length === 0) {
 				showConfirm({
 					message:
-						'사용자 정보에 미등록된 승인결재자 입니다. 승인결재자를 다시 입력해 주십시요.',
-					type: 'warning',
+						"사용자 정보에 미등록된 승인결재자 입니다. 승인결재자를 다시 입력해 주십시요.",
+					type: "warning",
 					onConfirm: () => {
 						// 승인결재자 입력 필드에 포커스
 						const apvApofInput = document.getElementById(
-							'apvApofNm'
-						) as HTMLInputElement
+							"apvApofNm"
+						) as HTMLInputElement;
 						if (apvApofInput) {
-							apvApofInput.focus()
+							apvApofInput.focus();
 						}
 					},
 					confirmOnly: true,
-				})
-				return
+				});
+				return;
 			} else if (approvers.length === 1) {
-				const approver = approvers[0]
-				if (approver.authCd !== '10' && approver.authCd !== '00') {
+				const approver = approvers[0];
+				if (approver.authCd !== "10" && approver.authCd !== "00") {
 					showConfirm({
 						message:
-							'승인결재자는 부서장 이상이어야 합니다.\n재 입력 해 주십시요.',
-						type: 'warning',
+							"승인결재자는 부서장 이상이어야 합니다.\n재 입력 해 주십시요.",
+						type: "warning",
 						onConfirm: () => {
 							// 승인결재자 입력 필드에 포커스
 							const apvApofInput = document.getElementById(
-								'apvApofNm'
-							) as HTMLInputElement
+								"apvApofNm"
+							) as HTMLInputElement;
 							if (apvApofInput) {
-								apvApofInput.focus()
+								apvApofInput.focus();
 							}
 						},
 						confirmOnly: true,
-					})
-					return
+					});
+					return;
 				}
 				// 승인자 정보 업데이트 및 저장 진행
 				setEditedUser((prev) => ({
 					...prev,
 					apvApofId: approver.empNo,
 					apvApofNm: approver.empNm,
-				}))
-				proceedWithSave({ id: approver.empNo, name: approver.empNm })
+				}));
+				proceedWithSave({ id: approver.empNo, name: approver.empNm });
 			} else {
 				// 여러 명일 경우 팝업 열기
 				setPotentialApprovers(
 					approvers.map((a, i) => ({ ...a, LIST_NO: i + 1 }))
-				)
+				);
 				openPopup({
-					url: '/com/COMZ100P00',
-					size: 'medium',
-					position: 'center',
-				})
+					url: "/com/COMZ100P00",
+					size: "medium",
+					position: "center",
+				});
 			}
 		} catch (error) {
-			console.error('Failed to search approver:', error)
+			console.error("Failed to search approver:", error);
 			showConfirm({
 				message: `승인결재자 조회 중 오류가 발생했습니다: ${(error as Error).message}`,
-				type: 'error',
+				type: "error",
 				onConfirm: () => {},
 				confirmOnly: true,
-			})
+			});
 		}
-	}
+	};
 
 	const handleApproverSelect = (approver: {
-		empNo: string
-		empNm: string
-		authCd: string
+		empNo: string;
+		empNm: string;
+		authCd: string;
 	}) => {
-		if (approver.authCd !== '10' && approver.authCd !== '00') {
+		if (approver.authCd !== "10" && approver.authCd !== "00") {
 			showToast(
-				'승인결재자는 부서장 이상이어야 합니다.\n다른 사람을 선택해주세요.',
-				'warning'
-			)
+				"승인결재자는 부서장 이상이어야 합니다.\n다른 사람을 선택해주세요.",
+				"warning"
+			);
 			// COMZ100P00에서는 팝업을 닫지 않고 다시 선택을 유도하기 어려우므로,
 			// 일단 팝업을 닫고 사용자에게 재시도를 안내합니다.
-			return
+			return;
 		}
 
 		setEditedUser((prev) => ({
 			...prev,
 			apvApofId: approver.empNo,
 			apvApofNm: approver.empNm,
-		}))
-		proceedWithSave({ id: approver.empNo, name: approver.empNm })
-	}
+		}));
+		proceedWithSave({ id: approver.empNo, name: approver.empNm });
+	};
 
 	const handlePasswordReset = async () => {
 		if (!selectedUser) {
 			showConfirm({
-				message: '비밀번호를 초기화할 사용자를 선택해주세요.',
-				type: 'warning',
+				message: "비밀번호를 초기화할 사용자를 선택해주세요.",
+				type: "warning",
 				onConfirm: () => {},
 				confirmOnly: true,
-			})
-			return
+			});
+			return;
 		}
 
 		showConfirm({
 			message: `'${selectedUser.empNm}'님의 비밀번호를 초기화하시겠습니까?`,
-			type: 'info',
+			type: "info",
 			onConfirm: async () => {
 				try {
 					const resultMessage = await usrApiService.initPassword(
 						selectedUser.empNo
-					)
-					showToast(resultMessage, 'info')
+					);
+					showToast(resultMessage, "info");
 				} catch (error) {
-					console.error('Failed to reset password:', error)
+					console.error("Failed to reset password:", error);
 					showConfirm({
 						message: `비밀번호 초기화 중 오류가 발생했습니다: ${(error as Error).message}`,
-						type: 'error',
+						type: "error",
 						onConfirm: () => {},
 						confirmOnly: true,
-					})
+					});
 				}
 			},
-		})
-	}
+		});
+	};
+
+	// 사용자 목록 컬럼 정의
+	const userColumnDefs: ColDef[] = [
+		{
+			headerName: "사번",
+			field: "empNo",
+			width: 80,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "성명",
+			field: "empNm",
+			width: 90,
+			flex: 0,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "본부명",
+			field: "hqDivNm",
+			width: 130,
+			flex: 1,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "부서명",
+			field: "deptDivNm",
+			width: 130,
+			flex: 1,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "직급명",
+			field: "dutyNm",
+			width: 80,
+			flex: 0,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "직책구분",
+			field: "dutyDivCdNm",
+			width: 100,
+			flex: 0,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "사용자권한",
+			field: "authCdNm",
+			width: 110,
+			flex: 0,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "사용자역할ID",
+			field: "usrRoleId",
+			width: 120,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "사용자역할",
+			field: "usrRoleNm",
+			width: 130,
+			flex: 1,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "승인결재자",
+			field: "apvApofNm",
+			width: 100,
+			flex: 0,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "사업",
+			field: "bsnUseYn",
+			width: 80,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+			cellRenderer: (params: any) => (
+				<input type='checkbox' checked={params.value === "1"} readOnly />
+			),
+		},
+		{
+			headerName: "추진비",
+			field: "wpcUseYn",
+			width: 80,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+			cellRenderer: (params: any) => (
+				<input type='checkbox' checked={params.value === "1"} readOnly />
+			),
+		},
+		{
+			headerName: "인사/복리",
+			field: "psmUseYn",
+			width: 100,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+			cellRenderer: (params: any) => (
+				<input type='checkbox' checked={params.value === "1"} readOnly />
+			),
+		},
+	];
+
+	// 업무별 사용권한 컬럼 정의
+	const workAuthColumnDefs: ColDef[] = [
+		{
+			headerName: "업무구분",
+			field: "smlCsfNm",
+			width: 200,
+			flex: 2,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+		{
+			headerName: "사용권한",
+			field: "wrkUseYn",
+			width: 100,
+			flex: 0,
+			cellStyle: { textAlign: "center" },
+			headerClass: "ag-center-header",
+			cellRenderer: (params: any) => (
+				<input type='checkbox' checked={params.value === "1"} readOnly />
+			),
+		},
+		{
+			headerName: "비고",
+			field: "rmk",
+			width: 150,
+			flex: 1,
+			cellStyle: { textAlign: "left" },
+			headerClass: "ag-center-header",
+		},
+	];
 
 	return (
 		<div className='mdi'>
@@ -615,155 +769,27 @@ const USR2010M00: React.FC = () => {
 			</div>
 
 			{/* 사용자 목록 그리드 */}
-			<div className='gridbox-div mb-4' style={{ height: '400px' }}>
-				{isLoading && (
-					<div className='flex items-center justify-center h-32 text-gray-500'>
-						사용자 목록을 불러오는 중...
-					</div>
-				)}
-				{error && (
-					<div className='flex items-center justify-center h-32 text-red-500'>
-						{error}
-					</div>
-				)}
-				{!isLoading && !error && (
-					<>
-						{/* 고정 헤더 */}
-						<div className='grid-header-container'>
-							<table className='grid-table w-full'>
-								<thead>
-									<tr>
-										<th className='grid-th' style={{ width: '80px' }}>
-											사번
-										</th>
-										<th className='grid-th' style={{ width: '80px' }}>
-											성명
-										</th>
-										<th className='grid-th' style={{ width: '120px' }}>
-											본부명
-										</th>
-										<th className='grid-th' style={{ width: '120px' }}>
-											부서명
-										</th>
-										<th className='grid-th' style={{ width: '80px' }}>
-											직급명
-										</th>
-										<th className='grid-th' style={{ width: '100px' }}>
-											직책구분
-										</th>
-										<th className='grid-th' style={{ width: '100px' }}>
-											사용자권한
-										</th>
-										<th className='grid-th' style={{ width: '120px' }}>
-											사용자역할ID
-										</th>
-										<th className='grid-th' style={{ width: '120px' }}>
-											사용자역할
-										</th>
-										<th className='grid-th' style={{ width: '100px' }}>
-											승인결재자
-										</th>
-										<th className='grid-th' style={{ width: '60px' }}>
-											사업
-										</th>
-										<th className='grid-th' style={{ width: '60px' }}>
-											추진비
-										</th>
-										<th className='grid-th' style={{ width: '60px' }}>
-											인사/복리
-										</th>
-									</tr>
-								</thead>
-							</table>
-						</div>
-
-						{/* 스크롤 가능한 데이터 영역 */}
-						<div className='grid-data-container'>
-							<table className='grid-table w-full'>
-								<tbody>
-									{userData && userData.length > 0
-										? userData.map((user, idx) => (
-												<tr
-													key={user.empNo}
-													className={`grid-tr ${selectedUser?.empNo === user.empNo ? 'selected' : ''}`}
-													onClick={() => handleUserSelect(user)}
-													style={{ cursor: 'pointer' }}
-												>
-													<td className='grid-td' style={{ width: '80px' }}>
-														{user.empNo}
-													</td>
-													<td className='grid-td' style={{ width: '80px' }}>
-														{user.empNm}
-													</td>
-													<td className='grid-td' style={{ width: '120px' }}>
-														{user.hqDivNm}
-													</td>
-													<td className='grid-td' style={{ width: '120px' }}>
-														{user.deptDivNm}
-													</td>
-													<td className='grid-td' style={{ width: '80px' }}>
-														{user.dutyNm}
-													</td>
-													<td className='grid-td' style={{ width: '100px' }}>
-														{user.dutyDivCdNm}
-													</td>
-													<td className='grid-td' style={{ width: '100px' }}>
-														{user.authCdNm}
-													</td>
-													<td className='grid-td' style={{ width: '120px' }}>
-														{user.usrRoleId}
-													</td>
-													<td className='grid-td' style={{ width: '120px' }}>
-														{user.usrRoleNm}
-													</td>
-													<td className='grid-td' style={{ width: '100px' }}>
-														{user.apvApofNm}
-													</td>
-													<td
-														className='grid-td text-center'
-														style={{ width: '60px' }}
-													>
-														<input
-															type='checkbox'
-															checked={user.bsnUseYn === '1'}
-															readOnly
-														/>
-													</td>
-													<td
-														className='grid-td text-center'
-														style={{ width: '60px' }}
-													>
-														<input
-															type='checkbox'
-															checked={user.wpcUseYn === '1'}
-															readOnly
-														/>
-													</td>
-													<td
-														className='grid-td text-center'
-														style={{ width: '60px' }}
-													>
-														<input
-															type='checkbox'
-															checked={user.psmUseYn === '1'}
-															readOnly
-														/>
-													</td>
-												</tr>
-											))
-										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
-											Array.from({ length: 15 }, (_, idx) => (
-												<tr key={`empty-${idx}`} className='grid-tr'>
-													<td className='grid-td' colSpan={13}>
-														&nbsp;
-													</td>
-												</tr>
-											))}
-								</tbody>
-							</table>
-						</div>
-					</>
-				)}
+			<div className='ag-theme-alpine' style={{ height: 400, width: "100%" }}>
+				<AgGridReact
+					rowData={userData || []}
+					columnDefs={userColumnDefs}
+					onRowClicked={(event) => handleUserSelect(event.data)}
+					rowSelection='single'
+					getRowClass={(params: any) =>
+						selectedUser?.empNo === params.data.empNo ? "selected" : ""
+					}
+					defaultColDef={{
+						resizable: true,
+						sortable: true,
+					}}
+					components={{
+						agColumnHeader: (props: any) => (
+							<div style={{ textAlign: "center", width: "100%" }}>
+								{props.displayName}
+							</div>
+						),
+					}}
+				/>
 			</div>
 
 			{/* 하단: 등록/수정 영역과 업무권한 테이블을 가로 배치 */}
@@ -773,97 +799,25 @@ const USR2010M00: React.FC = () => {
 					<div className='tit_area'>
 						<h2>업무별 사용권한</h2>
 					</div>
-					<div className='gridbox-div' style={{ height: '300px' }}>
-						{workAuthLoading && (
-							<div className='flex items-center justify-center h-32 text-gray-500'>
-								업무권한 목록을 불러오는 중...
-							</div>
-						)}
-						{workAuthError && (
-							<div className='flex items-center justify-center h-32 text-red-500'>
-								{workAuthError}
-							</div>
-						)}
-						{!workAuthLoading && !workAuthError && (
-							<>
-								{/* 고정 헤더 */}
-								<div className='grid-header-container'>
-									<table className='grid-table w-full'>
-										<thead>
-											<tr>
-												<th className='grid-th' style={{ width: '200px' }}>
-													업무구분
-												</th>
-												<th className='grid-th' style={{ width: '80px' }}>
-													사용권한
-												</th>
-												<th className='grid-th' style={{ width: '120px' }}>
-													비고
-												</th>
-											</tr>
-										</thead>
-									</table>
-								</div>
-
-								{/* 스크롤 가능한 데이터 영역 */}
-								<div className='grid-data-container'>
-									<table className='grid-table w-full'>
-										<tbody>
-											{workAuthList.length > 0
-												? workAuthList.map((task, idx) => (
-														<tr className='grid-tr' key={idx}>
-															<td
-																className='grid-td'
-																style={{ width: '200px' }}
-															>
-																{task.smlCsfNm}
-															</td>
-															<td
-																className='grid-td text-center'
-																style={{ width: '80px' }}
-															>
-																<input
-																	type='checkbox'
-																	checked={task.wrkUseYn === '1'}
-																	readOnly // 직접 수정 방지
-																/>
-															</td>
-															<td
-																className='grid-td'
-																style={{ width: '120px' }}
-															>
-																{task.rmk}
-															</td>
-														</tr>
-													))
-												: // 데이터가 없을 때 빈 행들을 렌더링하여 높이 유지
-													Array.from({ length: 5 }, (_, idx) => (
-														<tr className='grid-tr' key={`empty-${idx}`}>
-															<td
-																className='grid-td'
-																style={{ width: '200px' }}
-															>
-																&nbsp;
-															</td>
-															<td
-																className='grid-td text-center'
-																style={{ width: '80px' }}
-															>
-																<input type='checkbox' disabled />
-															</td>
-															<td
-																className='grid-td'
-																style={{ width: '120px' }}
-															>
-																&nbsp;
-															</td>
-														</tr>
-													))}
-										</tbody>
-									</table>
-								</div>
-							</>
-						)}
+					<div
+						className='ag-theme-alpine'
+						style={{ height: 300, width: "100%" }}
+					>
+						<AgGridReact
+							rowData={workAuthList}
+							columnDefs={workAuthColumnDefs}
+							defaultColDef={{
+								resizable: true,
+								sortable: true,
+							}}
+							components={{
+								agColumnHeader: (props: any) => (
+									<div style={{ textAlign: "center", width: "100%" }}>
+										{props.displayName}
+									</div>
+								),
+							}}
+						/>
 					</div>
 				</div>
 
@@ -905,7 +859,7 @@ const USR2010M00: React.FC = () => {
 								<td className='form-td'>
 									<select
 										name='authCd'
-										value={editedUser?.authCd || ''}
+										value={editedUser?.authCd || ""}
 										onChange={handleUserInputChange}
 										className='combo-base'
 										id='authCd'
@@ -925,7 +879,7 @@ const USR2010M00: React.FC = () => {
 								<td className='form-td'>
 									<select
 										name='dutyDivCd'
-										value={editedUser?.dutyDivCd || ''}
+										value={editedUser?.dutyDivCd || ""}
 										onChange={handleUserInputChange}
 										className='combo-base'
 										id='dutyDivCd'
@@ -948,7 +902,7 @@ const USR2010M00: React.FC = () => {
 									<div className='flex items-center'>
 										<input
 											name='apvApofNm'
-											value={editedUser?.apvApofNm || ''}
+											value={editedUser?.apvApofNm || ""}
 											onChange={handleUserInputChange}
 											className='input-base input-default'
 											id='apvApofNm'
@@ -962,7 +916,7 @@ const USR2010M00: React.FC = () => {
 								<td className='form-td'>
 									<select
 										name='usrRoleId'
-										value={editedUser?.usrRoleId || ''}
+										value={editedUser?.usrRoleId || ""}
 										onChange={handleUserInputChange}
 										className='combo-base'
 										id='usrRoleId'
@@ -987,7 +941,7 @@ const USR2010M00: React.FC = () => {
 											className='combo-base !w-[200px]'
 											value={selectedWorkAuthCode}
 											onChange={(e) => {
-												setSelectedWorkAuthCode(e.target.value)
+												setSelectedWorkAuthCode(e.target.value);
 											}}
 											id='workAuth'
 											title='업무권한 선택'
@@ -1007,16 +961,16 @@ const USR2010M00: React.FC = () => {
 												type='radio'
 												name='workAuthAction'
 												value='1'
-												checked={workAuthAction === '1'}
+												checked={workAuthAction === "1"}
 												onChange={(e) => {
-													const value = e.target.value as '1'
-													setWorkAuthAction(value)
+													const value = e.target.value as "1";
+													setWorkAuthAction(value);
 													// 즉시 업무권한 변경 적용
 													if (selectedWorkAuthCode) {
-														handleWorkAuthChange(value)
+														handleWorkAuthChange(value);
 													}
 												}}
-											/>{' '}
+											/>{" "}
 											부여
 										</label>
 										<label htmlFor='workAuthAction_0'>
@@ -1025,16 +979,16 @@ const USR2010M00: React.FC = () => {
 												type='radio'
 												name='workAuthAction'
 												value='0'
-												checked={workAuthAction === '0'}
+												checked={workAuthAction === "0"}
 												onChange={(e) => {
-													const value = e.target.value as '0'
-													setWorkAuthAction(value)
+													const value = e.target.value as "0";
+													setWorkAuthAction(value);
 													// 즉시 업무권한 변경 적용
 													if (selectedWorkAuthCode) {
-														handleWorkAuthChange(value)
+														handleWorkAuthChange(value);
 													}
 												}}
-											/>{' '}
+											/>{" "}
 											해제
 										</label>
 									</div>
@@ -1058,7 +1012,7 @@ const USR2010M00: React.FC = () => {
 				</div>
 			</div>
 		</div>
-	)
-}
+	);
+};
 
-export default USR2010M00
+export default USR2010M00;

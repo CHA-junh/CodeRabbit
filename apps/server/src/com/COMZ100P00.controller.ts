@@ -1,8 +1,8 @@
 import { Controller, Post, Body, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UsersService } from './users.service';
-import { UserSearchParams, UserSearchResponseDto } from './dto/users.dto';
+import { COMZ100P00Service } from './COMZ100P00.service';
+import { UserSearchParams, UserSearchResponseDto } from './dto/COMZ100P00.dto';
 
 // express-session 타입 확장
 interface RequestWithSession extends Request {
@@ -10,9 +10,9 @@ interface RequestWithSession extends Request {
 }
 
 @ApiTags('사용자 관리')
-@Controller('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@Controller('COMZ100P00')
+export class COMZ100P00Controller {
+  constructor(private readonly usersService: COMZ100P00Service) {}
 
   @Post('search')
   @ApiOperation({ 

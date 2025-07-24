@@ -1,6 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { AgGridReact } from 'ag-grid-react'
+import { ColDef, SelectionChangedEvent } from 'ag-grid-community'
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-alpine.css'
 import { useAuth } from '@/modules/auth/hooks/useAuth'
 import { useToast } from '@/contexts/ToastContext'
 import '@/app/common/common.css'
@@ -61,6 +65,26 @@ const defaultSmallCode: SmallCode = {
 }
 
 const COMZ010M00Page = () => {
+	// AG-Grid refs
+	const largeCodeGridRef = useRef<AgGridReact<LargeCode>>(null)
+	const smallCodeGridRef = useRef<AgGridReact<SmallCode>>(null)
+
+	// AG-Grid 컬럼 정의
+	const [largeCodeColDefs] = useState<ColDef[]>([
+		{ headerName: '대분류코드', field: 'lrgCsfCd', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
+		{ headerName: '대분류명', field: 'lrgCsfNm', width: 180, flex: 1.2, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
+		{ headerName: '사용여부', field: 'useYn', width: 80, flex: 0.5, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
+		{ headerName: '설명', field: 'expl', width: 200, flex: 1.5, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header' },
+	])
+
+	const [smallCodeColDefs] = useState<ColDef[]>([
+		{ headerName: '소분류코드', field: 'smlCsfCd', width: 120, flex: 1, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
+		{ headerName: '소분류명', field: 'smlCsfNm', width: 180, flex: 1.2, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
+		{ headerName: '정렬순서', field: 'sortOrd', width: 80, flex: 0.5, type: 'numericColumn', cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
+		{ headerName: '사용여부', field: 'useYn', width: 80, flex: 0.5, cellStyle: { textAlign: 'center' }, headerClass: 'ag-center-header' },
+		{ headerName: '설명', field: 'expl', width: 200, flex: 1, cellStyle: { textAlign: 'left' }, headerClass: 'ag-center-header' },
+	])
+
 	// 검색 상태
 	const [searchLrgCsfCd, setSearchLrgCsfCd] = useState('')
 	const [searchLrgCsfNm, setSearchLrgCsfNm] = useState('')
@@ -92,10 +116,9 @@ const COMZ010M00Page = () => {
 			: '/api/COMZ010M00'
 
 	// 입력값 제한 정규식
-	const codeRegex = /^[A-Z0-9]{1,4}$/ // 대분류/소분류 코드: 영문대문자+숫자 1-4자
-	const nameRegex = /^[가-힣A-Za-z0-9\s]{1,50}$/ // 명칭: 한글+영문+숫자+공백 1-50자
+	const codeRegex = /^[0-9]{1,4}$/ // 대분류/소분류 코드: 숫자만 1-4자
 	const numberRegex = /^[0-9]{1,3}$/ // 정렬순서: 숫자 1-3자
-	const linkCodeRegex = /^[A-Z0-9]{0,10}$/ // 연결코드: 영문대문자+숫자 0-10자
+	const linkCodeRegex = /^[0-9]{0,10}$/ // 연결코드: 숫자만 0-10자
 
 	// 입력값 검증 함수
 	const validateInput = (name: string, value: string): boolean => {
@@ -105,7 +128,7 @@ const COMZ010M00Page = () => {
 				return codeRegex.test(value) || value === ''
 			case 'lrgCsfNm':
 			case 'smlCsfNm':
-				return nameRegex.test(value) || value === ''
+				return value.length <= 50 || value === ''
 			case 'sortOrd':
 				return numberRegex.test(value) || value === ''
 			case 'linkCd1':
@@ -127,7 +150,7 @@ const COMZ010M00Page = () => {
 		setLoading(true)
 		setError(null)
 		try {
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/search', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -151,7 +174,7 @@ const COMZ010M00Page = () => {
 		setLoading(true)
 		setError(null)
 		try {
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/search', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -187,6 +210,51 @@ const COMZ010M00Page = () => {
 		setLargeForm(row)
 		setOriginalLargeForm(row) // 원본 데이터 저장
 		fetchSmallCodes(row.lrgCsfCd)
+		
+		// 소분류코드 등록폼에 선택한 대분류코드 기입
+		setSmallForm((prev) => ({
+			...prev,
+			lrgCsfCd: row.lrgCsfCd
+		}))
+		setOriginalSmallForm((prev) => ({
+			...prev,
+			lrgCsfCd: row.lrgCsfCd
+		}))
+	}
+
+	// AG-Grid 대분류 선택 이벤트
+	const onLargeCodeSelectionChanged = (event: SelectionChangedEvent) => {
+		const selectedRows = event.api.getSelectedRows()
+		if (selectedRows.length > 0) {
+			const row = selectedRows[0]
+			handleLargeRowClick(row)
+		} else {
+			setSelectedLarge(null)
+			setLargeForm(defaultLargeCode)
+			setOriginalLargeForm(defaultLargeCode)
+			setSmallCodes([])
+		}
+	}
+
+	// AG-Grid 소분류 선택 이벤트
+	const onSmallCodeSelectionChanged = (event: SelectionChangedEvent) => {
+		const selectedRows = event.api.getSelectedRows()
+		if (selectedRows.length > 0) {
+			const row = selectedRows[0]
+			handleSmallRowClick(row)
+		} else {
+			setSmallForm(defaultSmallCode)
+			setOriginalSmallForm(defaultSmallCode)
+		}
+	}
+
+	// AG-Grid 준비 완료 이벤트
+	const onLargeGridReady = (params: any) => {
+		params.api.sizeColumnsToFit()
+	}
+
+	const onSmallGridReady = (params: any) => {
+		params.api.sizeColumnsToFit()
 	}
 
 	// 대분류 행 더블클릭 시 폼 포커스
@@ -241,6 +309,17 @@ const COMZ010M00Page = () => {
 
 	// 대분류 저장(등록/수정)
 	const handleLargeSave = async () => {
+		// 모든 필수값이 비어있는지 체크
+		if (!largeForm.lrgCsfCd.trim() && !largeForm.lrgCsfNm.trim() && !largeForm.expl.trim()) {
+			showToast('대분류코드 와 대분류명을 입력하세요.', 'warning')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="lrgCsfCd"]')
+					?.focus()
+			}, 100)
+			return
+		}
+
 		// 변경사항 체크
 		if (!hasChanges(largeForm, originalLargeForm)) {
 			showToast('변경된 내용이 없습니다.', 'warning')
@@ -248,7 +327,7 @@ const COMZ010M00Page = () => {
 		}
 
 		// 필수값 체크
-		if (!largeForm.lrgCsfCd) {
+		if (!largeForm.lrgCsfCd.trim()) {
 			setError('대분류코드를 입력하세요.')
 			showToast('대분류코드를 입력하세요.', 'error')
 			setTimeout(() => {
@@ -258,7 +337,7 @@ const COMZ010M00Page = () => {
 			}, 100)
 			return
 		}
-		if (!largeForm.lrgCsfNm) {
+		if (!largeForm.lrgCsfNm.trim()) {
 			setError('대분류명을 입력하세요.')
 			showToast('대분류명을 입력하세요.', 'error')
 			setTimeout(() => {
@@ -289,7 +368,7 @@ const COMZ010M00Page = () => {
 				largeForm.expl,
 				USER_ID,
 			].join('|')
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -318,7 +397,11 @@ const COMZ010M00Page = () => {
 
 	// 대분류 삭제
 	const handleLargeDelete = async () => {
-		if (!largeForm.lrgCsfCd) return
+		// 그리드에서 선택된 항목이 없으면 삭제 불가
+		if (!selectedLarge) {
+			showToast('삭제할 대분류코드를 그리드에서 선택하세요.', 'warning')
+			return
+		}
 		
 		showConfirm({
 			message: '정말 삭제하시겠습니까?',
@@ -327,8 +410,8 @@ const COMZ010M00Page = () => {
 				setLoading(true)
 				setError(null)
 				try {
-					const param = [largeForm.lrgCsfCd].join('|')
-					const res = await fetch(apiUrl, {
+					const param = [selectedLarge.lrgCsfCd].join('|')
+					const res = await fetch(apiUrl + '/delete', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
@@ -375,7 +458,10 @@ const COMZ010M00Page = () => {
 			return
 		}
 		
-		setSmallForm((prev) => ({ ...prev, [name]: value }))
+		// smallFormLrgCsfCd를 lrgCsfCd로 매핑
+		const fieldName = name === 'smallFormLrgCsfCd' ? 'lrgCsfCd' : name
+		
+		setSmallForm((prev) => ({ ...prev, [fieldName]: value }))
 	}
 
 	const handleSmallNew = () => {
@@ -395,6 +481,17 @@ const COMZ010M00Page = () => {
 
 	// 소분류 저장(등록/수정)
 	const handleSmallSave = async () => {
+		// 모든 필수값이 비어있는지 체크
+		if (!smallForm.smlCsfCd.trim() && !smallForm.smlCsfNm.trim() && !smallForm.expl.trim()) {
+			showToast('소분류코드와 소분류명을 입력하세요.', 'warning')
+			setTimeout(() => {
+				document
+					.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
+					?.focus()
+			}, 100)
+			return
+		}
+
 		// 변경사항 체크
 		if (!hasChanges(smallForm, originalSmallForm)) {
 			showToast('변경된 내용이 없습니다.', 'warning')
@@ -402,7 +499,7 @@ const COMZ010M00Page = () => {
 		}
 
 		// 필수값 체크
-		if (!smallForm.smlCsfCd) {
+		if (!smallForm.smlCsfCd.trim()) {
 			setError('소분류코드를 입력하세요.')
 			showToast('소분류코드를 입력하세요.', 'error')
 			setTimeout(() => {
@@ -412,7 +509,7 @@ const COMZ010M00Page = () => {
 			}, 100)
 			return
 		}
-		if (!smallForm.smlCsfNm) {
+		if (!smallForm.smlCsfNm.trim()) {
 			setError('소분류명을 입력하세요.')
 			showToast('소분류명을 입력하세요.', 'error')
 			setTimeout(() => {
@@ -422,12 +519,35 @@ const COMZ010M00Page = () => {
 			}, 100)
 			return
 		}
-		// 신규 등록 시 중복 체크 (수정은 허용)
-		if (!smallForm.lrgCsfCd) {
-			setError('대분류코드를 먼저 선택하세요.')
-			showToast('대분류코드를 먼저 선택하세요.', 'error')
+		// 대분류코드 검증
+		if (!smallForm.lrgCsfCd.trim()) {
+			setError('대분류코드를 선택하세요.')
+			showToast('대분류코드를 선택하세요.', 'error')
+			setTimeout(() => {
+				// 소분류코드 등록폼의 대분류코드 필드로 포커스
+				const smallFormLargeCodeInput = document.querySelector<HTMLInputElement>('input[name="smallFormLrgCsfCd"]')
+				if (smallFormLargeCodeInput) {
+					smallFormLargeCodeInput.focus()
+				}
+			}, 100)
 			return
 		}
+
+		// 대분류코드가 기존에 존재하는지 체크
+		const largeCodeExists = largeCodes.some((item) => item.lrgCsfCd === smallForm.lrgCsfCd.trim())
+		if (!largeCodeExists) {
+			setError('대분류코드를 먼저 등록하세요.')
+			showToast('대분류코드를 먼저 등록하세요.', 'error')
+			setTimeout(() => {
+				// 소분류코드 등록폼의 대분류코드 필드로 포커스
+				const smallFormLargeCodeInput = document.querySelector<HTMLInputElement>('input[name="smallFormLrgCsfCd"]')
+				if (smallFormLargeCodeInput) {
+					smallFormLargeCodeInput.focus()
+				}
+			}, 100)
+			return
+		}
+
 		if (!smallCodes || !Array.isArray(smallCodes)) {
 			setError('소분류 목록이 올바르지 않습니다.')
 			showToast('소분류 목록이 올바르지 않습니다.', 'error')
@@ -462,7 +582,7 @@ const COMZ010M00Page = () => {
 				SP: 'COM_01_0105_T(?,?,?,?,?,?,?,?,?,?,?)',
 				PARAM: param,
 			}
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(fetchBody),
@@ -491,7 +611,20 @@ const COMZ010M00Page = () => {
 
 	// 소분류 삭제
 	const handleSmallDelete = async () => {
-		if (!smallForm.lrgCsfCd || !smallForm.smlCsfCd) return
+		// 그리드에서 선택된 항목이 없으면 삭제 불가
+		if (!smallForm.smlCsfCd || !smallForm.lrgCsfCd) {
+			showToast('삭제할 소분류코드를 그리드에서 선택하세요.', 'warning')
+			return
+		}
+		
+		// 선택된 소분류코드가 실제로 존재하는지 확인
+		const selectedSmallCode = smallCodes.find(
+			(item) => item.smlCsfCd === smallForm.smlCsfCd && item.lrgCsfCd === smallForm.lrgCsfCd
+		)
+		if (!selectedSmallCode) {
+			showToast('삭제할 소분류코드를 그리드에서 선택하세요.', 'warning')
+			return
+		}
 		
 		showConfirm({
 			message: '정말 삭제하시겠습니까?',
@@ -500,8 +633,8 @@ const COMZ010M00Page = () => {
 				setLoading(true)
 				setError(null)
 				try {
-					const param = [smallForm.lrgCsfCd, smallForm.smlCsfCd].join('|')
-					const res = await fetch(apiUrl, {
+					const param = [selectedSmallCode.lrgCsfCd, selectedSmallCode.smlCsfCd].join('|')
+					const res = await fetch(apiUrl + '/delete', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
@@ -510,7 +643,7 @@ const COMZ010M00Page = () => {
 						}),
 					})
 					if (!res.ok) throw new Error('삭제 실패')
-					await fetchSmallCodes(smallForm.lrgCsfCd)
+					await fetchSmallCodes(selectedSmallCode.lrgCsfCd)
 					setSmallForm(defaultSmallCode)
 					setOriginalSmallForm(defaultSmallCode)
 					setTimeout(() => {
@@ -583,83 +716,24 @@ const COMZ010M00Page = () => {
 		}
 	}
 
-	// 대분류 그리드 키보드 ↑↓ 이동
-	const handleLargeRowKeyDown =
-		(idx: number) => (e: React.KeyboardEvent<HTMLTableRowElement>) => {
-			if (e.key === 'ArrowDown') {
-				const nextIdx = idx + 1
-				if (nextIdx < largeCodes.length) {
-					const nextRow = largeCodes[nextIdx]
-					setSelectedLarge(nextRow)
-					setLargeForm(nextRow)
-					setOriginalLargeForm(nextRow)
-					fetchSmallCodes(nextRow.lrgCsfCd)
-					// 다음 행에 포커스 이동
-					setTimeout(() => {
-						document
-							.querySelectorAll<HTMLTableRowElement>(
-								'tr[aria-label^="대분류코드 "]'
-							)
-							[nextIdx]?.focus()
-					}, 0)
-				}
-			} else if (e.key === 'ArrowUp') {
-				const prevIdx = idx - 1
-				if (prevIdx >= 0) {
-					const prevRow = largeCodes[prevIdx]
-					setSelectedLarge(prevRow)
-					setLargeForm(prevRow)
-					setOriginalLargeForm(prevRow)
-					fetchSmallCodes(prevRow.lrgCsfCd)
-					setTimeout(() => {
-						document
-							.querySelectorAll<HTMLTableRowElement>(
-								'tr[aria-label^="대분류코드 "]'
-							)
-							[prevIdx]?.focus()
-					}, 0)
-				}
-			}
-		}
-	// 소분류 그리드 키보드 ↑↓ 이동
-	const handleSmallRowKeyDown =
-		(idx: number) => (e: React.KeyboardEvent<HTMLTableRowElement>) => {
-			if (e.key === 'ArrowDown') {
-				const nextIdx = idx + 1
-				if (nextIdx < smallCodes.length) {
-					const nextRow = smallCodes[nextIdx]
-					setSmallForm(nextRow)
-					setOriginalSmallForm(nextRow)
-					setTimeout(() => {
-						document
-							.querySelectorAll<HTMLTableRowElement>(
-								'tr[aria-label^="소분류코드 "]'
-							)
-							[nextIdx]?.focus()
-					}, 0)
-				}
-			} else if (e.key === 'ArrowUp') {
-				const prevIdx = idx - 1
-				if (prevIdx >= 0) {
-					const prevRow = smallCodes[prevIdx]
-					setSmallForm(prevRow)
-					setOriginalSmallForm(prevRow)
-					setTimeout(() => {
-						document
-							.querySelectorAll<HTMLTableRowElement>(
-								'tr[aria-label^="소분류코드 "]'
-							)
-							[prevIdx]?.focus()
-					}, 0)
-				}
-			}
-		}
-
 	// 최초 마운트 시 전체 조회
 	useEffect(() => {
 		fetchLargeCodes()
 		setSmallCodes([]) // 초기화
 	}, [])
+
+	// 데이터 변경 시 컬럼 크기 조정
+	useEffect(() => {
+		if (largeCodeGridRef.current?.api) {
+			largeCodeGridRef.current.api.sizeColumnsToFit()
+		}
+	}, [largeCodes])
+
+	useEffect(() => {
+		if (smallCodeGridRef.current?.api) {
+			smallCodeGridRef.current.api.sizeColumnsToFit()
+		}
+	}, [smallCodes])
 
 	return (
 		<div className='mdi'>
@@ -677,6 +751,9 @@ const COMZ010M00Page = () => {
 									value={searchLrgCsfCd}
 									onChange={(e) => setSearchLrgCsfCd(e.target.value)}
 									onKeyDown={handleSearchInputKeyDown}
+									onCompositionStart={() => {}}
+									onCompositionUpdate={() => {}}
+									onCompositionEnd={() => {}}
 									tabIndex={0}
 									aria-label='대분류코드 검색'
 								/>
@@ -690,6 +767,9 @@ const COMZ010M00Page = () => {
 									value={searchLrgCsfNm}
 									onChange={(e) => setSearchLrgCsfNm(e.target.value)}
 									onKeyDown={handleSearchInputKeyDown}
+									onCompositionStart={() => {}}
+									onCompositionUpdate={() => {}}
+									onCompositionEnd={() => {}}
 									tabIndex={0}
 									aria-label='대분류명 검색'
 								/>
@@ -711,86 +791,24 @@ const COMZ010M00Page = () => {
 			<div className='flex gap-4'>
 				{/* 대분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4' style={{ height: '400px' }}>
-						{/* 고정 헤더 */}
-						<div className='grid-header-container'>
-							<table className='grid-table w-full'>
-								<thead>
-									<tr>
-										<th className='grid-th' style={{ width: '120px' }}>
-											대분류코드
-										</th>
-										<th className='grid-th' style={{ width: '180px' }}>
-											대분류명
-										</th>
-										<th className='grid-th' style={{ width: '80px' }}>
-											사용여부
-										</th>
-										<th className='grid-th' style={{ width: '200px' }}>
-											설명
-										</th>
-									</tr>
-								</thead>
-							</table>
-						</div>
-
-						{/* 스크롤 가능한 데이터 영역 */}
-						<div className='grid-data-container'>
-							<table className='grid-table w-full'>
-								<tbody>
-									{largeCodes.length > 0
-										? largeCodes.map((row, idx) => (
-												<tr
-													className={`grid-tr cursor-pointer${selectedLarge && selectedLarge.lrgCsfCd === row.lrgCsfCd ? ' selected' : ''}`}
-													key={row.lrgCsfCd ? `${row.lrgCsfCd}-${idx}` : idx}
-													onClick={() => handleLargeRowClick(row)}
-													tabIndex={0}
-													aria-label={`대분류코드 ${row.lrgCsfCd}`}
-													onDoubleClick={() => handleLargeRowDoubleClick(row)}
-													onKeyDown={handleLargeRowKeyDown(idx)}
-													style={{ cursor: 'pointer' }}
-												>
-													<td
-														className='grid-td'
-														style={{ width: '120px' }}
-														title={row.lrgCsfCd}
-													>
-														{row.lrgCsfCd}
-													</td>
-													<td
-														className='grid-td'
-														style={{ width: '180px' }}
-														title={row.lrgCsfNm}
-													>
-														{row.lrgCsfNm}
-													</td>
-													<td
-														className='grid-td'
-														style={{ width: '80px' }}
-														title={row.useYn}
-													>
-														{row.useYn}
-													</td>
-													<td
-														className='grid-td'
-														style={{ width: '200px' }}
-														title={row.expl}
-													>
-														{row.expl}
-													</td>
-												</tr>
-											))
-										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
-											Array.from({ length: 15 }, (_, idx) => (
-												<tr key={`empty-${idx}`} className='grid-tr'>
-													<td className='grid-td' colSpan={4}>
-														&nbsp;
-													</td>
-												</tr>
-											))}
-								</tbody>
-							</table>
-						</div>
+					<div className='gridbox-div mb-4 ag-theme-alpine' style={{ height: '400px', overflow: 'auto' }}>
+						<AgGridReact
+							ref={largeCodeGridRef}
+							rowData={largeCodes}
+							columnDefs={largeCodeColDefs}
+							defaultColDef={{
+								resizable: true,
+								sortable: true,
+								filter: true,
+								suppressSizeToFit: false,
+							}}
+							rowSelection='single'
+							onSelectionChanged={onLargeCodeSelectionChanged}
+							onRowDoubleClicked={(event) => {
+								handleLargeRowDoubleClick(event.data)
+							}}
+							onGridReady={onLargeGridReady}
+						/>
 					</div>
 					{/* 대분류 등록 폼 */}
 					<div className='border border-stone-300 p-3 rounded'>
@@ -819,6 +837,9 @@ const COMZ010M00Page = () => {
 											name='lrgCsfCd'
 											value={largeForm.lrgCsfCd || ''}
 											onChange={handleLargeCodeChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='대분류코드 입력'
 										/>
@@ -833,6 +854,9 @@ const COMZ010M00Page = () => {
 											name='lrgCsfNm'
 											value={largeForm.lrgCsfNm || ''}
 											onChange={handleLargeFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='대분류명 입력'
 										/>
@@ -846,6 +870,9 @@ const COMZ010M00Page = () => {
 											name='useYn'
 											value={largeForm.useYn || ''}
 											onChange={handleLargeFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='사용여부 선택'
 										>
@@ -863,6 +890,9 @@ const COMZ010M00Page = () => {
 											name='expl'
 											value={largeForm.expl || ''}
 											onChange={handleLargeFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='설명 입력'
 										/>
@@ -892,96 +922,24 @@ const COMZ010M00Page = () => {
 				</div>
 				{/* 소분류 코드 테이블 */}
 				<div className='flex-1'>
-					<div className='gridbox-div mb-4' style={{ height: '400px' }}>
-						{/* 고정 헤더 */}
-						<div className='grid-header-container'>
-							<table className='grid-table w-full'>
-								<thead>
-									<tr>
-										<th className='grid-th' style={{ width: '120px' }}>
-											소분류코드
-										</th>
-										<th className='grid-th' style={{ width: '180px' }}>
-											소분류명
-										</th>
-										<th className='grid-th' style={{ width: '80px' }}>
-											정렬순서
-										</th>
-										<th className='grid-th' style={{ width: '80px' }}>
-											사용여부
-										</th>
-										<th className='grid-th' style={{ width: '200px' }}>
-											설명
-										</th>
-									</tr>
-								</thead>
-							</table>
-						</div>
-
-						{/* 스크롤 가능한 데이터 영역 */}
-						<div className='grid-data-container'>
-							<table className='grid-table w-full'>
-								<tbody>
-									{smallCodes.length > 0
-										? smallCodes.map((row, idx) => (
-												<tr
-													className={`grid-tr${smallForm.lrgCsfCd === row.lrgCsfCd && smallForm.smlCsfCd === row.smlCsfCd ? ' selected' : ''}`}
-													key={row.smlCsfCd ? `${row.smlCsfCd}-${idx}` : idx}
-													tabIndex={0}
-													aria-label={`소분류코드 ${row.smlCsfCd}`}
-													onClick={() => handleSmallRowClick(row)}
-													onDoubleClick={() => handleSmallRowDoubleClick(row)}
-													onKeyDown={handleSmallRowKeyDown(idx)}
-													style={{ cursor: 'pointer' }}
-												>
-													<td
-														className='grid-td'
-														style={{ width: '120px' }}
-														title={row.smlCsfCd}
-													>
-														{row.smlCsfCd}
-													</td>
-													<td
-														className='grid-td'
-														style={{ width: '180px' }}
-														title={row.smlCsfNm}
-													>
-														{row.smlCsfNm}
-													</td>
-													<td
-														className='grid-td text-right'
-														style={{ width: '80px' }}
-														title={String(row.sortOrd)}
-													>
-														{row.sortOrd}
-													</td>
-													<td
-														className='grid-td'
-														style={{ width: '80px' }}
-														title={row.useYn}
-													>
-														{row.useYn}
-													</td>
-													<td
-														className='grid-td'
-														style={{ width: '200px' }}
-														title={row.expl}
-													>
-														{row.expl}
-													</td>
-												</tr>
-											))
-										: // 조회 결과가 없을 때 빈 행들을 추가하여 높이 유지
-											Array.from({ length: 15 }, (_, idx) => (
-												<tr key={`empty-${idx}`} className='grid-tr'>
-													<td className='grid-td' colSpan={5}>
-														&nbsp;
-													</td>
-												</tr>
-											))}
-								</tbody>
-							</table>
-						</div>
+					<div className='gridbox-div mb-4 ag-theme-alpine' style={{ height: '400px', overflow: 'auto' }}>
+						<AgGridReact
+							ref={smallCodeGridRef}
+							rowData={smallCodes}
+							columnDefs={smallCodeColDefs}
+							defaultColDef={{
+								resizable: true,
+								sortable: true,
+								filter: true,
+								suppressSizeToFit: false,
+							}}
+							rowSelection='single'
+							onSelectionChanged={onSmallCodeSelectionChanged}
+							onRowDoubleClicked={(event) => {
+								handleSmallRowDoubleClick(event.data)
+							}}
+							onGridReady={onSmallGridReady}
+						/>
 					</div>
 					{/* 소분류 등록 폼 */}
 					<div className='border border-stone-300 p-3 rounded'>
@@ -1007,9 +965,12 @@ const COMZ010M00Page = () => {
 										<input
 											type='text'
 											className='input-base input-default w-full'
-											name='lrgCsfCd'
+											name='smallFormLrgCsfCd'
 											value={smallForm.lrgCsfCd || ''}
 											onChange={handleSmallFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='대분류코드 입력'
 										/>
@@ -1022,6 +983,9 @@ const COMZ010M00Page = () => {
 											name='smlCsfCd'
 											value={smallForm.smlCsfCd || ''}
 											onChange={handleSmallCodeChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='소분류코드 입력'
 										/>
@@ -1036,6 +1000,9 @@ const COMZ010M00Page = () => {
 											name='smlCsfNm'
 											value={smallForm.smlCsfNm || ''}
 											onChange={handleSmallFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='소분류명 입력'
 										/>
@@ -1048,6 +1015,9 @@ const COMZ010M00Page = () => {
 											name='linkCd1'
 											value={smallForm.linkCd1 || ''}
 											onChange={handleSmallFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='연결코드1 입력'
 										/>
@@ -1062,6 +1032,9 @@ const COMZ010M00Page = () => {
 											name='linkCd2'
 											value={smallForm.linkCd2 || ''}
 											onChange={handleSmallFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='연결코드2 입력'
 										/>
@@ -1074,6 +1047,9 @@ const COMZ010M00Page = () => {
 											name='sortOrd'
 											value={smallForm.sortOrd || 0}
 											onChange={handleSmallFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='정렬순서 입력'
 											min='1'
@@ -1089,6 +1065,9 @@ const COMZ010M00Page = () => {
 											name='useYn'
 											value={smallForm.useYn || ''}
 											onChange={handleSmallFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='사용여부 선택'
 										>
@@ -1104,6 +1083,9 @@ const COMZ010M00Page = () => {
 											name='expl'
 											value={smallForm.expl || ''}
 											onChange={handleSmallFormChange}
+											onCompositionStart={() => {}}
+											onCompositionUpdate={() => {}}
+											onCompositionEnd={() => {}}
 											tabIndex={0}
 											aria-label='설명 입력'
 										/>

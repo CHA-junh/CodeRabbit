@@ -2,13 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 시스템 폰트 사용 (OTS 파싱 에러 방지) */
+/* 시스템 폰트 사용 (OTS 파싱 에러 방지)  */
 html,
-body {
+body,
+#__next {
 	font-family:
 		'Malgun Gothic', '맑은 고딕', 'NanumGothic', 'Apple SD Gothic Neo',
 		'Noto Sans KR', sans-serif;
 	background: none !important;
+	height: 100%;
+	margin: 0;
+	padding: 0;
 }
 
 /* input */
@@ -115,7 +119,7 @@ body {
 
 /* --- 아이콘 전용 버튼 --- */
 .icon_btn {
-	@apply hover:opacity-80 min-w-[26px] min-h-[26px];
+	@apply hover:opacity-80 min-w-[26px] min-h-[26px] h-[26px] w-[26px] flex items-center leading-none;
 	background-color: #58a5ee;
 	background-image: url('/icon_calendar.svg');
 	background-repeat: no-repeat;
@@ -123,7 +127,12 @@ body {
 	background-size: 16px 16px;
 	border-radius: 6px;
 }
-
+.icon_search {
+	background-image: url('/icon_search.svg');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 14px 14px;
+}
 /* ============================= */
 /* 🔒 Disabled 상태 분리 정의     */
 /* ============================= */
@@ -245,13 +254,16 @@ body {
 	@apply bg-transparent  h-[30px] text-ellipsis overflow-hidden px-2;
 }
 
+/* ==== 타이틀 ==== */
 .tit_area {
 	@apply font-medium h-[37px];
 	justify-content: space-between;
 	display: flex;
 	align-items: center;
 }
-
+.sub-title {
+	@apply text-[13px] text-gray-500 mt-1 ml-2 leading-tight;
+}
 /* ==== 투명 테이블 ==== */
 .clearbox-div {
 	@apply border rounded-[8px] p-3;
@@ -272,7 +284,7 @@ body {
 
 /**페이지**/
 .mdi {
-	@apply min-w-[1510px] overflow-auto scroll-area h-[calc(100vh-100px)] flex flex-col;
+	@apply flex flex-col overflow-auto min-w-[1510px] !h-[100%];
 }
 
 /**grid**/
@@ -286,26 +298,8 @@ body {
 	@apply table w-full text-sm text-gray-800 border-collapse;
 	table-layout: fixed !important;
 	width: 100% !important;
-}
-
-/* === 헤더 테이블 전용 스타일 === */
-.grid-header-container .grid-table {
-	border-top: none !important; /* 검은 줄 제거 */
-}
-
-/* === 헤더 컨테이너 상단 테두리 제거 === */
-.grid-header-container {
-	border-top: none !important;
-}
-
-/* === 헤더 셀 상단 테두리 제거 === */
-.grid-header-container .grid-th {
-	border-top: none !important;
-}
-
-/* === 모든 헤더 관련 요소 상단 테두리 제거 === */
-.grid-header-container * {
-	border-top: none !important;
+	border-collapse: separate !important; /* 테두리 충돌 방지 */
+	border-spacing: 0 !important; /* 셀 간격 제거 */
 }
 
 /* === 헤더 행 === */
@@ -318,6 +312,7 @@ body {
 .grid-td {
 	@apply text-center px-2 py-2 border-b border-gray-100 whitespace-nowrap;
 }
+
 /* === 자동 스크롤을 위한 래퍼 === */
 .grid-scroll {
 	@apply overflow-y-auto w-full;
@@ -325,20 +320,25 @@ body {
 	max-height: 300px;
 }
 
-/* === 그리드 헤더 컨테이너 === */
-.grid-header-container {
+/* === thead 전체에 sticky 적용 === */
+.popup-wrapper .grid-table thead,
+.grid-table thead {
 	position: sticky !important;
 	top: 0 !important;
 	z-index: 10 !important;
-	background-color: white !important;
-	border-bottom: 1px solid #d1d5db !important;
+	background-color: #ebf1f6 !important;
+}
+
+/* === thead 내부 th 스타일 === */
+.popup-wrapper .grid-table thead th,
+.grid-table thead th {
+	border: 1px solid #ccc !important; /* 원본과 동일한 border 스타일 */
 	border-top: none !important;
 	transform: translateZ(0) !important;
 	isolation: isolate !important;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
-}  
-
+}
 
 /* === 그리드 데이터 컨테이너 === */
 .grid-data-container {
@@ -349,48 +349,36 @@ body {
 	/*padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
 }
 
-/* === 팝업 화면 전용 그리드 스타일 === */
-.popup-wrapper .grid-data-container {
-	overflow: auto !important;
-	scrollbar-width: thin;
-	scrollbar-color: #3b82c4 #f2f8ff;
-	/*padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
+/* === 헤더 셀들 사이의 세로 테두리 유지 === */
+.popup-wrapper .grid-table thead th:not(:first-child),
+.grid-table thead th:not(:first-child) {
+	border-left: 1px solid #ccc !important; /* 첫 번째 셀을 제외한 모든 셀에 왼쪽 테두리 */
 }
 
-.popup-wrapper .grid-data-container::-webkit-scrollbar {
-	width: 6px;
-	height: 6px;
+/* === sticky 헤더 하단 테두리 강화  === */
+.popup-wrapper .grid-table thead th::after,
+.grid-table thead th::after {
+	content: '' !important;
+	position: absolute !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	height: 1px !important;
+	background-color: #ccc !important;
+	z-index: 11 !important; /* 다른 요소들 위에 표시 */
 }
 
-.popup-wrapper .grid-data-container::-webkit-scrollbar-track {
-	background-color: #f2f8ff;
+/* === tbody 첫 번째 행과의 경계선 처리 === */
+.popup-wrapper .grid-table tbody tr:first-child td,
+.grid-table tbody tr:first-child td {
+	border-top: none !important; /* 상단 테두리 제거 */
 }
 
-.popup-wrapper .grid-data-container::-webkit-scrollbar-thumb {
-	background-color: #3b82c4;
-	border-radius: 4px;
-	border: 2px solid #f2f8ff;
-	background-clip: content-box;
-}
-
-.popup-wrapper .grid-header-container {
-	overflow: hidden !important;
-	padding-right: 12px !important; /* 스크롤바 너비만큼 패딩 추가 */
-}
-
-/* 팝업 그리드 테이블 레이아웃 고정 */
-.popup-wrapper .grid-table {
-	table-layout: fixed !important;
-	min-width: 680px !important; /* 최소 테이블 너비 설정 */
-}
-
-/* 팝업 그리드 셀 최소 너비 및 텍스트 처리 */
-.popup-wrapper .grid-th,
-.popup-wrapper .grid-td {
-	min-width: 100px !important;
-	white-space: nowrap !important;
-	overflow: hidden !important;
-	text-overflow: ellipsis !important;
+/* === tbody 셀 원본 스타일 적용 === */
+.popup-wrapper .grid-table tbody td,
+.grid-table tbody td {
+	border: none !important; /* 모든 테두리 제거 */
+	border-bottom: 1px solid #d1d5db !important; /* 하단 테두리만 유지 (원본 border-gray-100과 유사) */
 }
 
 /* === 그리드 짝수 컬러 다르게 === */
@@ -537,21 +525,21 @@ body {
 
 /* 서브 탭 박스 전체 */
 .sub-tab-container {
-  @apply border border-[#ccc] rounded-md;
-}    
+	@apply border border-[#ccc] rounded-md;
+}
 /* 탭 리스트 wrapper */
 .sub-tab-list {
-  @apply flex border-b border-[#ccc] pt-2;
+	@apply flex border-b border-[#ccc] pt-2;
 }
 /* 공통 탭 버튼 스타일 */
 .sub-tab-button {
-  @apply px-4 py-2 text-sm font-semibold text-[#798EA2] hover:text-[#0071DB] transition-all;
+	@apply px-4 py-2 text-sm font-semibold text-[#798EA2] hover:text-[#0071DB] transition-all;
 }
 /* 활성화된 탭 */
 .sub-tab-active {
-  @apply text-[#00509A] border-b border-[#00509A] pb-[7px];
+	@apply text-[#00509A] border-b border-[#00509A] pb-[7px];
 }
 /* 탭 패널 영역 */
 .sub-tab-panel {
-  @apply p-4 bg-white;
+	@apply p-4 bg-white;
 }

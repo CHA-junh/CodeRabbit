@@ -173,7 +173,7 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
 
     setLoading(true)
     try {
-      const res = await fetch('/api/employee/search', {
+      const res = await fetch('/api/COMZ080P00/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

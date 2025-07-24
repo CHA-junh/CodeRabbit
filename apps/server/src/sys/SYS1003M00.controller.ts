@@ -169,9 +169,11 @@ export class SysController {
         savedRoles: savedRoles,
       });
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: '저장에 실패했습니다.', error: error.message });
+        .json({ message: '저장에 실패했습니다.', error: errorMessage });
     }
   }
 
@@ -269,9 +271,11 @@ export class SysController {
         .status(HttpStatus.OK)
         .json({ message: '프로그램 그룹이 저장되었습니다.' });
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: '저장에 실패했습니다.', error: error.message });
+        .json({ message: '저장에 실패했습니다.', error: errorMessage });
     }
   }
 
@@ -324,9 +328,11 @@ export class SysController {
         newRole: newRole,
       });
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: '역할 복사에 실패했습니다.', error: error.message });
+        .json({ message: '역할 복사에 실패했습니다.', error: errorMessage });
     }
   }
 }
