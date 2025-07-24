@@ -77,18 +77,12 @@ export class TblUserRole {
     }
     // 신규 등록 시에도 CHNG_DTTM 설정
     this.chngDttm = this.formatDateTime(now);
-    // TODO: 인증 시스템 구현 후 실제 로그인 사용자 ID로 변경
-    if (!this.chngrId) {
-      this.chngrId = 'SYSTEM';
-    }
   }
 
   @BeforeUpdate()
   setChngDttm() {
     const now = new Date();
     this.chngDttm = this.formatDateTime(now);
-    // TODO: 인증 시스템 구현 후 실제 로그인 사용자 ID로 변경
-    this.chngrId = 'SYSTEM';
   }
 
   private formatDateTime(date: Date): string {
