@@ -30,8 +30,8 @@ import { useCommonCodes } from '@/modules/auth/hooks/useCommonCodes';
 // API URL 설정
 const apiUrl =
   typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
-    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api`
-    : '/api';
+    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/COMZ040P00`
+    : '/api/COMZ040P00';
 
 interface BusinessData {
   bsnNo: string;
@@ -452,7 +452,7 @@ export default function ProjectSearchPopup() {
 
       console.log('📤 검색 요청:', searchParams);
 
-      const response = await fetch(`${apiUrl}/COMZ040P00`, {
+      const response = await fetch(`${apiUrl}/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

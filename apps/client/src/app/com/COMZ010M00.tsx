@@ -150,7 +150,7 @@ const COMZ010M00Page = () => {
 		setLoading(true)
 		setError(null)
 		try {
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/search', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -174,7 +174,7 @@ const COMZ010M00Page = () => {
 		setLoading(true)
 		setError(null)
 		try {
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/search', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -368,7 +368,7 @@ const COMZ010M00Page = () => {
 				largeForm.expl,
 				USER_ID,
 			].join('|')
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -411,7 +411,7 @@ const COMZ010M00Page = () => {
 				setError(null)
 				try {
 					const param = [selectedLarge.lrgCsfCd].join('|')
-					const res = await fetch(apiUrl, {
+					const res = await fetch(apiUrl + '/delete', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
@@ -582,7 +582,7 @@ const COMZ010M00Page = () => {
 				SP: 'COM_01_0105_T(?,?,?,?,?,?,?,?,?,?,?)',
 				PARAM: param,
 			}
-			const res = await fetch(apiUrl, {
+			const res = await fetch(apiUrl + '/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(fetchBody),
@@ -634,7 +634,7 @@ const COMZ010M00Page = () => {
 				setError(null)
 				try {
 					const param = [selectedSmallCode.lrgCsfCd, selectedSmallCode.smlCsfCd].join('|')
-					const res = await fetch(apiUrl, {
+					const res = await fetch(apiUrl + '/delete', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({

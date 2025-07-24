@@ -68,9 +68,9 @@ const PGRS_STATES = [
 // API URL 환경변수 기반 설정
 const getApiUrl = () => {
 	if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-		return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/business-name-search`
+		return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/COMZ050P00`
 	}
-	return '/api/business-name-search'
+	return '/api/COMZ050P00'
 }
 
 const getCurrentYear = () => new Date().getFullYear().toString()
@@ -203,7 +203,7 @@ const BusinessNameSearchPopup: React.FC = () => {
 				].join('|'),
 			}
 
-			const res = await fetch(getApiUrl(), {
+			const res = await fetch(getApiUrl() + '/search', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(body),

@@ -37,8 +37,8 @@ interface DeptNoSearchResult {
 
 const apiUrl =
 	typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
-		? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/search-dept-no`
-		: '/api/search-dept-no'
+		? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/COMZ060P00`
+		: '/api/COMZ060P00'
 
 export default function DeptNumberSearchPopup() {
 	const params = useSearchParams()
@@ -92,13 +92,27 @@ export default function DeptNumberSearchPopup() {
 		setError('')
 		setResults([])
 		try {
-			const searchParams = new URLSearchParams({
-				deptNo: form.deptNo,
-				year: form.year,
-				deptDivCd: form.deptDivCd || '', // 빈 문자열도 명시적으로 전달
+			const requestBody = {
+				sp: 'COM_02_0301_S', // 프로시저명
+				param: [
+					form.deptNo,      // 부서번호
+					form.year,        // 년도
+					form.deptDivCd || '', // 부서구분코드
+				]
+			}
+			
+			const res = await fetch(apiUrl + '/search', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(requestBody),
 			})
-			const url = `${apiUrl}?${searchParams.toString()}`
-			const res = await fetch(url)
+			
+			if (!res.ok) {
+				throw new Error(`HTTP error! status: ${res.status}`)
+			}
+			
 			const data = await res.json()
 			const results = Array.isArray(data) ? data : (data.data ?? [])
 			setResults(results)
