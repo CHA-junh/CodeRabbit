@@ -307,8 +307,10 @@ export class UsrService {
       return userDataList;
     } catch (error) {
       console.error('❌ Error in getUserList:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
-        `사용자 목록 조회 중 오류가 발생했습니다: ${error.message}`,
+        `사용자 목록 조회 중 오류가 발생했습니다: ${errorMessage}`,
       );
     }
   }
@@ -377,7 +379,9 @@ export class UsrService {
       }
     } catch (error) {
       console.error('❌ 업무권한 조회 오류:', error);
-      throw new Error(`업무권한 조회 중 오류가 발생했습니다: ${error.message}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`업무권한 조회 중 오류가 발생했습니다: ${errorMessage}`);
     }
   }
 
@@ -574,14 +578,16 @@ export class UsrService {
     } catch (error) {
       console.error('❌ 사용자 정보 저장 오류:', error);
       console.error('❌ 오류 상세 정보:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        errno: error.errno,
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        code: (error as any).code,
+        errno: (error as any).errno,
       });
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
-        `사용자 정보 저장 중 오류가 발생했습니다: ${error.message}`,
+        `사용자 정보 저장 중 오류가 발생했습니다: ${errorMessage}`,
       );
     }
   }
@@ -645,8 +651,10 @@ export class UsrService {
       return '비밀번호가 초기화되었습니다.';
     } catch (error) {
       console.error('❌ 비밀번호 초기화 오류:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
-        `비밀번호 초기화 중 오류가 발생했습니다: ${error.message}`,
+        `비밀번호 초기화 중 오류가 발생했습니다: ${errorMessage}`,
       );
     }
   }
@@ -741,8 +749,10 @@ export class UsrService {
       }
     } catch (error) {
       console.error('❌ 승인결재자 검색 오류:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
-        `승인결재자 검색 중 오류가 발생했습니다: ${error.message}`,
+        `승인결재자 검색 중 오류가 발생했습니다: ${errorMessage}`,
       );
     }
   }
@@ -774,8 +784,10 @@ export class UsrService {
       return roles;
     } catch (error) {
       console.error('❌ 사용자 역할 목록 조회 오류:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
-        `사용자 역할 목록 조회 중 오류가 발생했습니다: ${error.message}`,
+        `사용자 역할 목록 조회 중 오류가 발생했습니다: ${errorMessage}`,
       );
     }
   }

@@ -52,3 +52,10 @@ temp/
 
 # Designs folder (moved to project root)
 designs/ 
+
+# Test reports
+test-reports/
+*.xlsx
+*.json
+!package.json
+!package-lock.json 
