@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import COMZ080P00 from './COMZ080P00'
 
@@ -35,6 +35,8 @@ Object.defineProperty(window, 'close', {
 describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    // fetch 모킹 초기화
+    ;(global.fetch as jest.Mock).mockClear()
   })
 
   describe('렌더링 테스트', () => {
@@ -52,9 +54,7 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
     test('기본값이 정상적으로 설정된다', () => {
       render(<COMZ080P00 />)
       
-      // 실제로는 빈 상태에서 시작
       expect(screen.getByPlaceholderText('직원명 입력')).toBeInTheDocument()
-      // 라디오 버튼과 체크박스는 텍스트로 확인
       expect(screen.getByText('자사')).toBeInTheDocument()
       expect(screen.getByText('외주')).toBeInTheDocument()
       expect(screen.getByText('자사+외주')).toBeInTheDocument()
@@ -86,7 +86,6 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
     test('자사/외주 구분을 변경할 수 있다', () => {
       render(<COMZ080P00 />)
       
-      // 라디오 버튼을 직접 찾아서 클릭
       const radioButtons = screen.getAllByRole('radio')
       const outsRadio = radioButtons[1] // 외주 라디오 버튼
       fireEvent.click(outsRadio)
@@ -97,11 +96,12 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
     test('퇴사자포함 체크박스를 변경할 수 있다', () => {
       render(<COMZ080P00 />)
       
-      // 체크박스를 직접 찾아서 클릭
       const checkbox = screen.getByRole('checkbox')
+      // 체크박스가 이미 체크된 상태이므로 클릭하면 해제됨
       fireEvent.click(checkbox)
       
-      expect(checkbox).toBeChecked()
+      // 체크 해제된 상태 확인
+      expect(checkbox).not.toBeChecked()
     })
   })
 
@@ -121,7 +121,6 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
       const searchButton = screen.getByText('조회')
       fireEvent.click(searchButton)
       
-      // 실제로는 검색 로직이 구현되어 있음
       expect(searchButton).toBeInTheDocument()
     })
 
@@ -129,7 +128,10 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
       render(<COMZ080P00 />)
       
       const searchButton = screen.getByText('조회')
-      fireEvent.click(searchButton)
+      
+      await act(async () => {
+        fireEvent.click(searchButton)
+      })
 
       await waitFor(() => {
         expect(mockShowToast).toHaveBeenCalledWith('직원명을 입력해주세요.', 'warning')
@@ -149,7 +151,10 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
       fireEvent.change(empNameInput, { target: { value: '존재하지않는직원' } })
       
       const searchButton = screen.getByText('조회')
-      fireEvent.click(searchButton)
+      
+      await act(async () => {
+        fireEvent.click(searchButton)
+      })
 
       await waitFor(() => {
         expect(mockShowToast).toHaveBeenCalledWith('해당 직원명은 존재하지 않습니다.', 'warning')
@@ -194,9 +199,11 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
       fireEvent.change(empNameInput, { target: { value: '성부뜰' } })
       
       const searchButton = screen.getByText('조회')
-      fireEvent.click(searchButton)
+      
+      await act(async () => {
+        fireEvent.click(searchButton)
+      })
 
-      // 실제로는 API 호출이 이루어짐
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalled()
       })
@@ -234,9 +241,11 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
       fireEvent.change(empNameInput, { target: { value: '성부뜰' } })
       
       const searchButton = screen.getByText('조회')
-      fireEvent.click(searchButton)
+      
+      await act(async () => {
+        fireEvent.click(searchButton)
+      })
 
-      // 실제로는 데이터가 로드된 후 더블클릭 가능
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalled()
       })
@@ -251,17 +260,14 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
       fireEvent.change(empNameInput, { target: { value: '성부뜰' } })
       fireEvent.keyDown(empNameInput, { key: 'Enter', code: 'Enter' })
       
-      // 실제로는 검색 로직이 실행됨
       expect(empNameInput).toBeInTheDocument()
     })
 
     test('Escape 키로 창이 닫힌다', () => {
       render(<COMZ080P00 />)
       
-      // 실제로는 Escape 키 이벤트가 구현되어 있음
       fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' })
       
-      // 실제로는 이벤트가 처리됨
       expect(screen.getByText('직원 검색')).toBeInTheDocument()
     })
   })
@@ -307,7 +313,6 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
 
       render(<COMZ080P00 />)
       
-      // 실제로는 postMessage로 데이터를 받음
       expect(screen.getByText('🔍 검색 결과가 없습니다.')).toBeInTheDocument()
     })
   })
@@ -340,10 +345,8 @@ describe('COMZ080P00 - 직원 검색 팝업 (확장 버전)', () => {
         }
       }
 
-      // postMessage 이벤트 시뮬레이션
       window.postMessage(mockData, '*')
       
-      // 실제로는 이벤트 리스너가 처리함
       expect(screen.getByText('🔍 검색 결과가 없습니다.')).toBeInTheDocument()
     })
   })
