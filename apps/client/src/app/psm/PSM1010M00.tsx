@@ -262,7 +262,7 @@ export default function EmployeeMainPage() {
 				width: 150,
 				hide: true,
 			},
-			{ headerName: '비고', field: 'RMK', width: 250 },
+			{ headerName: '비고', field: 'RMK', flex: 1, minWidth: 200 },
 		],
 		[]
 	)
@@ -276,7 +276,8 @@ export default function EmployeeMainPage() {
 			sortable: true, // 정렬 가능
 			filter: true, // 필터 가능
 			resizable: true, // 크기 조정 가능
-			minWidth: 80, // 최소 너비
+			minWidth: 60, // 최소 너비
+			maxWidth: 300, // 최대 너비
 		}),
 		[]
 	)
@@ -580,11 +581,15 @@ export default function EmployeeMainPage() {
 		}
 
 		// 컬럼 크기를 컨테이너 너비에 맞게 자동 조정
-		setTimeout(() => {
-			if (gridApi) {
+		if (gridApi) {
+			// 컬럼 변경 후 크기 조정
+			setTimeout(() => {
+				// 먼저 모든 컬럼을 내용에 맞게 자동 조정
+				gridApi.autoSizeAllColumns()
+				// 그 후 전체 너비에 맞게 조정 (비고 컬럼이 남은 공간 차지)
 				gridApi.sizeColumnsToFit()
-			}
-		}, 100)
+			}, 10)
+		}
 	}
 
 	/**
@@ -593,8 +598,19 @@ export default function EmployeeMainPage() {
 	 */
 	const onGridReady = (params: GridReadyEvent) => {
 		setGridApi(params.api)
-		// 컬럼 크기를 컨테이너 너비에 맞게 자동 조정
-		params.api.sizeColumnsToFit()
+	}
+
+	/**
+	 * AG Grid 이벤트 핸들러
+	 * 데이터가 처음 렌더링된 후 호출
+	 */
+	const onFirstDataRendered = (params: any) => {
+		// 먼저 모든 컬럼을 내용에 맞게 자동 조정
+		params.api.autoSizeAllColumns()
+		// 그 후 전체 너비에 맞게 조정 (비고 컬럼이 남은 공간 차지)
+		setTimeout(() => {
+			params.api.sizeColumnsToFit()
+		}, 10)
 	}
 
 	/**
@@ -664,7 +680,13 @@ export default function EmployeeMainPage() {
 	useEffect(() => {
 		const handleResize = () => {
 			if (gridApi) {
-				gridApi.sizeColumnsToFit()
+				// 리사이즈 후 컬럼 크기 조정
+				setTimeout(() => {
+					// 먼저 모든 컬럼을 내용에 맞게 자동 조정
+					gridApi.autoSizeAllColumns()
+					// 그 후 전체 너비에 맞게 조정 (비고 컬럼이 남은 공간 차지)
+					gridApi.sizeColumnsToFit()
+				}, 10)
 			}
 		}
 
@@ -711,6 +733,7 @@ export default function EmployeeMainPage() {
 			return
 		}
 		// AS-IS: BSN_07_0150 팝업 호출 로직
+		showToast('투입인력현황(BSN0660P00) 화면 개발중입니다.', 'info');
 	}
 
 	return (
@@ -865,7 +888,6 @@ export default function EmployeeMainPage() {
 			{/* AG Grid */}
 			<div
 				className='ag-theme-alpine flex-1 min-h-0'
-				style={{ height: '400px' }}
 			>
 				<AgGridReact
 					columnDefs={columnDefs}
@@ -876,6 +898,7 @@ export default function EmployeeMainPage() {
 					paginationPageSizeSelector={[10, 20, 50, 100]}
 					rowSelection='single'
 					onGridReady={onGridReady}
+					onFirstDataRendered={onFirstDataRendered}
 					onRowClicked={onRowClicked}
 					onRowDoubleClicked={onRowDoubleClicked}
 					getRowClass={(params) => {
@@ -894,6 +917,8 @@ export default function EmployeeMainPage() {
 					animateRows={true}
 					enableCellTextSelection={true}
 					suppressCopyRowsToClipboard={false}
+					suppressColumnVirtualisation={false}
+					suppressRowVirtualisation={false}
 				/>
 			</div>
 

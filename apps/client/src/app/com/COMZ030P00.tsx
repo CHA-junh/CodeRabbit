@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
@@ -15,23 +15,22 @@ interface GradeUnitPriceData {
 }
 
 /**
- * 팝업 Props 인터페이스
+ * 더블클릭시 반환할 최소 정보 타입
+ * ASIS: EvtDblClick 이벤트의 txtData 구조와 동일
+ * 형식: "단가"
  */
-interface GradeUnitPricePopupProps {
-  onClose?: () => void;
-  onSelect?: (selectedPrice: string) => void;
-  initialGubun?: string;    // 자사/외주 구분 (1: 자사, 2: 외주)
-  initialYear?: string;      // 초기 년도
-  autoSearch?: boolean;      // 자동 조회 여부
+interface PriceSelectInfo {
+  price: string;       // 단가 (ASIS: UPRC)
 }
 
 /**
- * 컴포넌트 Ref 인터페이스
- * ASIS: public function fnSearch():void
+ * postMessage로 받을 데이터 타입
  */
-export interface GradeUnitPricePopupRef {
-  setUntPrcInfo: (param: { ownOutsDiv: string; year: string }) => void;
-  fnSearch: () => void;
+interface PostMessageData {
+  type: 'CHOICE_PRICE_INIT';
+  ownOutsDiv: string;
+  year: string;
+  priceList: GradeUnitPriceData[];
 }
 
 /**
@@ -39,10 +38,14 @@ export interface GradeUnitPricePopupRef {
  * ASIS: COM_01_0300.mxml → TOBE: COMZ030P00.tsx
  * 
  * 주요 기능:
- * 1. 등급별 단가 조회 (USP_UNTPRC_SEL)
- * 2. 부모창에서 데이터 전달 받기 (setUntPrcInfo)
- * 3. 더블클릭 시 단가 선택 (onDoubleClick)
- * 4. 자동 조회 기능 (fnSearch)
+ * 1. 부모창에서 단가 목록 데이터 수신 (postMessage)
+ * 2. 등급별 단가 조회 (USP_UNTPRC_SEL) 
+ * 3. 자사/외주 구분 선택 (rdIODiv)
+ * 4. 년도 선택 (txtYrNm)
+ * 5. 더블클릭 시 단가 선택 (onDoubleClick)
+ * 6. 팝업 닫기 (PopUpManager.removePopUp)
+ * 7. 키보드 이벤트 처리 (Enter 키 조회, Escape 키 닫기)
+ * 8. postMessage로 부모창과 통신
  * 
  * ASIS 대응 관계:
  * - TitleWindow → popup-wrapper
@@ -51,25 +54,19 @@ export interface GradeUnitPricePopupRef {
  * - FInputNumber → select
  * - CurrencyFormatter → formatCurrency
  */
-const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePopupProps>(({
-  onClose,
-  onSelect,
-  initialGubun = '1',
-  initialYear,
-  autoSearch = false
-}, ref) => {
+const COMZ030P00 = () => {
   const { showToast } = useToast();
   /**
    * 자사/외주 구분 상태 관리
    * ASIS: rdIODiv.selectedValue
    */
-  const [radioValue, setRadioValue] = useState(initialGubun);
+  const [radioValue, setRadioValue] = useState('1');
   
   /**
    * 년도 상태 관리
    * ASIS: txtYrNm.text
    */
-  const [year, setYear] = useState(initialYear || new Date().getFullYear().toString());
+  const [year, setYear] = useState(new Date().getFullYear().toString());
   
   /**
    * 그리드 데이터 상태 관리
@@ -90,14 +87,43 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
 
   /**
-   * 초기화 및 자동 조회
-   * ASIS: initialize="init()"
+   * 입력 필드 참조 (ASIS: txtYrNm)
    */
-  useEffect(() => {
-    if (autoSearch) {
-      handleSearch();
+  const selectRef = useRef<HTMLSelectElement>(null)
+
+  /**
+   * 메시지 수신 상태 관리
+   */
+  const [messageReceived, setMessageReceived] = useState(false)
+
+  /**
+   * postMessage 이벤트 핸들러
+   * 부모 창에서 전송된 choicePriceInit 데이터를 처리
+   */
+  const handlePostMessage = (event: MessageEvent) => {
+    const data = event.data;
+    if (data?.type === 'CHOICE_PRICE_INIT' && data?.data) {
+      setUntPrcInfo(data.data);
+      setMessageReceived(true);
     }
-  }, []);
+  }
+
+  /**
+   * init_Complete 함수
+   * ASIS: init_Complete() 함수와 동일한 역할
+   * 모달이 처음 로드될 때 초기화 작업을 수행
+   */
+  const init_Complete = () => {
+    setRadioValue('1')
+    setYear(new Date().getFullYear().toString())
+    setGridData([])
+    setLoading(false)
+    setSelectedRow(null)
+    // 년도 선택창에 포커스 (ASIS: txtYrNm.focus())
+    setTimeout(() => {
+      selectRef.current?.focus()
+    }, 0)
+  }
 
   /**
    * setUntPrcInfo
@@ -108,14 +134,11 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
   const setUntPrcInfo = (param: { ownOutsDiv: string; year: string }) => {
     setRadioValue(param.ownOutsDiv);
     setYear(param.year);
+    // 부모창에서 데이터를 받은 후 자동 조회 실행
+    setTimeout(() => {
+      handleSearch();
+    }, 50);
   };
-
-  // ref를 통해 외부에서 접근 가능한 메서드 노출
-  // ASIS: public function fnSearch():void
-  useImperativeHandle(ref, () => ({
-    setUntPrcInfo,
-    fnSearch: handleSearch
-  }));
 
   /**
    * 단가 검색 함수
@@ -133,7 +156,7 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
 
     setLoading(true);
     try {
-      const res = await fetch('/api/COMZ030M00/search', {
+      const res = await fetch('/api/COMZ030P00/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -170,11 +193,28 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
   const handleRowDoubleClick = (index: number) => {
     if (gridData && gridData[index]) {
       const selectedItem = gridData[index];
-      if (onSelect) {
-        onSelect(selectedItem.UPRC);
+      const selectInfo: PriceSelectInfo = {
+        price: selectedItem.UPRC
       }
-      if (onClose) {
-        onClose();
+
+      // 팝업 창인 경우 부모 창으로 결과 전송
+      if (window.opener && !window.opener.closed) {
+        try {
+          // 부모 창의 handlePriceSelect 함수 호출
+          const messageData = {
+            type: 'PRICE_SELECTED',
+            data: selectInfo,
+            source: 'COMZ030P00',
+            timestamp: new Date().toISOString()
+          };
+          
+          window.opener.postMessage(messageData, '*');
+          
+          // 팝업 창 닫기
+          window.close();
+        } catch (error) {
+          console.error('부모창 통신 오류:', error);
+        }
       }
     }
   };
@@ -188,25 +228,29 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
   };
 
   /**
-   * 팝업 닫기
-   * ASIS: PopUpManager.removePopUp(this)
-   */
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
-    }
-  };
-
-  /**
    * 키보드 이벤트 처리 함수
    * ASIS: 키보드 이벤트 처리와 동일
    * Enter: 검색 실행
+   * Escape: 팝업 닫기
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
+    } else if (e.key === 'Escape') {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+      }
     }
   };
+
+  /**
+   * 포커스 시 전체 선택
+   * ASIS: FInputNumber 컴포넌트의 포커스 시 전체 선택 기능과 동일
+   */
+  const handleFocus = (e: React.FocusEvent<HTMLSelectElement>) => {
+    // select 요소는 select() 메서드가 없으므로 제거
+    // e.target.select()
+  }
 
   /**
    * 숫자 포맷팅 (ASIS의 CurrencyFormatter 대체)
@@ -232,12 +276,66 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
     }
   };
 
+  /**
+   * 컴포넌트 초기화 및 메시지 수신 처리
+   */
+  const messageListenerRef = useRef<((event: MessageEvent) => void) | null>(null);
+  const isInitializedRef = useRef(false);
+  
+  useEffect(() => {
+    // 이미 초기화되었는지 확인
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+    init_Complete();
+    
+    // 초기화 완료 후 자동 조회 실행
+    setTimeout(() => {
+      handleSearch();
+    }, 100);
+    
+    const hasParent = window.opener && !window.opener.closed;
+    if (hasParent) {
+      setTimeout(() => {
+        try {
+          const readyMessage = {
+            type: 'POPUP_READY',
+            source: 'CHILD',
+            timestamp: new Date().toISOString()
+          };
+          window.opener.postMessage(readyMessage, '*');
+        } catch (error) {}
+      }, 100);
+    }
+    const handleMessage = (event: MessageEvent) => {
+      handlePostMessage(event);
+    };
+    messageListenerRef.current = handleMessage;
+    window.addEventListener('message', handleMessage);
+    return () => {
+      if (messageListenerRef.current) {
+        window.removeEventListener('message', messageListenerRef.current);
+        messageListenerRef.current = null;
+      }
+      isInitializedRef.current = false;
+    };
+  }, [])
+
   return (
     <div className="popup-wrapper min-w-[500px]">
       {/* 팝업 헤더 - ASIS: TitleWindow title */}
       <div className="popup-header">
         <h3 className="popup-title">등급별 단가 조회</h3>
-        <button className="popup-close" type="button" onClick={handleClose}>×</button>
+        <button 
+          className="popup-close" 
+          type="button" 
+          onClick={() => {
+            if (window.opener && !window.opener.closed) {
+              window.close();
+            }
+          }}
+        >
+          ×
+        </button>
       </div>
 
       <div className="popup-body scroll-area">
@@ -258,10 +356,12 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
                 <th className="search-th w-[70px]">년도</th>
                 <td className="search-td w-[100px]">
                   <select
+                    ref={selectRef}
                     className="combo-base w-full"
                     value={year}
                     onChange={e => setYear(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onFocus={handleFocus}
                   >
                     {Array.from({ length: 11 }, (_, i) => {
                       const y = new Date().getFullYear() - 5 + i;
@@ -329,11 +429,20 @@ const GradeUnitPricePopup = forwardRef<GradeUnitPricePopupRef, GradeUnitPricePop
 
         {/* 하단 버튼 - ASIS: btnClose */}
         <div className="flex justify-end">
-          <button className="btn-base btn-delete" onClick={handleClose}>종료</button>
+          <button 
+            className="btn-base btn-delete" 
+            onClick={() => {
+              if (window.opener && !window.opener.closed) {
+                window.close();
+              }
+            }}
+          >
+            종료
+          </button>
         </div>
       </div>
     </div>
   );
-});
+};
 
-export default GradeUnitPricePopup;
+export default COMZ030P00;

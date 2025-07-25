@@ -135,8 +135,13 @@ export default function MainPage() {
 	 * ASIS: init() 함수와 동일한 역할
 	 */
 	useEffect(() => {
-		// 페이지 로드 시 코드 데이터만 로드 (단가 데이터는 수동 조회)
-		loadCodeData()
+		// 페이지 로드 시 코드 데이터 로드 후 자동 조회 실행
+		const initializeData = async () => {
+			await loadCodeData()
+			// 코드 데이터 로드 완료 후 자동 조회 실행
+			handleSearch()
+		}
+		initializeData()
 	}, [])
 
 	/**
@@ -235,7 +240,7 @@ export default function MainPage() {
 
 		setLoading(true)
 		try {
-			const response = await fetch('/api/COMZ030M00/search', {
+			const response = await fetch('/api/COMZ030P00/search', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -488,7 +493,7 @@ export default function MainPage() {
 				<table className='search-table'>
 					<tbody>
 						<tr className='search-tr'>
-							<th className='search-th w-[130px]'>자사/외주 구분</th>
+							<th className='search-th w-[130px]'>자사/외주</th>
 							<td className='search-td w-[120px]'>
 								<label className='mr-3'>
 									<input

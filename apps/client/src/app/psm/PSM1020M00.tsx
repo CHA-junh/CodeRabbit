@@ -139,11 +139,50 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
     CARR_DIV_CD: '1',
     WKG_ST_DIV_CD: '1',
     WKG_ST_DIV: '재직중',
-    KOSA_REG_YN: 'N'
+    KOSA_REG_YN: 'N',
+    HQ_DIV_CD: '', // 본부 코드 초기값 추가
+    DEPT_DIV_CD: '', // 부서 코드 초기값 추가
+    DUTY_CD: '', // 직책 코드 초기값 추가
+    EMP_NO: '', // 사원번호 초기값 추가
+    EMP_NM: '', // 사원명 초기값 추가
+    EMP_ENG_NM: '', // 영문명 초기값 추가
+    RES_REG_NO: '', // 주민등록번호 초기값 추가
+    BIR_YR_MN_DT: '', // 생년월일 초기값 추가
+    SEX_DIV_CD: '', // 성별 초기값 추가
+    NTLT_DIV_CD: '', // 국적 초기값 추가
+    ENTR_DT: '', // 입사일자 초기값 추가
+    RETIR_DT: '', // 퇴사일자 초기값 추가
+    EMAIL_ADDR: '', // 이메일 초기값 추가
+    MOB_PHN_NO: '', // 휴대전화 초기값 추가
+    HOME_TEL: '', // 자택전화 초기값 추가
+    HOME_ZIP_NO: '', // 우편번호 초기값 추가
+    HOME_ADDR: '', // 주소 초기값 추가
+    HOME_DET_ADDR: '', // 상세주소 초기값 추가
+    LAST_IN_DT: '', // 최종투입일자 초기값 추가
+    LAST_END_DT: '', // 최종철수일자 초기값 추가
+    LAST_SCHL: '', // 학교 초기값 추가
+    MAJR: '', // 전공 초기값 추가
+    LAST_GRAD_DT: '', // 졸업일자 초기값 추가
+    CTQL_CD: '', // 자격증 초기값 추가
+    CTQL_PUR_DT: '', // 자격취득일자 초기값 추가
+    CARR_MCNT: '0', // 경력개월수 초기값 추가
+    FST_IN_DT: '', // 최초투입일자 초기값 추가
+    ENTR_BEF_CARR: '0', // 입사전경력 초기값 추가
+    ENTR_BEF_CTQL_CARR: '0', // 입사전자격경력 초기값 추가
+    ADBG_CARR_MCNT: '0', // 학력경력개월수 초기값 추가
+    CTQL_CARR_MCNT: '0', // 자격경력개월수 초기값 추가
+    CARR_CALC_STND_DT: '', // 경력계산기준일 초기값 추가
+    LAST_ADBG_DIV: '', // 최종학력 초기값 추가
+    LAST_TCN_GRD: '', // 기술등급 초기값 추가
+    RMK: '', // 비고 초기값 추가
+    HDOFC_YEAR: '0', // 재직년수(년) 초기값 추가
+    HDOFC_MONTH: '0', // 재직년수(월) 초기값 추가
+    ENTR_AFT_ADBG_CARR: '0', // 입사후학력경력 초기값 추가
+    ENTR_AFT_CTQL_CARR: '0' // 입사후자격경력 초기값 추가
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [newFlag, setNewFlag] = useState<boolean>(false); // AS-IS MXML의 newFlag와 동일
+  const [newFlag, setNewFlag] = useState<boolean>(false); // AS-IS MXML의 newFlag와 동일 - 초기값을 false로 설정
   const [showCarrCalcPopup, setShowCarrCalcPopup] = useState<boolean>(false); // 경력계산 팝업 표시 여부
   const [showGradeHistoryPopup, setShowGradeHistoryPopup] = useState<boolean>(false); // 등급이력조회 팝업 표시 여부
 
@@ -197,8 +236,8 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
       await handleSearch();
     },
     initialize: () => {
-      // PSM1020M00 초기화 - 신규 모드로 설정
-      setNewFlag(true);
+      // PSM1020M00 초기화
+      setNewFlag(false);
       setEmployeeData({
         EMP_NO: '',
         OWN_OUTS_DIV_CD: '1',
@@ -751,31 +790,81 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
     if (checkType === "Registe" || checkType === "CarrCalc") {
       if (!employeeData?.OWN_OUTS_DIV_CD) {
         showToast("자사 또는 외주 구분을 선택해 주십시요.", "warning");
+        // 자사/외주 구분 select에 포커스
+        const ownOutsDivSelect = document.querySelector('select[value="' + (employeeData?.OWN_OUTS_DIV_CD || '') + '"]') as HTMLSelectElement;
+        if (ownOutsDivSelect) ownOutsDivSelect.focus();
         return false;
       }
 
       if (employeeData.OWN_OUTS_DIV_CD === "1" && !employeeData.ENTR_DT) {
         showToast("입사일자를 입력해 주십시요", "warning");
+        // 입사일자 input에 포커스
+        setTimeout(() => {
+          const entrDtInput = document.querySelector('input[data-field="entrDt"]') as HTMLInputElement;
+          if (entrDtInput) {
+            entrDtInput.focus();
+          }
+        }, 100);
+        return false;
+      }
+
+      if (!employeeData?.HQ_DIV_CD || employeeData.HQ_DIV_CD.trim() === '') {
+        showToast("본부를 선택해 주십시요.", "warning");
+        // 본부 select에 포커스
+        setTimeout(() => {
+          const hqDivSelect = document.querySelector('select[data-field="hqDiv"]') as HTMLSelectElement;
+          if (hqDivSelect) {
+            hqDivSelect.focus();
+          }
+        }, 100);
         return false;
       }
       
       if (!employeeData?.LAST_ADBG_DIV || employeeData.LAST_ADBG_DIV === '') {
         showToast("최종학력을 선택해 주십시요", "warning");
+        // 최종학력 select에 포커스
+        setTimeout(() => {
+          const lastAdbgDivSelect = document.querySelector('select[data-field="lastAdbgDiv"]') as HTMLSelectElement;
+          if (lastAdbgDivSelect) {
+            lastAdbgDivSelect.focus();
+          }
+        }, 100);
         return false;
       }
       
       if (!employeeData?.FST_IN_DT) {
         showToast("최초투입일자를 입력해 주십시요", "warning");
+        // 최초투입일자 input에 포커스
+        setTimeout(() => {
+          const fstInDtInput = document.querySelector('input[data-field="fstInDt"]') as HTMLInputElement;
+          if (fstInDtInput) {
+            fstInDtInput.focus();
+          }
+        }, 100);
         return false;
       } 
         
       if (employeeData.OWN_OUTS_DIV_CD === "2" && !employeeData.LAST_END_DT) {
         showToast("최종철수일자를 입력해 주십시요", "warning");
+        // 최종철수일자 input에 포커스
+        setTimeout(() => {
+          const lastEndDtInput = document.querySelector('input[data-field="lastEndDt"]') as HTMLInputElement;
+          if (lastEndDtInput) {
+            lastEndDtInput.focus();
+          }
+        }, 100);
         return false;
       } 
 
       if (employeeData?.CTQL_CD && employeeData?.CTQL_CD !== "null" && !employeeData?.CTQL_PUR_DT) {
         showToast("자격취득일자를 입력해 주십시요", "warning");
+        // 자격취득일자 input에 포커스
+        setTimeout(() => {
+          const ctqlPurDtInput = document.querySelector('input[data-field="ctqlPurDt"]') as HTMLInputElement;
+          if (ctqlPurDtInput) {
+            ctqlPurDtInput.focus();
+          }
+        }, 100);
         return false;
       }
     }
@@ -783,27 +872,64 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
     if (checkType === "Registe") {
       if (!employeeData?.EMP_NO && employeeData?.OWN_OUTS_DIV_CD === "1") {
         showToast("사원번호를 입력해 주십시요", "warning");
+        // 사원번호 input에 포커스
+        setTimeout(() => {
+          const empNoInput = document.querySelector('input[data-field="empNo"]') as HTMLInputElement;
+          if (empNoInput) {
+            empNoInput.focus();
+            empNoInput.select();
+          }
+        }, 100);
         return false;
       }
 
       if (!employeeData?.EMP_NM) {
         showToast("성명을 입력해 주십시요", "warning");
+        // 성명 input에 포커스 - data-field 속성으로 정확히 찾기
+        setTimeout(() => {
+          const empNmInput = document.querySelector('input[data-field="empNm"]') as HTMLInputElement;
+          if (empNmInput) {
+            empNmInput.focus();
+            empNmInput.select(); // 텍스트 선택도 추가
+          }
+        }, 100);
         return false;
       }
 
       if (employeeData?.RETIR_DT && employeeData?.WKG_ST_DIV_CD !== "3") {
         showToast("근무상태를 퇴사로 선택해 주십시요", "warning");
+        // 근무상태 select에 포커스
+        setTimeout(() => {
+          const wkgStDivSelect = document.querySelector('select[data-field="wkgStDiv"]') as HTMLSelectElement;
+          if (wkgStDivSelect) {
+            wkgStDivSelect.focus();
+          }
+        }, 100);
         return false;
       }
 
       // 근무상태가 재직일 경우에만 체크
       if (Number(employeeData?.CARR_MCNT || 0) === 0 && employeeData?.WKG_ST_DIV_CD === "1") {
         showToast("경력개월수를 계산해 주십시요.", "warning");
+        // 경력계산 버튼에 포커스
+        setTimeout(() => {
+          const carrCalcBtn = document.querySelector('button[data-field="carrCalcBtn"]') as HTMLButtonElement;
+          if (carrCalcBtn) {
+            carrCalcBtn.focus();
+          }
+        }, 100);
         return false;
       }
       
       if (!employeeData?.BIR_YR_MN_DT) {
         showToast("생년월일을 입력해 주십시요.", "warning");
+        // 생년월일 input에 포커스
+        setTimeout(() => {
+          const birYrMnDtInput = document.querySelector('input[data-field="birYrMnDt"]') as HTMLInputElement;
+          if (birYrMnDtInput) {
+            birYrMnDtInput.focus();
+          }
+        }, 100);
         return false;
       }
     }
@@ -939,9 +1065,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
         entrAftAdbgCarr: String(employeeData.ENTR_AFT_ADBG_CARR || ''),
         entrAftCtqlCarr: String(employeeData.ENTR_AFT_CTQL_CARR || '')
       };
-      
-
-      
+            
       // AS-IS MXML과 동일한 프로시저 호출 방식
       const response = await fetch('/api/psm/employee/update', {
         method: 'POST',
@@ -1291,10 +1415,13 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
   const handleEmployeeChange = (field: string, value: string) => {
     if (!employeeData) return;
 
-    setEmployeeData(prev => ({
-      ...prev!,
-      [field]: value
-    }));
+    setEmployeeData(prev => {
+      const newData = {
+        ...prev!,
+        [field]: value
+      };
+      return newData;
+    });
 
     // 경력구분 변경 시 기술등급 자동 계산 (AS-IS MXML의 onChangeCarrDiv 로직)
     if (field === 'CARR_DIV_CD') {
@@ -1537,9 +1664,16 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                 <input 
                   type="text" 
                   className="input-base input-default w-full min-w-[150px]" 
+                  data-field="empNo"
                   value={employeeData?.EMP_NO || ''} 
-                  onChange={(e) => handleEmployeeChange('EMP_NO', e.target.value)}
-                  maxLength={10}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // 사원번호: 10바이트 제한 (숫자/영문 위주)
+                    const byteLength = new Blob([value]).size;
+                    if (byteLength <= 10) {
+                      handleEmployeeChange('EMP_NO', value);
+                    }
+                  }}
                   disabled={(() => {
                     // AS-IS MXML과 동일한 로직: 자사/외주 구분에 따른 사원번호 활성화/비활성화
                     if (newFlag) {
@@ -1557,19 +1691,37 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
               <td className="search-td">
                 <select 
                   className="combo-base min-w-[150px] w-full"
+                  data-field="hqDiv"
                   value={employeeData?.HQ_DIV_CD || ''}
                   onChange={(e) => {
-                    handleEmployeeChange('HQ_DIV_CD', e.target.value);
+                    const selectedValue = e.target.value;
+                    
+                    // 직접 employeeData 업데이트
+                    setEmployeeData(prev => {
+                      if (!prev) return prev;
+                      const newData = {
+                        ...prev,
+                        HQ_DIV_CD: selectedValue
+                      };
+                      return newData;
+                    });
+                    
                     // 본부 변경 시 부서 목록 업데이트
-                    if (e.target.value) {
-                      handleHqDivChange(e.target.value);
+                    if (selectedValue) {
+                      handleHqDivChange(selectedValue);
                       // 부서 코드 초기화
-                      handleEmployeeChange('DEPT_DIV_CD', '');
+                      setEmployeeData(prev => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          DEPT_DIV_CD: ''
+                        };
+                      });
                     }
                   }}
                   disabled={newFlag ? false : !fieldEnableState?.hqDiv}
                 >
-                  <option key="hq-select-default" value="">선택하세요</option>
+                  {<option key="hq-select-default" value="">선택하세요</option>}
                   {commonCodes.hqDiv.map(code => (
                     <option key={code.data} value={code.data}>{code.label}</option>
                   ))}
@@ -1614,6 +1766,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
               <td className="search-td">
                 <select 
                   className="combo-base min-w-[150px] w-full"
+                  data-field="wkgStDiv"
                   value={employeeData?.WKG_ST_DIV_CD || '1'}
                   onChange={(e) => handleEmployeeChange('WKG_ST_DIV_CD', e.target.value)}
                 >
@@ -1628,6 +1781,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                 <input 
                   type="date" 
                   className="input-base .input-calender min-w-[150px]" 
+                  data-field="entrDt"
                   value={employeeData?.ENTR_DT ? employeeData.ENTR_DT.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : ''}
                   onChange={(e) => handleEmployeeChange('ENTR_DT', e.target.value.replace(/-/g, ''))}
                 />
@@ -1702,15 +1856,23 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                     <input 
                       type="text" 
                       className="input-base input-default w-full" 
+                      data-field="empNm"
                       value={employeeData?.EMP_NM || ''}
-                      onChange={(e) => handleEmployeeChange('EMP_NM', e.target.value)}
-                      maxLength={20}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 바이트 길이 계산 (한글 1글자 = 3바이트)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 20) {
+                          handleEmployeeChange('EMP_NM', value);
+                        }
+                      }}
                     />
                   </td>
                   <th className="clear-th">최종학력</th>
                   <td className="clear-td">
                     <select 
                       className="combo-base w-full"
+                      data-field="lastAdbgDiv"
                       value={employeeData?.LAST_ADBG_DIV || ''}
                       onChange={(e) => handleEmployeeChange('LAST_ADBG_DIV', e.target.value)}
                     >
@@ -1728,8 +1890,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       type="text" 
                       className="input-base input-default w-full" 
                       value={employeeData?.EMP_ENG_NM || ''}
-                      onChange={(e) => handleEmployeeChange('EMP_ENG_NM', e.target.value)}
-                      maxLength={50}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 영문 성명: 50바이트 제한 (영문 위주)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 50) {
+                          handleEmployeeChange('EMP_ENG_NM', value);
+                        }
+                      }}
                     />
                   </td>
                   <th className="clear-th">학교</th>
@@ -1738,8 +1906,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       type="text" 
                       className="input-base input-default w-full" 
                       value={employeeData?.LAST_SCHL || ''}
-                      onChange={(e) => handleEmployeeChange('LAST_SCHL', e.target.value)}
-                      maxLength={50}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 학교명: 50바이트 제한 (한글 포함)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 50) {
+                          handleEmployeeChange('LAST_SCHL', value);
+                        }
+                      }}
                     />
                   </td>
                 </tr>
@@ -1762,8 +1936,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       type="text" 
                       className="input-base input-default w-full" 
                       value={employeeData?.MAJR || ''}
-                      onChange={(e) => handleEmployeeChange('MAJR', e.target.value)}
-                      maxLength={50}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 전공명: 50바이트 제한 (한글 포함)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 50) {
+                          handleEmployeeChange('MAJR', value);
+                        }
+                      }}
                     />
                   </td>
                 </tr>
@@ -1797,8 +1977,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       type="text" 
                       className="input-base input-default w-full" 
                       value={employeeData?.RES_REG_NO || ''}
-                      onChange={(e) => handleEmployeeChange('RES_REG_NO', e.target.value)}
-                      maxLength={13}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 주민등록번호: 13바이트 제한 (숫자 + 하이픈)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 13) {
+                          handleEmployeeChange('RES_REG_NO', value);
+                        }
+                      }}
                     />
                   </td>
                   <th className="clear-th">생년월일</th>
@@ -1806,6 +1992,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                     <input 
                       type="date" 
                       className="input-base .input-calender" 
+                      data-field="birYrMnDt"
                       value={employeeData?.BIR_YR_MN_DT ? employeeData.BIR_YR_MN_DT.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : ''}
                       onChange={(e) => handleEmployeeChange('BIR_YR_MN_DT', e.target.value.replace(/-/g, ''))}
                     />
@@ -1818,8 +2005,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       type="text" 
                       className="input-base input-default w-full" 
                       value={employeeData?.MOB_PHN_NO || ''}
-                      onChange={(e) => handleEmployeeChange('MOB_PHN_NO', e.target.value)}
-                      maxLength={20}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 휴대전화: 20바이트 제한 (숫자 + 하이픈)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 20) {
+                          handleEmployeeChange('MOB_PHN_NO', value);
+                        }
+                      }}
                     />
                   </td>
                   <th className="clear-th">자택전화</th>
@@ -1828,8 +2021,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       type="text" 
                       className="input-base input-default w-full" 
                       value={employeeData?.HOME_TEL || ''}
-                      onChange={(e) => handleEmployeeChange('HOME_TEL', e.target.value)}
-                      maxLength={20}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 자택전화: 20바이트 제한 (숫자 + 하이픈)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 20) {
+                          handleEmployeeChange('HOME_TEL', value);
+                        }
+                      }}
                     />
                   </td>
                 </tr>
@@ -1840,8 +2039,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       type="text" 
                       className="input-base input-default w-full" 
                       value={employeeData?.EMAIL_ADDR || ''}
-                      onChange={(e) => handleEmployeeChange('EMAIL_ADDR', e.target.value)}
-                      maxLength={100}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // E-Mail: 100바이트 제한 (영문 + 특수문자)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 100) {
+                          handleEmployeeChange('EMAIL_ADDR', value);
+                        }
+                      }}
                     />
                   </td>
                 </tr>
@@ -1854,8 +2059,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                           className="input-base input-default !w-[70px]" 
                           placeholder="우편번호"
                           value={employeeData?.HOME_ZIP_NO || ''}
-                          onChange={(e) => handleEmployeeChange('HOME_ZIP_NO', e.target.value)}
-                          maxLength={6}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // 우편번호: 6바이트 제한 (숫자)
+                            const byteLength = new Blob([value]).size;
+                            if (byteLength <= 6) {
+                              handleEmployeeChange('HOME_ZIP_NO', value);
+                            }
+                          }}
                           readOnly
                         />
                         <button 
@@ -1868,15 +2079,27 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                           className="input-base input-default w-[40%]" 
                           placeholder="기본주소"
                           value={employeeData?.HOME_ADDR || ''}
-                          onChange={(e) => handleEmployeeChange('HOME_ADDR', e.target.value)}
-                          maxLength={200}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // 기본주소: 200바이트 제한 (한글 포함)
+                            const byteLength = new Blob([value]).size;
+                            if (byteLength <= 200) {
+                              handleEmployeeChange('HOME_ADDR', value);
+                            }
+                          }}
                         />
                         <input 
                           className="input-base input-default w-[40%]" 
                           placeholder="상세주소"
                           value={employeeData?.HOME_DET_ADDR || ''}
-                          onChange={(e) => handleEmployeeChange('HOME_DET_ADDR', e.target.value)}
-                          maxLength={100}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // 상세주소: 100바이트 제한 (한글 포함)
+                            const byteLength = new Blob([value]).size;
+                            if (byteLength <= 100) {
+                              handleEmployeeChange('HOME_DET_ADDR', value);
+                            }
+                          }}
                         />
                       </div>
                     </td>
@@ -1941,6 +2164,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                     <input 
                       type="date" 
                       className="input-base .input-calender" 
+                      data-field="ctqlPurDt"
                       value={employeeData?.CTQL_PUR_DT ? employeeData.CTQL_PUR_DT.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : ''}
                       onChange={(e) => handleEmployeeChange('CTQL_PUR_DT', e.target.value.replace(/-/g, ''))}
                     />
@@ -1953,6 +2177,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                     <input 
                       type="date" 
                       className="input-base .input-calender" 
+                      data-field="fstInDt"
                       value={employeeData?.FST_IN_DT ? employeeData.FST_IN_DT.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : ''}
                       onChange={(e) => handleEmployeeChange('FST_IN_DT', e.target.value.replace(/-/g, ''))}
                     />
@@ -1962,6 +2187,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                     <input 
                       type="date" 
                       className="input-base .input-calender" 
+                      data-field="lastEndDt"
                       value={employeeData?.LAST_END_DT ? employeeData.LAST_END_DT.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : ''}
                       onChange={(e) => handleEmployeeChange('LAST_END_DT', e.target.value.replace(/-/g, ''))}
                     />
@@ -1977,6 +2203,28 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                         className="input-base input-default !w-[50px] text-right" 
                         placeholder="00" 
                         maxLength={3}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 입사 전 경력 년수: 3바이트 제한 (숫자)
+                          const byteLength = new Blob([value]).size;
+                          if (byteLength <= 3) {
+                            const years = Number(value) || 0;
+                            const carrDivCd = employeeData?.CARR_DIV_CD || '1';
+                            // AS-IS와 동일한 계산 로직
+                            const currentTotalMonths = carrDivCd === '1' 
+                              ? Number(employeeData?.ENTR_BEF_CARR || 0)
+                              : Number(employeeData?.ENTR_BEF_CTQL_CARR || 0);
+                            const currentYears = Math.floor(currentTotalMonths / 12);
+                            const currentMonths = currentTotalMonths - (currentYears * 12);
+                            const totalMonths = years * 12 + currentMonths;
+                            
+                            if (carrDivCd === '1') {
+                              handleEmployeeChange('ENTR_BEF_CARR', String(totalMonths));
+                            } else {
+                              handleEmployeeChange('ENTR_BEF_CTQL_CARR', String(totalMonths));
+                            }
+                          }
+                        }}
                         value={(() => {
                           // AS-IS MXML 로직과 동일: 경력구분에 따른 분기
                           const carrDivCd = employeeData?.CARR_DIV_CD || '1';
@@ -1986,23 +2234,6 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                           // AS-IS와 동일하게 Math.floor 사용
                           return befCarrMonths > 0 ? Math.floor(befCarrMonths / 12) : '';
                         })()}
-                        onChange={(e) => {
-                          const years = Number(e.target.value) || 0;
-                          const carrDivCd = employeeData?.CARR_DIV_CD || '1';
-                          // AS-IS와 동일한 계산 로직
-                          const currentTotalMonths = carrDivCd === '1' 
-                            ? Number(employeeData?.ENTR_BEF_CARR || 0)
-                            : Number(employeeData?.ENTR_BEF_CTQL_CARR || 0);
-                          const currentYears = Math.floor(currentTotalMonths / 12);
-                          const currentMonths = currentTotalMonths - (currentYears * 12);
-                          const totalMonths = years * 12 + currentMonths;
-                          
-                          if (carrDivCd === '1') {
-                            handleEmployeeChange('ENTR_BEF_CARR', String(totalMonths));
-                          } else {
-                            handleEmployeeChange('ENTR_BEF_CTQL_CARR', String(totalMonths));
-                          }
-                        }}
                       />
                       <span className="m-0">년</span>
                       <input 
@@ -2010,6 +2241,27 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                         className="input-base input-default !w-[50px] text-right" 
                         placeholder="00" 
                         maxLength={2}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 입사 전 경력 월수: 2바이트 제한 (숫자)
+                          const byteLength = new Blob([value]).size;
+                          if (byteLength <= 2) {
+                            const months = Number(value) || 0;
+                            const carrDivCd = employeeData?.CARR_DIV_CD || '1';
+                            // AS-IS와 동일한 계산 로직
+                            const currentTotalMonths = carrDivCd === '1' 
+                              ? Number(employeeData?.ENTR_BEF_CARR || 0)
+                              : Number(employeeData?.ENTR_BEF_CTQL_CARR || 0);
+                            const currentYears = Math.floor(currentTotalMonths / 12);
+                            const totalMonths = currentYears * 12 + months;
+                            
+                            if (carrDivCd === '1') {
+                              handleEmployeeChange('ENTR_BEF_CARR', String(totalMonths));
+                            } else {
+                              handleEmployeeChange('ENTR_BEF_CTQL_CARR', String(totalMonths));
+                            }
+                          }
+                        }}
                         value={(() => {
                           // AS-IS MXML 로직과 동일: 경력구분에 따른 분기
                           const carrDivCd = employeeData?.CARR_DIV_CD || '1';
@@ -2020,22 +2272,6 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                           const befCarrYears = Math.floor(befCarrMonths / 12);
                           return befCarrMonths > 0 ? befCarrMonths - (befCarrYears * 12) : '';
                         })()}
-                        onChange={(e) => {
-                          const months = Number(e.target.value) || 0;
-                          const carrDivCd = employeeData?.CARR_DIV_CD || '1';
-                          // AS-IS와 동일한 계산 로직
-                          const currentTotalMonths = carrDivCd === '1' 
-                            ? Number(employeeData?.ENTR_BEF_CARR || 0)
-                            : Number(employeeData?.ENTR_BEF_CTQL_CARR || 0);
-                          const currentYears = Math.floor(currentTotalMonths / 12);
-                          const totalMonths = currentYears * 12 + months;
-                          
-                          if (carrDivCd === '1') {
-                            handleEmployeeChange('ENTR_BEF_CARR', String(totalMonths));
-                          } else {
-                            handleEmployeeChange('ENTR_BEF_CTQL_CARR', String(totalMonths));
-                          }
-                        }}
                       />
                       <span className="m-0">월</span>
                     </div>
@@ -2098,6 +2334,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                       </select>
                       <button 
                         className="btn-base btn-act w-full"
+                        data-field="carrCalcBtn"
                         onClick={() => {
                           // AS-IS MXML의 onClickBtnCarrCalc 로직과 동일
                           if (!validateInput("CarrCalc")) {
@@ -2151,8 +2388,14 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                     <textarea 
                       className="textarea_def" 
                       value={employeeData?.RMK || ''}
-                      onChange={(e) => handleEmployeeChange('RMK', e.target.value)}
-                      maxLength={500}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // 비고: 500바이트 제한 (한글 포함)
+                        const byteLength = new Blob([value]).size;
+                        if (byteLength <= 500) {
+                          handleEmployeeChange('RMK', value);
+                        }
+                      }}
                     />
                   </td>
                 </tr> 
@@ -2181,7 +2424,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                 <button 
                   className="btn-base btn-act"
                   onClick={handleSave}
-                  disabled={isLoading}
+                  disabled={isLoading || (!newFlag && (!employeeData?.EMP_NO || employeeData.EMP_NO.trim() === ''))}
                 >
                   저장
                 </button>

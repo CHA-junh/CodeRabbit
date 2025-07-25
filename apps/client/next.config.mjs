@@ -2,6 +2,24 @@
 const nextConfig = {
 	// 폰트 최적화 완전 비활성화 (OTS 파싱 에러 방지)
 	optimizeFonts: false,
+
+	// RSC Payload 에러 방지를 위한 설정
+	experimental: {
+		// RSC 스트리밍 비활성화 (에러 방지)
+		rsc: {
+			unstable_noStore: true,
+		},
+		// 프리페치 비활성화
+		prefetch: false,
+		// Fast Refresh 완전 비활성화 (경고 해결)
+		fastRefresh: false,
+		// 추가 Fast Refresh 비활성화 옵션
+		unstable_runtimeJS: false,
+		// 개발 모드에서 Fast Refresh 완전 비활성화
+		devIndicators: {
+			buildActivity: false,
+		},
+	},
 	experimental: {
 		optimizePackageImports: [],
 		allowedDevOrigins: [

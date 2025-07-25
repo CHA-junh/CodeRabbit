@@ -149,7 +149,9 @@ export default function DeptNumberSearchPopup() {
 				},
 				body: JSON.stringify(requestBody),
 			})
-			
+
+			console.log('fetch response:', res)
+			console.log('res.ok:', res.ok, 'res.status:', res.status, 'res.statusText:', res.statusText)
 			if (!res.ok) {
 				throw new Error(`HTTP error! status: ${res.status}`)
 			}
@@ -160,6 +162,7 @@ export default function DeptNumberSearchPopup() {
 		} catch (err: any) {
 			const errorMessage = err.message || '오류 발생'
 			setError(errorMessage)
+			console.log('showToast called', errorMessage)
 			showToast(errorMessage, 'error')
 		} finally {
 			setLoading(false)

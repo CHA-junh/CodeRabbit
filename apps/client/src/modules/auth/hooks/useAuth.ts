@@ -58,14 +58,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// 세션 확인
 	const checkSession = async () => {
 		try {
-			console.log('🔍 세션 확인 전 쿠키 상태:', document.cookie)
 			const data = await AuthService.checkSession()
-			console.log('🔍 세션 확인 응답 상태:', data)
 
 			if (data.success && data.user) {
 				// 서버 응답을 클라이언트 UserInfo로 변환
 				const plainUser = JSON.parse(JSON.stringify(data.user))
-				console.log('🟠 plainUser:', plainUser)
 
 				const userInfo: User = {
 					userId: plainUser.userId ?? '',
@@ -88,10 +85,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					dutyDivCd: plainUser.dutyDivCd ?? '',
 					authCd: plainUser.authCd ?? '',
 				}
-
-				console.log('🟢 변환 후 클라이언트 user:', userInfo)
-				console.log('user.menuList:', userInfo.menuList)
-				console.log('user.programList:', userInfo.programList)
 
 				setUser(userInfo)
 			} else {
@@ -149,22 +142,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const logout = async () => {
 		try {
 			console.log('🚪 로그아웃 시작')
-			const result = await AuthService.logout()
-			console.log('🚪 로그아웃 결과:', result)
 
-			// 클라이언트 상태 초기화
+			// 즉시 클라이언트 상태 초기화
 			setUser(null)
 
-			// 로그인 페이지로 리다이렉션
+			// 서버 로그아웃 API 호출 (오류 무시)
+			AuthService.logout().catch(() => {
+				// 오류 무시 - 페이지 이동으로 인한 정상적인 실패
+			})
+
+			// 브라우저 캐시 완전 삭제
+			if (typeof window !== 'undefined' && 'caches' in window) {
+				try {
+					const cacheNames = await caches.keys()
+					await Promise.all(cacheNames.map((name) => caches.delete(name)))
+					console.log('🗑️ 브라우저 캐시 삭제 완료')
+				} catch (cacheError) {
+					console.log('캐시 삭제 실패 (무시됨):', cacheError)
+				}
+			}
+
+			// 강제 페이지 이동 (replace로 히스토리 덮어쓰기)
 			if (typeof window !== 'undefined') {
-				window.location.href = '/signin'
+				console.log('🔄 로그인 페이지로 이동 중...')
+				// 히스토리 완전 초기화
+				window.history.pushState(null, '', '/signin')
+				window.location.replace('/signin')
 			}
 		} catch (error) {
 			console.error('로그아웃 오류:', error)
 			// 에러가 발생해도 클라이언트 상태는 초기화
 			setUser(null)
 			if (typeof window !== 'undefined') {
-				window.location.href = '/signin'
+				window.location.replace('/signin')
 			}
 		}
 	}

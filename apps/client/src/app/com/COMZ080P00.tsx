@@ -1,23 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
-
-/**
- * 직원 검색 팝업 컴포넌트 (확장 버전)
- * ASIS: COM_02_0410.mxml → TOBE: COMZ080P00.tsx
- * 
- * 주요 기능:
- * 1. 직원 기본정보 조회 (empBscInfSelRequest)
- * 2. 직원명/사원번호 검색 (onSearchClick)
- * 3. 자사/외주/자사+외주 구분 검색 (rdOwnOutDiv)
- * 4. 퇴사자포함 검색 (chkRetirYn)
- * 5. 직원 선택(더블클릭) (onDoubleClick)
- * 6. 팝업 닫기 (PopUpManager.removePopUp)
- * 7. 행 스타일링 (grdEmpListStyleFunc)
- * 8. 키보드 이벤트 처리 (Enter 키 검색)
- */
 
 /**
  * 직원 정보 인터페이스 (ASIS 기반)
@@ -51,82 +36,54 @@ interface EmployeeInfo {
 }
 
 /**
- * 컴포넌트 Props 인터페이스
- * ASIS: choiceEmpInit() 함수의 파라미터와 동일한 역할
+ * 더블클릭시 반환할 최소 정보 타입
+ * ASIS: EvtDblClick 이벤트의 txtData 구조와 동일
+ * 형식: "사번^자사외주구분^사원명^소속명^외주배정유무^외주배정확정일자^외주배정프로젝트^투입인력직책구분코드^현재최종기술등급"
  */
-interface Props {
-  defaultEmpNm?: string                    // 기본 직원명 (ASIS: txtEmpNm.text 초기값)
-  defaultOwnOutDiv?: string                // 기본 자사/외주 구분 (ASIS: rdOwnOutDiv.selectedValue)
-  defaultEmpList?: EmployeeInfo[]          // 기본 직원 목록 (ASIS: grdEmpList.dataProvider)
-  onSelect: (empData: {                    // 선택 콜백 (ASIS: EvtDblClick 이벤트의 txtData 구조)
-    empNo: string                          // [0]: 사번 (ASIS: grdEmpList.selectedItem.EMP_NO)
-    ownOutsDiv: string                     // [1]: 자사외주구분 (ASIS: grdEmpList.selectedItem.OWN_OUTS_DIV)
-    empNm: string                          // [2]: 사원명 (ASIS: grdEmpList.selectedItem.EMP_NM)
-    csfCoCd: string                        // [3]: 소속명 (ASIS: grdEmpList.selectedItem.CSF_CO_CD)
-    outsFixYn: string                      // [4]: 외주배정유무 (ASIS: grdEmpList.selectedItem.OUTS_FIX_YN)
-    inFixDt: string                        // [5]: 외주배정확정일자 (ASIS: grdEmpList.selectedItem.IN_FIX_DT)
-    inFixPrjt: string                      // [6]: 외주배정프로젝트 (ASIS: grdEmpList.selectedItem.IN_FIX_PRJT)
-    dutyDivCd: string                      // [7]: 투입인력 직책구분코드 (ASIS: grdEmpList.selectedItem.DUTY_DIV_CD)
-    tcnGrd: string                         // [8]: 현재 최종 기술등급 (ASIS: grdEmpList.selectedItem.TCN_GRD)
-  }) => void
-  onClose: () => void                      // 모달 닫기 콜백 (ASIS: PopUpManager.removePopUp())
+interface EmpSelectInfo {
+  empNo: string;                    // 사번 (ASIS: EMP_NO)
+  ownOutsDiv: string;               // 자사외주구분 (ASIS: OWN_OUTS_DIV)
+  empNm: string;                    // 사원명 (ASIS: EMP_NM)
+  csfCoCd: string;                  // 소속명 (ASIS: CSF_CO_CD)
+  outsFixYn: string;                // 외주배정유무 (ASIS: OUTS_FIX_YN)
+  inFixDt: string;                  // 외주배정확정일자 (ASIS: IN_FIX_DT)
+  inFixPrjt: string;                // 외주배정프로젝트 (ASIS: IN_FIX_PRJT)
+  dutyDivCd: string;                // 투입인력 직책구분코드 (ASIS: DUTY_DIV_CD)
+  tcnGrd: string;                   // 현재 최종 기술등급 (ASIS: TCN_GRD)
 }
 
 /**
- * 컴포넌트 Ref 인터페이스
- * ASIS: public function choiceEmpInit(strEmpNm:String, OwnOutDiv:String, arrEmpList:ArrayCollection):void
+ * postMessage로 받을 데이터 타입
  */
-export interface EmployeeSearchModalRef {
-  choiceEmpInit: (strEmpNm: string, ownOutDiv: string, empList: EmployeeInfo[]) => void
+interface PostMessageData {
+  type: 'CHOICE_EMP_INIT';
+  strEmpNm: string;
+  ownOutDiv: string;
+  empList: EmployeeInfo[];
 }
 
 /**
- * 샘플 데이터 (개발/테스트용)
+ * 직원 검색 팝업 컴포넌트 (확장 버전)
+ * ASIS: COM_02_0410.mxml → TOBE: COMZ080P00.tsx
+ * 
+ * 주요 기능:
+ * 1. 부모창에서 직원 목록 데이터 수신 (postMessage)
+ * 2. 직원명 검색 (onSearchClick) - 수동 조회
+ * 3. 자사/외주/자사+외주 구분 검색 (rdOwnOutDiv)
+ * 4. 퇴사자포함 검색 (chkRetirYn)
+ * 5. 직원 선택(더블클릭) (onDoubleClick)
+ * 6. 팝업 닫기 (PopUpManager.removePopUp)
+ * 7. 행 스타일링 (grdEmpListStyleFunc)
+ * 8. 키보드 이벤트 처리 (Enter 키 검색, Escape 키 닫기)
+ * 9. postMessage로 부모창과 통신
  */
-/*
-const SAMPLE_EMPLOYEE_DATA: EmployeeInfo[] = [
-  {
-    LIST_NO: "1",
-    OWN_OUTS_NM: "자사",
-    EMP_NM: "성부뜰",
-    EMP_NO: "EMP001",
-    DUTY_CD_NM: "부장",
-    TCN_GRD_NM: "특급",
-    PARTY_NM: "SI사업본부",
-    ENTR_DT: "2024/07/01",
-    EXEC_IN_STRT_DT: "2024/08/01",
-    EXEC_IN_END_DT: "2025/01/01",
-    WKG_ST_DIV_NM: "재직",
-    EXEC_ING_BSN_NM: "AICC 구축",
-    HQ_DIV_CD: "HQ001",
-    DEPT_DIV_CD: "DEPT001",
-    CSF_CO_CD: "CSF001",
-    WKG_ST_DIV: "1",
-    EXEC_ING_YN: "Y",
-    OWN_OUTS_DIV: "1",
-    OUTS_FIX_YN: "N",
-    IN_FIX_DT: "",
-    IN_FIX_PRJT: "",
-    DUTY_CD: "DUTY001",
-    DUTY_DIV_CD: "DUTY_DIV001",
-    TCN_GRD: "TCN001"
-  }
-];
-*/
-
-const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({ 
-  defaultEmpNm = '', 
-  defaultOwnOutDiv = '1',
-  defaultEmpList = [],
-  onSelect, 
-  onClose 
-}, ref) => {
+const COMZ080P00 = () => {
   /**
    * 직원 목록 상태 관리
    * ASIS: grdEmpList.dataProvider (ArrayCollection)
    * TOBE: useState로 상태 관리
    */
-  const [employees, setEmployees] = useState<EmployeeInfo[]>(defaultEmpList)
+  const [employees, setEmployees] = useState<EmployeeInfo[]>([])
   
   /**
    * 로딩 상태 관리
@@ -139,14 +96,14 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
    * ASIS: txtEmpNm.text
    * TOBE: useState로 상태 관리
    */
-  const [empNm, setEmpNm] = useState(defaultEmpNm)
+  const [empNm, setEmpNm] = useState('')
   
   /**
    * 자사/외주 구분 상태 관리
    * ASIS: rdOwnOutDiv.selectedValue
    * TOBE: useState로 상태 관리
    */
-  const [ownOutDiv, setOwnOutDiv] = useState(defaultOwnOutDiv)
+  const [ownOutDiv, setOwnOutDiv] = useState('1')
   
   /**
    * 퇴사자포함 상태 관리
@@ -155,7 +112,46 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
    */
   const [retirYn, setRetirYn] = useState(true)
 
+  /**
+   * 입력 필드 참조 (ASIS: txtEmpNm)
+   */
+  const inputRef = useRef<HTMLInputElement>(null)
+
   const { showToast } = useToast()
+
+  /**
+   * 메시지 수신 상태 관리
+   */
+  const [messageReceived, setMessageReceived] = useState(false)
+
+  /**
+   * postMessage 이벤트 핸들러
+   * 부모 창에서 전송된 choiceEmpInit 데이터를 처리
+   */
+  const handlePostMessage = (event: MessageEvent) => {
+    const data = event.data;
+    if (data?.type === 'CHOICE_EMP_INIT' && data?.data) {
+      choiceEmpInit(data.data.empNm, data.data.ownOutDiv, data.data.empList);
+      setMessageReceived(true);
+    }
+  }
+
+  /**
+   * init_Complete 함수
+   * ASIS: init_Complete() 함수와 동일한 역할
+   * 모달이 처음 로드될 때 초기화 작업을 수행
+   */
+  const init_Complete = () => {
+    setEmpNm('')
+    setEmployees([])
+    setLoading(false)
+    setOwnOutDiv('1')
+    setRetirYn(true)
+    // 검색창에 포커스 (ASIS: txtEmpNm.focus())
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 0)
+  }
 
   /**
    * 직원 검색 함수 (API 호출)
@@ -167,7 +163,7 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
   const handleSearch = async () => {
     // ASIS: validation check
     if (!empNm.trim()) {
-      showToast('사원명을 입력해주세요.', 'warning')
+      showToast('직원명을 입력해주세요.', 'warning')
       return
     }
 
@@ -217,7 +213,7 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
    */
   const handleDoubleClick = (employee: EmployeeInfo) => {
     // ASIS: evtDblClck.txtData 구조와 동일
-    onSelect({
+    const selectInfo: EmpSelectInfo = {
       empNo: employee.EMP_NO,                    // [0]: 사번 (ASIS: grdEmpList.selectedItem.EMP_NO)
       ownOutsDiv: employee.OWN_OUTS_DIV,        // [1]: 자사외주구분 (ASIS: grdEmpList.selectedItem.OWN_OUTS_DIV)
       empNm: employee.EMP_NM,                   // [2]: 사원명 (ASIS: grdEmpList.selectedItem.EMP_NM)
@@ -227,8 +223,27 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
       inFixPrjt: employee.IN_FIX_PRJT,          // [6]: 외주배정프로젝트 (ASIS: grdEmpList.selectedItem.IN_FIX_PRJT)
       dutyDivCd: employee.DUTY_DIV_CD,          // [7]: 투입인력 직책구분코드 (ASIS: grdEmpList.selectedItem.DUTY_DIV_CD)
       tcnGrd: employee.TCN_GRD                  // [8]: 현재 최종 기술등급 (ASIS: grdEmpList.selectedItem.TCN_GRD)
-    })
-    onClose()
+    }
+
+    // 팝업 창인 경우 부모 창으로 결과 전송
+    if (window.opener && !window.opener.closed) {
+      try {
+        // 부모 창의 handleEmployeeSelect 함수 호출
+        const messageData = {
+          type: 'EMP_SELECTED',
+          data: selectInfo,
+          source: 'COMZ080P00',
+          timestamp: new Date().toISOString()
+        };
+        
+        window.opener.postMessage(messageData, '*');
+        
+        // 팝업 창 닫기
+        window.close();
+      } catch (error) {
+        console.error('부모창 통신 오류:', error);
+      }
+    }
   }
 
   /**
@@ -280,11 +295,25 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
   /**
    * 키보드 이벤트 처리 함수
    * ASIS: Enter 키 이벤트 처리
+   * Enter: 검색 실행
+   * Escape: 팝업 닫기
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch()
+    } else if (e.key === 'Escape') {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+      }
     }
+  }
+
+  /**
+   * 포커스 시 전체 선택
+   * ASIS: FInputHangul 컴포넌트의 포커스 시 전체 선택 기능과 동일
+   */
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.select()
   }
 
   /**
@@ -300,35 +329,66 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
     setEmpNm(strEmpNm)
     setOwnOutDiv(ownOutDiv)
     setEmployees(empList)
+    // 검색창에 포커스 (ASIS: txtEmpNm.focus())
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 0)
   }
 
   /**
-   * 기본값이 변경되면 상태 업데이트
-   * ASIS: init_Complete() 함수와 동일한 역할
+   * 컴포넌트 초기화 및 메시지 수신 처리
    */
+  const messageListenerRef = useRef<((event: MessageEvent) => void) | null>(null);
+  const isInitializedRef = useRef(false);
+  
   useEffect(() => {
-    if (defaultEmpNm) {
-      setEmpNm(defaultEmpNm)
+    // 이미 초기화되었는지 확인
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+    init_Complete();
+    const hasParent = window.opener && !window.opener.closed;
+    if (hasParent) {
+      setTimeout(() => {
+        try {
+          const readyMessage = {
+            type: 'POPUP_READY',
+            source: 'CHILD',
+            timestamp: new Date().toISOString()
+          };
+          window.opener.postMessage(readyMessage, '*');
+        } catch (error) {}
+      }, 100);
     }
-    if (defaultOwnOutDiv) {
-      setOwnOutDiv(defaultOwnOutDiv)
-    }
-  }, [defaultEmpNm, defaultOwnOutDiv])
-
-  /**
-   * 외부에서 호출할 수 있는 메서드들을 ref에 노출
-   * ASIS: public function choiceEmpInit()
-   */
-  useImperativeHandle(ref, () => ({
-    choiceEmpInit
-  }))
+    const handleMessage = (event: MessageEvent) => {
+      handlePostMessage(event);
+    };
+    messageListenerRef.current = handleMessage;
+    window.addEventListener('message', handleMessage);
+    return () => {
+      if (messageListenerRef.current) {
+        window.removeEventListener('message', messageListenerRef.current);
+        messageListenerRef.current = null;
+      }
+      isInitializedRef.current = false;
+    };
+  }, [])
 
   return (
     <div className="popup-wrapper">
       {/* 팝업 상단 헤더 - ASIS: TitleWindow의 title과 showCloseButton */}
       <div className="popup-header">
         <h3 className="popup-title">직원 검색</h3>
-        <button className="popup-close" type="button" onClick={onClose}>×</button>
+        <button 
+          className="popup-close" 
+          type="button" 
+          onClick={() => {
+            if (window.opener && !window.opener.closed) {
+              window.close();
+            }
+          }}
+        >
+          ×
+        </button>
       </div>
 
       {/* 팝업 본문 - ASIS: VBox 내부 영역 */}
@@ -342,11 +402,13 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
                 <th className="search-th w-[80px]">직원명</th>
                 <td className="search-td w-[200px]">
                   <input 
+                    ref={inputRef}
                     type="text" 
                     className="input-base input-default w-full" 
                     value={empNm}
                     onChange={(e) => setEmpNm(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onFocus={handleFocus}
                     placeholder="직원명 입력"
                   />
                 </td>
@@ -460,11 +522,20 @@ const EmployeeSearchPopupExtended = forwardRef<EmployeeSearchModalRef, Props>(({
 
         {/* 종료 버튼 - ASIS: btnClose (Button) */}
         <div className="flex justify-end">
-          <button className="btn-base btn-delete" onClick={onClose}>종료</button>
+          <button 
+            className="btn-base btn-delete" 
+            onClick={() => {
+              if (window.opener && !window.opener.closed) {
+                window.close();
+              }
+            }}
+          >
+            종료
+          </button>
         </div>
       </div>
     </div>
   );
-})
+}
 
-export default EmployeeSearchPopupExtended;
+export default COMZ080P00;

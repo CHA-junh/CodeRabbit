@@ -22,12 +22,14 @@ Object.defineProperty(window, 'close', {
 // Mock useAuth hook
 const mockUseAuth = jest.fn();
 jest.mock('@/modules/auth/hooks/useAuth', () => ({
+  ...jest.requireActual('@/modules/auth/hooks/useAuth'),
   useAuth: () => mockUseAuth()
 }));
 
 // Mock useToast hook
 const mockShowToast = jest.fn();
 jest.mock('@/contexts/ToastContext', () => ({
+  ...jest.requireActual('@/contexts/ToastContext'),
   useToast: () => ({
     showToast: mockShowToast
   })

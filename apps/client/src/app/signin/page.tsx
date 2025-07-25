@@ -1,35 +1,47 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import COM0020M00 from '../com/COM0020M00'
 
+// 프리페치 방지
+export const dynamic = 'force-dynamic'
+
 /**
  * Signin Page - 로그인 페이지
- * 
+ *
  * 주요 기능:
  * - 인증 상태 확인
  * - 로그인 화면 렌더링
  * - 인증된 사용자 리다이렉트
- * 
+ *
  * 연관 컴포넌트:
  * - COM0020M00 (로그인 Main 화면)
  */
 
 export default function SigninPage() {
 	const { isAuthenticated, loading } = useAuth()
-	const router = useRouter()
+	const [isClient, setIsClient] = useState(false)
+
+	// 클라이언트 사이드 렌더링 확인
+	useEffect(() => {
+		setIsClient(true)
+	}, [])
 
 	useEffect(() => {
-		// 로딩이 완료되고 이미 인증된 경우 대시보드로 리다이렉트
-		if (!loading && isAuthenticated) {
-			router.push('/mainframe')
-		}
-	}, [loading, isAuthenticated, router])
+		// 클라이언트에서만 인증 체크
+		if (!isClient) return
 
-	// 로딩 중이거나 이미 인증된 경우 로딩 화면 표시
-	if (loading || isAuthenticated) {
+		// 로딩이 완료되고 이미 인증된 경우 메인페이지로 리다이렉트
+		if (!loading && isAuthenticated) {
+			console.log('🔒 이미 인증된 사용자, 메인페이지로 리다이렉트')
+			window.location.href = '/mainframe'
+		}
+	}, [loading, isAuthenticated, isClient])
+
+	// 클라이언트가 아니거나 로딩 중이거나 이미 인증된 경우 로딩 화면 표시
+	if (!isClient || loading || isAuthenticated) {
 		return (
 			<div className='min-h-screen flex items-center justify-center'>
 				<div className='flex items-center space-x-2'>
