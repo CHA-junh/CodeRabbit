@@ -132,6 +132,68 @@ const POPUP_SIZES = {
 }
 
 /**
+ * 현재 활성 창이 있는 모니터의 중앙 위치 계산 (듀얼 모니터 환경 최적화)
+ */
+function getCurrentMonitorCenter(
+	width: number,
+	height: number
+): { left: number; top: number } {
+	// 현재 창의 위치와 크기 정보
+	const currentWindow = window
+
+	// 현재 창의 중앙점 계산 (창의 실제 중앙)
+	const currentCenterX = currentWindow.screenX + currentWindow.outerWidth / 2
+	const currentCenterY = currentWindow.screenY + currentWindow.outerHeight / 2
+
+	// 팝업을 현재 창의 중앙에 배치
+	let left = currentCenterX - width / 2
+	let top = currentCenterY - height / 2
+
+	// 듀얼 모니터 환경에서 현재 모니터의 경계 확인
+	// 현재 창이 위치한 모니터의 경계를 계산
+	const currentMonitorLeft = currentWindow.screenX
+	const currentMonitorTop = currentWindow.screenY
+	const currentMonitorRight =
+		currentMonitorLeft + currentWindow.screen.availWidth
+	const currentMonitorBottom =
+		currentMonitorTop + currentWindow.screen.availHeight
+
+	// 팝업이 현재 모니터를 벗어나지 않도록 조정
+	left = Math.max(
+		currentMonitorLeft,
+		Math.min(left, currentMonitorRight - width)
+	)
+	top = Math.max(
+		currentMonitorTop,
+		Math.min(top, currentMonitorBottom - height)
+	)
+
+	// 디버깅용 로그 (개발 환경에서만)
+	if (process.env.NODE_ENV === 'development') {
+		console.log('🔍 팝업 위치 계산:', {
+			windowScreenX: currentWindow.screenX,
+			windowScreenY: currentWindow.screenY,
+			windowOuterWidth: currentWindow.outerWidth,
+			windowOuterHeight: currentWindow.outerHeight,
+			currentCenterX,
+			currentCenterY,
+			popupWidth: width,
+			popupHeight: height,
+			calculatedLeft: left,
+			calculatedTop: top,
+			monitorBounds: {
+				left: currentMonitorLeft,
+				top: currentMonitorTop,
+				right: currentMonitorRight,
+				bottom: currentMonitorBottom,
+			},
+		})
+	}
+
+	return { left, top }
+}
+
+/**
  * 팝업 위치 계산 함수
  */
 function calculatePopupPosition(
@@ -143,20 +205,18 @@ function calculatePopupPosition(
 
 	switch (position) {
 		case 'center':
-			return {
-				left: (window.screen.width - width) / 2,
-				top: (window.screen.height - height) / 2,
-			}
+			// 듀얼 모니터 환경을 고려한 현재 모니터 중앙 계산
+			return getCurrentMonitorCenter(width, height)
 		case 'top-left':
 			return { left: 0, top: 0 }
 		case 'top-right':
-			return { left: window.screen.width - width, top: 0 }
+			return { left: window.screen.availWidth - width, top: 0 }
 		case 'bottom-left':
-			return { left: 0, top: window.screen.height - height }
+			return { left: 0, top: window.screen.availHeight - height }
 		case 'bottom-right':
 			return {
-				left: window.screen.width - width,
-				top: window.screen.height - height,
+				left: window.screen.availWidth - width,
+				top: window.screen.availHeight - height,
 			}
 		case 'custom':
 			return {
