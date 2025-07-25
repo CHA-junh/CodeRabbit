@@ -1822,17 +1822,21 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
       )}
 
       {showEmployeeSearchPopup && employeeSearchData && (
-        <COMZ080P00
-          defaultEmpNm={employeeSearchData.searchValue}
-          defaultOwnOutDiv={employeeSearchData.ownOutsDiv}
-          defaultEmpList={employeeSearchData.searchResults}
-          onSelect={(empData) => {
-            // AS-IS DblClick_COM_02_0410 로직과 동일
-            handleEmployeeSelected(empData.empNo, empData.empNm, empData.ownOutsDiv);
-            setShowEmployeeSearchPopup(false);
-          }}
-          onClose={() => setShowEmployeeSearchPopup(false)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-7xl w-[95vw] h-[50vh] overflow-hidden">
+            <COMZ080P00
+              defaultEmpNm={employeeSearchData.searchValue}
+              defaultOwnOutDiv={employeeSearchData.ownOutsDiv}
+              defaultEmpList={employeeSearchData.searchResults}
+              onSelect={(empData) => {
+                // AS-IS DblClick_COM_02_0410 로직과 동일
+                handleEmployeeSelected(empData.empNo, empData.empNm, empData.ownOutsDiv);
+                setShowEmployeeSearchPopup(false);
+              }}
+              onClose={() => setShowEmployeeSearchPopup(false)}
+            />
+          </div>
+        </div>
       )}
 
       {/* 삭제 확인 다이얼로그 */}

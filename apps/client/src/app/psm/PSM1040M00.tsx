@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import '../common/common.css';
+import DataGrid from '../../components/grid/DataGrid';
 
 interface EmployeeListData {
   LIST_NO?: string;
@@ -241,16 +242,6 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
       DUTY_CD: inputData.apntDiv === '2' ? inputData.duty : employee.DUTY_CD // 발령직책코드
     };
 
-    // 디버깅: DUTY_NM 값 확인
-    console.log('=== DUTY_NM 디버깅 ===');
-    console.log('inputData.apntDiv:', inputData.apntDiv);
-    console.log('inputData.duty:', inputData.duty);
-    console.log('employee.DUTY:', employee.DUTY);
-    console.log('commonCodes.duty:', commonCodes.duty);
-    console.log('selected duty label:', commonCodes.duty.find(code => code.codeId === inputData.duty)?.codeNm);
-    console.log('final DUTY_NM:', newTarget.DUTY_NM);
-    console.log('condition check:', inputData.apntDiv === '2' && inputData.duty);
-
     // AS-IS와 동일하게 배열 끝에 추가
     setAppointmentTargets(prev => {
       const newTargets = [...prev, newTarget];
@@ -267,14 +258,6 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
     if (!isInitialized) {
       return false;
     }
-
-    // 디버깅: 검증 시작 시 값 확인
-    console.log('=== 검증 디버깅 ===');
-    console.log('inputData:', inputData);
-    console.log('inputData.apntDiv:', inputData.apntDiv);
-    console.log('inputData.duty:', inputData.duty);
-    console.log('inputData.duty type:', typeof inputData.duty);
-    console.log('inputData.duty length:', inputData.duty?.length);
 
     // AS-IS와 동일: 등록버튼 활성 여부 체크
     if (!isRegisterEnabled) {
@@ -309,8 +292,7 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
         return false;
       }
       
-      const selectedDutyLabel = commonCodes.duty.find(code => (code.DATA || code.data) === inputData.duty)?.LABEL || 
-                               commonCodes.duty.find(code => (code.DATA || code.data) === inputData.duty)?.label;
+      const selectedDutyLabel = commonCodes.duty.find(code => code.codeId === inputData.duty)?.codeNm || '선택된 직책';
       if (parseInt(inputData.duty) >= parseInt(employee.DUTY_CD || '0')) {
         showToast(`${selectedDutyLabel} 승진 대상이 아닙니다.`, 'warning');
         return false;
@@ -408,7 +390,6 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
     }));
     // 등록버튼 활성화
     setIsRegisterEnabled(true);
-    console.log('등록버튼 활성화');
   };
 
   // AS-IS 등록 버튼 클릭
@@ -426,7 +407,6 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
         setError(null);
 
         try {
-          console.log('=== AS-IS PSM_01_0141_T 프로시저 호출 ===');
           
           // AS-IS와 동일한 데이터 구성
           const appointmentData = makeAppointmentData();
@@ -446,7 +426,6 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
               showToast('등록되었습니다.', 'info');
               // 재 등록을 방지하기 위해서 등록버튼 비활성화
               setIsRegisterEnabled(false);
-              console.log('등록버튼 비활성화');
               handleListClear();
               
               // AS-IS: 사원리스트 재조회
@@ -492,8 +471,6 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
       appointmentData += `${target.RMK}^`; // 비고
       appointmentData += '|';
     }
-
-    console.log('일괄등록 데이터:', appointmentData);
     return appointmentData;
   };
 
@@ -605,7 +582,6 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
                       className="combo-base w-full"
                       value={inputData.duty}
                       onChange={(e) => {
-                        console.log('발령직위 선택:', e.target.value);
                         setInputData(prev => ({ ...prev, duty: e.target.value }));
                       }}
                       disabled={!fieldEnableState.duty}
@@ -624,7 +600,17 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
                     <textarea 
                       className="textarea_def w-full min-h-[80px]"
                       value={inputData.rmk}
-                      onChange={(e) => setInputData(prev => ({ ...prev, rmk: e.target.value }))}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        // UTF-8 바이트 수 계산
+                        const byteLength = new TextEncoder().encode(newValue).length;
+                        
+                        if (byteLength <= 500) {
+                          setInputData(prev => ({ ...prev, rmk: newValue }));
+                        } else {
+                          showToast(`비고는 500바이트까지 입력 가능합니다. (현재: ${byteLength}바이트)`, 'warning');
+                        }
+                      }}
                     />
                   </td>
                 </tr>
@@ -662,60 +648,54 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
               <button 
                 className="btn-base btn-delete"
                 onClick={() => {
+                  if (!curEmpNo) {
+                    showToast('삭제할 행을 선택해 주십시요.', 'warning');
+                    return;
+                  }
                   const selectedIndex = appointmentTargets.findIndex(target => target.EMP_NO === curEmpNo);
-                  handleRowDelete(selectedIndex);
+                  if (selectedIndex >= 0) {
+                    handleRowDelete(selectedIndex);
+                  } else {
+                    showToast('선택된 행을 찾을 수 없습니다.', 'warning');
+                  }
                 }}
-                disabled={!curEmpNo}
+                disabled={!curEmpNo || appointmentTargets.length === 0}
               >
                 행삭제
               </button>
             </div>
           </div>
-          <div className="gridbox-div grid-scroll flex-1">
-            <table className="grid-table">
-              <thead>
-                <tr className="grid-tr">
-                  <th className="grid-th">구분</th>
-                  <th className="grid-th">발령일자</th>
-                  <th className="grid-th">사번</th>
-                  <th className="grid-th">성명</th>
-                  <th className="grid-th">본부</th>
-                  <th className="grid-th">부서</th>
-                  <th className="grid-th">직책</th>
-                  <th className="grid-th">본부</th>
-                  <th className="grid-th">부서</th>
-                  <th className="grid-th">직책</th>
-                  <th className="grid-th">비고</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appointmentTargets.map((target, i) => (
-                  <tr 
-                    className={`grid-tr cursor-pointer ${curEmpNo === target.EMP_NO ? 'bg-blue-100' : ''} ${scrollToIndex === i ? 'scroll-highlight' : ''}`}
-                    key={target.EMP_NO || i}
-                    onClick={() => setCurEmpNo(target.EMP_NO || '')}
-                    ref={(el) => {
-                      if (scrollToIndex === i && el) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        setScrollToIndex(-1); // 스크롤 후 초기화
-                      }
-                    }}
-                  >
-                    <td className="grid-td">{target.APNT_DIV_NM}</td>
-                    <td className="grid-td">{target.APNT_DT}</td>
-                    <td className="grid-td">{target.EMP_NO}</td>
-                    <td className="grid-td">{target.EMP_NM}</td>
-                    <td className="grid-td">{target.HQ_DIV_NM}</td>
-                    <td className="grid-td">{target.DEPT_DIV_NM}</td>
-                    <td className="grid-td">{target.DUTY_NM}</td>
-                    <td className="grid-td">{target.HQ_DIV_NM_BEF}</td>
-                    <td className="grid-td">{target.DEPT_DIV_NM_BEF}</td>
-                    <td className="grid-td">{target.DUTY_NM_BEF}</td>
-                    <td className="grid-td">{target.RMK}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            <DataGrid
+              rowData={appointmentTargets}
+              columnDefs={[
+                { headerName: '구분', field: 'APNT_DIV_NM', width: 90 },
+                { headerName: '발령일자', field: 'APNT_DT', width: 110 },
+                { headerName: '사번', field: 'EMP_NO', width: 100 },
+                { headerName: '성명', field: 'EMP_NM', width: 100 },
+                { headerName: '본부', field: 'HQ_DIV_NM', width: 110 },
+                { headerName: '부서', field: 'DEPT_DIV_NM', width: 110 },
+                { headerName: '직책', field: 'DUTY_NM', width: 90 },
+                { headerName: '본부', field: 'HQ_DIV_NM_BEF', width: 110 },
+                { headerName: '부서', field: 'DEPT_DIV_NM_BEF', width: 110 },
+                { headerName: '직책', field: 'DUTY_NM_BEF', width: 90 },
+                { headerName: '비고', field: 'RMK', flex: 1 },
+              ]}
+              height="300px"
+              enablePagination={false}
+              enableSelection={true}
+              enableExport={false}
+              enableSorting={true}
+              enableFiltering={true}
+              className="ag-custom"
+              onRowSelected={(selectedRows: any[]) => {
+                if (selectedRows.length > 0) {
+                  setCurEmpNo(selectedRows[0].EMP_NO);
+                } else {
+                  setCurEmpNo('');
+                }
+              }}
+            />
           </div>
           <p className="text-[13px] text-[#00509A] py-1">
             ※ 발령대상자는 화면 상단의 사원(외주)리스트를 더블클릭하면 인사발령 대상자 리스트에 추가 됩니다.

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandl
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import '../common/common.css';
+import DataGrid from '../../components/grid/DataGrid';
 
 interface EmployeeListData {
   LIST_NO?: string;
@@ -428,7 +429,6 @@ const PSM1030M00 = forwardRef<PSM1030M00Ref, PSM1030M00Props>(({ selectedEmploye
         setError(null);
 
         try {
-          console.log('=== AS-IS PSM_01_0132_T 프로시저 호출 ===');
           
           // AS-IS MXML과 동일한 발령일자 형식 변환
           const formatDateForProc = (dateStr: string) => {
@@ -684,37 +684,29 @@ const PSM1030M00 = forwardRef<PSM1030M00Ref, PSM1030M00Props>(({ selectedEmploye
           <div className="tit_area">
             <h3>인사발령내역</h3>
           </div>
-          <div className="gridbox-div flex-1 grid-scroll">
-            <table className="grid-table">
-              <thead>
-                <tr className="grid-tr">
-                  <th className="grid-th">No</th>
-                  <th className="grid-th">구분</th>
-                  <th className="grid-th">발령일자</th>
-                  <th className="grid-th">본부</th>
-                  <th className="grid-th">부서</th>
-                  <th className="grid-th">직책</th>
-                  <th className="grid-th">비고</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appointmentList.map((appointment, i) => (
-                  <tr 
-                    className={`grid-tr cursor-pointer ${selectedAppointment?.SEQ_NO === appointment.SEQ_NO ? 'bg-blue-100' : ''}`}
-                    key={appointment.SEQ_NO || i}
-                    onDoubleClick={() => handleAppointmentDoubleClick(appointment)}
-                  >
-                    <td className="grid-td">{i + 1}</td>
-                    <td className="grid-td">{appointment.APNT_DIV_NM}</td>
-                    <td className="grid-td">{appointment.APNT_DT}</td>
-                    <td className="grid-td">{appointment.HQ_DIV_NM}</td>
-                    <td className="grid-td">{appointment.DEPT_DIV_NM}</td>
-                    <td className="grid-td">{appointment.DUTY_NM}</td>
-                    <td className="grid-td">{appointment.RMK}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            <DataGrid
+              rowData={appointmentList}
+              columnDefs={[
+                { headerName: 'No', valueGetter: (params: any) => params.node.rowIndex + 1, width: 70 },
+                { headerName: '구분', field: 'APNT_DIV_NM', width: 100 },
+                { headerName: '발령일자', field: 'APNT_DT', width: 120 },
+                { headerName: '본부', field: 'HQ_DIV_NM', width: 120 },
+                { headerName: '부서', field: 'DEPT_DIV_NM', width: 120 },
+                { headerName: '직책', field: 'DUTY_NM', width: 120 },
+                { headerName: '비고', field: 'RMK', flex: 1 },
+              ]}
+              height="300px"
+              onRowSelected={undefined}
+              onGridReady={undefined}
+              enablePagination={false}
+              enableSelection={false}
+              enableExport={false}
+              enableSorting={true}
+              enableFiltering={true}
+              className="ag-custom"
+              // onRowDoubleClicked는 DataGrid에 아직 없음. 추후 필요시 DataGrid에 추가
+            />
           </div>
           <p className="text-[13px] text-[#00509A] py-1">
             ※ 2010년 이전 발령건은 발령내용 등 포함여부 차이로 사실과 다릅니다.
@@ -803,7 +795,17 @@ const PSM1030M00 = forwardRef<PSM1030M00Ref, PSM1030M00Props>(({ selectedEmploye
                     <textarea 
                       className="textarea_def w-full min-h-[80px]"
                       value={inputData.rmk}
-                      onChange={(e) => setInputData(prev => ({ ...prev, rmk: e.target.value }))}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        // UTF-8 바이트 수 계산
+                        const byteLength = new TextEncoder().encode(newValue).length;
+                        
+                        if (byteLength <= 500) {
+                          setInputData(prev => ({ ...prev, rmk: newValue }));
+                        } else {
+                          showToast(`비고는 500바이트까지 입력 가능합니다. (현재: ${byteLength}바이트)`, 'warning');
+                        }
+                      }}
                     />
                   </td>
                 </tr>
