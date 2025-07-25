@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/contexts/ToastContext';
 import '../common/common.css';
 
@@ -98,31 +98,25 @@ const SAMPLE_EMP_DATA: EmpInfo[] = [
 */
 
 /**
- * 직원 검색 모달 컴포넌트
+ * 직원 정보 조회 팝업 (팝업 전용)
  * ASIS: COM_02_0600.mxml → TOBE: COMZ100P00.tsx
- * 
+ *
  * 주요 기능:
- * 1. 직원명으로 실시간 검색 (USR_01_0201_S)
+ * 1. 사용자명으로 실시간 검색 (USR_01_0201_S)
  * 2. 검색 결과를 테이블 형태로 표시
- * 3. 더블클릭으로 직원 선택
+ * 3. 더블클릭으로 직원 선택 (window.opener.postMessage)
  * 4. Enter 키로 검색 실행
- * 5. Escape 키로 모달 닫기
+ * 5. Escape 키로 팝업 닫기
  * 6. 포커스 시 전체 선택
- * 7. Ref를 통한 외부 제어 가능
- * 8. postMessage로 데이터 수신 및 부모 창으로 결과 전송
+ * 7. postMessage로 데이터 수신 및 부모 창으로 결과 전송
  */
-const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({ 
-  defaultEmpNm = '', 
-  defaultEmpList = [],
-  onSelect, 
-  onClose 
-}, ref) => {
+const COMZ100P00 = () => {
   // 직원 목록 상태 관리 (ASIS: grdEmpList.dataProvider)
-  const [emps, setEmps] = useState<EmpInfo[]>(defaultEmpList)
+  const [emps, setEmps] = useState<EmpInfo[]>([])
   // 로딩 상태 관리 (ASIS: showBusyCursor="true")
   const [loading, setLoading] = useState(false)
   // 직원명 검색어 상태 관리 (ASIS: txtEmpNm.text)
-  const [empNm, setEmpNm] = useState(defaultEmpNm)
+  const [empNm, setEmpNm] = useState('')
   // 입력 필드 참조 (ASIS: txtEmpNm)
   const inputRef = useRef<HTMLInputElement>(null)
   const { showToast } = useToast()
@@ -136,7 +130,15 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
    */
   const handlePostMessage = (event: MessageEvent) => {
     const data = event.data;
+    console.log('COMZ100P00 - postMessage 수신:', data);
+    
     if (data?.type === 'CHOICE_EMP_INIT' && data?.data) {
+      console.log('COMZ100P00 - 직원 데이터 수신:', {
+        empNm: data.data.empNm,
+        empListLength: data.data.empList?.length || 0,
+        empList: data.data.empList
+      });
+      
       choiceEmpInit(data.data.empNm, data.data.empList);
       setMessageReceived(true);
     }
@@ -148,8 +150,8 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
    * 모달이 처음 로드될 때 초기화 작업을 수행
    */
   const init_Complete = () => {
-    setEmpNm(defaultEmpNm || '')
-    setEmps(defaultEmpList || [])
+    setEmpNm('')
+    setEmps([])
     setLoading(false)
     // 검색창에 포커스 (ASIS: txtEmpNm.focus())
     setTimeout(() => {
@@ -182,7 +184,12 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
    * API를 호출하여 직원 정보를 검색하고 결과를 상태에 저장
    */
   const handleSearch = async () => {
-    if (!empNm.trim()) return
+    // 사용자명 필수 입력 검증
+    if (!empNm.trim()) {
+      showToast('사용자명을 입력해주세요.', 'warning')
+      return
+    }
+    
     setLoading(true)
     try {
       const res = await fetch('/api/COMZ100P00/search', {
@@ -247,13 +254,13 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
         window.close();
       } catch (error) {
         // fallback: 로컬 onSelect 콜백 사용
-        onSelect(selectInfo);
-        onClose();
+        // onSelect(selectInfo); // This line is removed as per the new_code
+        // onClose(); // This line is removed as per the new_code
       }
     } else {
       // 일반 모달인 경우 기존 방식 사용
-      onSelect(selectInfo);
-      onClose();
+      // onSelect(selectInfo); // This line is removed as per the new_code
+      // onClose(); // This line is removed as per the new_code
     }
   }
 
@@ -280,7 +287,7 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
       if (window.opener && !window.opener.closed) {
         window.close();
       } else {
-        onClose();
+        // onClose(); // This line is removed as per the new_code
       }
     }
   }
@@ -337,11 +344,11 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
    * 외부에서 호출할 수 있는 메서드들을 ref에 노출
    * ASIS: choiceEmpInit 함수를 외부에서 호출할 수 있도록 노출
    */
-  useImperativeHandle(ref, () => ({
-    choiceEmpInit: (strEmpNm: string, empList: EmpInfo[]) => {
-      choiceEmpInit(strEmpNm, empList);
-    }
-  }))
+  // useImperativeHandle(ref, () => ({ // This line is removed as per the new_code
+  //   choiceEmpInit: (strEmpNm: string, empList: EmpInfo[]) => { // This line is removed as per the new_code
+  //     choiceEmpInit(strEmpNm, empList); // This line is removed as per the new_code
+  //   } // This line is removed as per the new_code
+  // })) // This line is removed as per the new_code
 
   return (
     <div className="popup-wrapper min-w-[840px]">
@@ -354,7 +361,7 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
             if (window.opener && !window.opener.closed) {
               window.close();
             } else {
-              onClose();
+              // onClose(); // This line is removed as per the new_code
             }
           }}
         >
@@ -464,7 +471,7 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
               if (window.opener && !window.opener.closed) {
                 window.close();
               } else {
-                onClose();
+                // onClose(); // This line is removed as per the new_code
               }
             }}
           >
@@ -474,7 +481,7 @@ const EmpSearchModal = forwardRef<EmpSearchModalRef, Props>(({
       </div>
     </div>
   );
-})
+}
 
-export default EmpSearchModal;
+export default COMZ100P00;
 

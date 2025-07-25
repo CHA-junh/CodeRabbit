@@ -1,11 +1,11 @@
 import { Controller, Post, Body, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { COMZ030M00Service } from './COMZ030M00.service';
+import { COMZ030P00Service } from './COMZ030P00.service';
 import { 
   UnitPriceSearchParams, 
   UnitPriceSearchResponseDto 
-} from './dto/COMZ030M00.dto';
+} from './dto/COMZ030P00.dto';
 
 // express-session 타입 확장
 interface RequestWithSession extends Request {
@@ -13,9 +13,9 @@ interface RequestWithSession extends Request {
 }
 
 @ApiTags('단가 검색')
-@Controller('COMZ030M00')
-export class COMZ030M00Controller {
-  constructor(private readonly comz030m00Service: COMZ030M00Service) {}
+@Controller('COMZ030P00')
+export class COMZ030P00Controller {
+  constructor(private readonly comz030p00Service: COMZ030P00Service) {}
 
   @Post('search')
   @ApiOperation({ 
@@ -41,7 +41,7 @@ export class COMZ030M00Controller {
     */
     
     try {
-      const result = await this.comz030m00Service.searchUnitPrices(
+      const result = await this.comz030p00Service.searchUnitPrices(
         body.ownOutsDiv,
         body.year,
         body.bsnNo

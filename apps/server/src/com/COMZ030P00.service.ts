@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import * as oracledb from 'oracledb';
-import { UnitPriceEntity } from './entities/COMZ030M00.entity';
+import { UnitPriceEntity } from './entities/COMZ030P00.entity';
 import { ProcedureDbParser } from '../utils/procedure-db-parser.util';
 import {
   UnitPriceSearchParams,
   UnitPriceSearchResponseDto,
   ProcedureInfoDto,
-} from './dto/COMZ030M00.dto';
+} from './dto/COMZ030P00.dto';
 
 @Injectable()
-export class COMZ030M00Service {
+export class COMZ030P00Service {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly procedureDbParser: ProcedureDbParser,
