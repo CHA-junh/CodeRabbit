@@ -161,6 +161,7 @@ const COMZ010M00Page = () => {
 	const [selectedLarge, setSelectedLarge] = useState<LargeCode | null>(null)
 	const [largeForm, setLargeForm] = useState<LargeCode>(defaultLargeCode)
 	const [smallForm, setSmallForm] = useState<SmallCode>(defaultSmallCode)
+	const [isEditMode, setIsEditMode] = useState(false) // 소분류 수정 모드 상태 추가
 
 	// 원본 데이터 저장 (변경사항 체크용)
 	const [originalLargeForm, setOriginalLargeForm] =
@@ -182,7 +183,8 @@ const COMZ010M00Page = () => {
 			: '/api/COMZ010M00'
 
 	// 입력값 제한 정규식
-	const codeRegex = /^[0-9]{1,4}$/ // 대분류/소분류 코드: 숫자만 1-4자
+	const largeCodeRegex = /^[0-9]{1,4}$/ // 대분류 코드: 숫자만 1-4자
+	const smallCodeRegex = /^[A-Za-z0-9]{1,4}$/ // 소분류 코드: 영어+숫자 1-4자
 	const numberRegex = /^[0-9]{1,3}$/ // 정렬순서: 숫자 1-3자
 	const linkCodeRegex = /^[0-9]{0,10}$/ // 연결코드: 숫자만 0-10자
 
@@ -190,8 +192,9 @@ const COMZ010M00Page = () => {
 	const validateInput = (name: string, value: string): boolean => {
 		switch (name) {
 			case 'lrgCsfCd':
+				return largeCodeRegex.test(value) || value === ''
 			case 'smlCsfCd':
-				return codeRegex.test(value) || value === ''
+				return smallCodeRegex.test(value) || value === ''
 			case 'lrgCsfNm':
 			case 'smlCsfNm':
 				return value.length <= 50 || value === ''
@@ -311,6 +314,7 @@ const COMZ010M00Page = () => {
 		} else {
 			setSmallForm(defaultSmallCode)
 			setOriginalSmallForm(defaultSmallCode)
+			setIsEditMode(false) // 신규 모드로 변경
 		}
 	}
 
@@ -346,6 +350,7 @@ const COMZ010M00Page = () => {
 	const handleSmallRowDoubleClick = (row: SmallCode) => {
 		setSmallForm(row)
 		setOriginalSmallForm(row) // 원본 데이터 저장
+		setIsEditMode(true) // 수정 모드로 설정
 		setTimeout(() => {
 			document
 				.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
@@ -523,6 +528,7 @@ const COMZ010M00Page = () => {
 	const handleSmallRowClick = (row: SmallCode) => {
 		setSmallForm(row)
 		setOriginalSmallForm(row) // 원본 데이터 저장
+		setIsEditMode(true) // 수정 모드로 설정
 	}
 
 	// 소분류 관련 핸들러
@@ -545,6 +551,7 @@ const COMZ010M00Page = () => {
 	const handleSmallNew = () => {
 		setSmallForm(defaultSmallCode)
 		setOriginalSmallForm(defaultSmallCode)
+		setIsEditMode(false) // 신규 모드로 설정
 		if (selectedLarge) {
 			setSmallForm((prev) => ({
 				...prev,
@@ -574,10 +581,26 @@ const COMZ010M00Page = () => {
 			return
 		}
 
-		// 변경사항 체크
-		if (!hasChanges(smallForm, originalSmallForm)) {
-			showToast('변경된 내용이 없습니다.', 'warning')
-			return
+		// 신규 등록 모드
+		if (!isEditMode) {
+			// 중복 체크
+			if (isSmallCodeDuplicate(smallForm.smlCsfCd)) {
+				setError('이미 존재하는 소분류코드입니다.')
+				showToast('이미 존재하는 소분류코드입니다.', 'error')
+				setTimeout(() => {
+					document
+						.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
+						?.focus()
+				}, 100)
+				return
+			}
+			// 등록 진행 (return 없이 아래로)
+		} else {
+			// 수정 모드: 변경사항 체크
+			if (!hasChanges(smallForm, originalSmallForm)) {
+				showToast('변경된 내용이 없습니다.', 'warning')
+				return
+			}
 		}
 
 		// 필수값 체크
@@ -685,6 +708,7 @@ const COMZ010M00Page = () => {
 			if (smallForm.lrgCsfCd) await fetchSmallCodes(smallForm.lrgCsfCd)
 			setSmallForm(defaultSmallCode)
 			setOriginalSmallForm(defaultSmallCode)
+			setIsEditMode(false) // 신규 모드로 변경
 			setTimeout(() => {
 				document
 					.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
@@ -701,19 +725,8 @@ const COMZ010M00Page = () => {
 
 	// 소분류 삭제
 	const handleSmallDelete = async () => {
-		// 그리드에서 선택된 항목이 없으면 삭제 불가
-		if (!smallForm.smlCsfCd || !smallForm.lrgCsfCd) {
-			showToast('삭제할 소분류코드를 그리드에서 선택하세요.', 'warning')
-			return
-		}
-
-		// 선택된 소분류코드가 실제로 존재하는지 확인
-		const selectedSmallCode = smallCodes.find(
-			(item) =>
-				item.smlCsfCd === smallForm.smlCsfCd &&
-				item.lrgCsfCd === smallForm.lrgCsfCd
-		)
-		if (!selectedSmallCode) {
+		// 수정 모드가 아니면 삭제 불가
+		if (!isEditMode) {
 			showToast('삭제할 소분류코드를 그리드에서 선택하세요.', 'warning')
 			return
 		}
@@ -726,8 +739,8 @@ const COMZ010M00Page = () => {
 				setError(null)
 				try {
 					const param = [
-						selectedSmallCode.lrgCsfCd,
-						selectedSmallCode.smlCsfCd,
+						smallForm.lrgCsfCd,
+						smallForm.smlCsfCd,
 					].join('|')
 					const res = await fetch(apiUrl + '/delete', {
 						method: 'POST',
@@ -738,9 +751,10 @@ const COMZ010M00Page = () => {
 						}),
 					})
 					if (!res.ok) throw new Error('삭제 실패')
-					await fetchSmallCodes(selectedSmallCode.lrgCsfCd)
+					await fetchSmallCodes(smallForm.lrgCsfCd)
 					setSmallForm(defaultSmallCode)
 					setOriginalSmallForm(defaultSmallCode)
+					setIsEditMode(false) // 신규 모드로 변경
 					setTimeout(() => {
 						document
 							.querySelector<HTMLInputElement>('input[name="smlCsfCd"]')
