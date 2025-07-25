@@ -59,3 +59,10 @@ test-reports/
 *.json
 !package.json
 !package-lock.json 
+
+# Playwright test artifacts
+playwright-report/
+test-results/
+*.webm
+*.png
+!screenshots/ 
