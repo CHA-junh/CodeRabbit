@@ -50,8 +50,8 @@ temp/
 # TypeScript
 *.tsbuildinfo
 
-# Designs folder (moved to project root)
-**/designs/
+# Designs folder (shared with team)
+# **/designs/
 
 # Test reports
 test-reports/
