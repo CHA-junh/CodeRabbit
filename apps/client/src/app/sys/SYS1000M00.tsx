@@ -1,3 +1,42 @@
+/**
+ * SYS1000M00 - 프로그램 관리 화면
+ *
+ * 주요 기능:
+ * - 프로그램 목록 조회 및 검색
+ * - 프로그램 신규 등록 및 수정
+ * - 프로그램 구분별 필드 활성화/비활성화
+ * - 프로그램 미리보기 및 엑셀 다운로드
+ *
+ * API 연동:
+ * - GET /api/sys/programs - 프로그램 목록 조회
+ * - POST /api/sys/programs - 프로그램 저장
+ * - POST /api/common/search - 공통코드 조회 (프로그램구분: 305, 업무구분: 303)
+ *
+ * 상태 관리:
+ * - 프로그램 목록 및 선택된 프로그램
+ * - 검색 조건 (프로그램키워드, 프로그램구분, 사용여부, 업무구분)
+ * - 프로그램구분/업무구분 코드 목록
+ * - MDI 모드 상태 (프로그램구분에 따른 필드 활성화)
+ *
+ * 사용자 인터페이스:
+ * - 검색 조건 입력 (프로그램키워드, 프로그램구분, 사용여부, 업무구분)
+ * - 프로그램 목록 테이블 (AG-Grid)
+ * - 프로그램 상세 정보 입력 폼
+ * - 저장/신규/미리보기/엑셀다운로드 버튼
+ *
+ * 연관 화면:
+ * - SYS1001M00: 메뉴 관리 (프로그램 연결)
+ * - SYS1002M00: 메뉴별 프로그램 관리
+ *
+ * 데이터 구조:
+ * - Program: 프로그램 정보 (pgmId, pgmNm, pgmDivCd, bizDivCd, useYn, linkPath 등)
+ * - SystemCode: 공통코드 정보 (codeId, codeName, codeValue 등)
+ *
+ * 특이사항:
+ * - 프로그램구분이 'MDI'인 경우 팝업 관련 필드 활성화
+ * - 프로그램구분/업무구분은 공통코드 테이블에서 동적 조회
+ * - 엑셀 다운로드 시 현재 검색 조건의 데이터만 다운로드
+ */
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -71,6 +110,7 @@ export default function SYS1000M00() {
           setPgmDivOptions(transformedData);
         }
       } catch (e) {
+        console.error('프로그램구분 코드 조회 실패:', e);
         setPgmDivOptions([]);
       }
     };
@@ -102,6 +142,7 @@ export default function SYS1000M00() {
           setBizDivOptions(transformedData);
         }
       } catch (e) {
+        console.error('업무구분 코드 조회 실패:', e);
         setBizDivOptions([]);
       }
     };
@@ -397,9 +438,9 @@ export default function SYS1000M00() {
   };
 
   return (
-    <div className="mdi h-screen flex flex-col">
+    <div className="mdi h-screen flex flex-col" data-testid="sys1000m00-container">
       {/* 조회부 */}
-      <div className="search-div mb-4 flex-shrink-0">
+      <div className="search-div mb-4 flex-shrink-0" data-testid="search-section">
         <table className="search-table w-full">
           <tbody>
             <tr className="search-tr">
@@ -412,6 +453,8 @@ export default function SYS1000M00() {
                   value={searchConditions.pgmKwd}
                   onChange={handleSearchChange}
                   onKeyPress={handleKeyPress}
+                  data-testid="search-pgm-kwd"
+                  aria-label="프로그램 ID 또는 이름으로 검색"
                 />
               </td>
 
@@ -423,6 +466,8 @@ export default function SYS1000M00() {
                   value={searchConditions.pgmDivCd}
                   onChange={handleSearchChange}
                   onKeyPress={handleKeyPress}
+                  data-testid="search-pgm-div"
+                  aria-label="프로그램 구분 선택"
                 >
                   <option value="">전체</option>
                   <option value="1">화면</option>
@@ -438,6 +483,8 @@ export default function SYS1000M00() {
                   value={searchConditions.useYn}
                   onChange={handleSearchChange}
                   onKeyPress={handleKeyPress}
+                  data-testid="search-use-yn"
+                  aria-label="사용 여부 선택"
                 >
                   <option value="">전체</option>
                   <option value="Y">사용</option>
@@ -453,6 +500,8 @@ export default function SYS1000M00() {
                   value={searchConditions.bizDivCd}
                   onChange={handleSearchChange}
                   onKeyPress={handleKeyPress}
+                  data-testid="search-biz-div"
+                  aria-label="업무 구분 선택"
                 >
                   <option value="">전체</option>
                   {bizDivOptions.map(opt => (
@@ -462,7 +511,15 @@ export default function SYS1000M00() {
               </td>
 
               <td className="search-td text-right" colSpan={1}>
-                <button type="button" className="btn-base btn-search" onClick={loadData}>조회</button>
+                <button 
+                  type="button" 
+                  className="btn-base btn-search" 
+                  onClick={loadData}
+                  data-testid="search-button"
+                  aria-label="프로그램 목록 조회"
+                >
+                  조회
+                </button>
               </td>
             </tr>
           </tbody>
@@ -470,7 +527,7 @@ export default function SYS1000M00() {
       </div>
       
       {/* 그리드 영역 */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0" data-testid="grid-section">
         <div className="tit_area flex-shrink-0 flex justify-between items-center">
           <h3>프로그램목록</h3>
           <div>
@@ -478,6 +535,8 @@ export default function SYS1000M00() {
               type="button" 
               className="btn-base btn-excel" 
               onClick={handleExcelDownload}
+              data-testid="excel-download-button"
+              aria-label="엑셀 파일 다운로드"
             >
               엑셀 다운로드
             </button>
@@ -509,7 +568,7 @@ export default function SYS1000M00() {
       </div>
 
       {/* 상세 정보 영역 */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0" data-testid="detail-section">
         <div className="tit_area">
           <h3>프로그램 정보</h3>
         </div>
@@ -525,6 +584,8 @@ export default function SYS1000M00() {
                   value={selectedProgram?.pgmId || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, pgmId: e.target.value } : null)}
                   disabled={!isNewCode}
+                  data-testid="detail-pgm-id"
+                  aria-label="프로그램 ID 입력"
                 />
               </td>
               <th className="form-th required">프로그램명</th>
@@ -534,6 +595,8 @@ export default function SYS1000M00() {
                   className="input-base input-default w-full" 
                   value={selectedProgram?.pgmNm || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, pgmNm: e.target.value } : null)}
+                  data-testid="detail-pgm-nm"
+                  aria-label="프로그램명 입력"
                 />
               </td>
               <th className="form-th required">프로그램구분</th>
@@ -542,6 +605,8 @@ export default function SYS1000M00() {
                   className="combo-base w-full"
                   value={selectedProgram?.pgmDivCd || ''}
                   onChange={(e) => handleProgramDivisionChange(e.target.value)}
+                  data-testid="detail-pgm-div"
+                  aria-label="프로그램 구분 선택"
                 >
                   <option value="">선택</option>
                   {pgmDivOptions.map(opt => (
@@ -555,6 +620,8 @@ export default function SYS1000M00() {
                   className="combo-base w-full"
                   value={selectedProgram?.bizDivCd || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, bizDivCd: e.target.value } : null)}
+                  data-testid="detail-biz-div"
+                  aria-label="업무 구분 선택"
                 >
                   <option value="">선택</option>
                   {bizDivOptions.map(opt => (
@@ -573,6 +640,8 @@ export default function SYS1000M00() {
                   className="input-base input-default w-full" 
                   value={selectedProgram?.linkPath || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, linkPath: e.target.value } : null)}
+                  data-testid="detail-link-path"
+                  aria-label="파일 경로 입력"
                 />
               </td>
               <th className="form-th required">사용여부</th>
@@ -581,6 +650,8 @@ export default function SYS1000M00() {
                   className="combo-base w-full"
                   value={selectedProgram?.useYn || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, useYn: e.target.value } : null)}
+                  data-testid="detail-use-yn"
+                  aria-label="사용 여부 선택"
                 >
                   <option value="">선택</option>
                   <option value="Y">사용</option>
@@ -598,6 +669,8 @@ export default function SYS1000M00() {
                   className="input-base input-default w-full" 
                   value={selectedProgram?.pgmWdth || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, pgmWdth: parseInt(e.target.value) || 0 } : null)}
+                  data-testid="detail-pgm-wdth"
+                  aria-label="팝업 너비 입력"
                 />
               </td>
               <th className="form-th">팝업높이(height)</th>
@@ -607,6 +680,8 @@ export default function SYS1000M00() {
                   className="input-base input-default w-full" 
                   value={selectedProgram?.pgmHght || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, pgmHght: parseInt(e.target.value) || 0 } : null)}
+                  data-testid="detail-pgm-hght"
+                  aria-label="팝업 높이 입력"
                 />
               </td>
               <th className="form-th">팝업위치(top)</th>
@@ -616,6 +691,8 @@ export default function SYS1000M00() {
                   className="input-base input-default w-full" 
                   value={selectedProgram?.pgmPsnTop || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, pgmPsnTop: parseInt(e.target.value) || 0 } : null)}
+                  data-testid="detail-pgm-psn-top"
+                  aria-label="팝업 위치 top 입력"
                 />
               </td>
               <th className="form-th">팝업위치(left)</th>
@@ -625,6 +702,8 @@ export default function SYS1000M00() {
                   className="input-base input-default w-full" 
                   value={selectedProgram?.pgmPsnLft || ''}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, pgmPsnLft: parseInt(e.target.value) || 0 } : null)}
+                  data-testid="detail-pgm-psn-lft"
+                  aria-label="팝업 위치 left 입력"
                 />
               </td>
             </tr>
@@ -637,6 +716,8 @@ export default function SYS1000M00() {
                   className="combo-base w-full"
                   value={selectedProgram?.tgtMdiDivCd || 'MAIN'}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, tgtMdiDivCd: e.target.value } : null)}
+                  data-testid="detail-tgt-mdi-div"
+                  aria-label="대상 MDI 선택"
                 >
                   <option value="MAIN">MAIN</option>
                   <option value="SUB">SUB</option>
@@ -648,6 +729,8 @@ export default function SYS1000M00() {
                   className="combo-base w-full"
                   value={selectedProgram?.popupSwtUseYn || 'N'}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, popupSwtUseYn: e.target.value } : null)}
+                  data-testid="detail-popup-swt-use-yn"
+                  aria-label="크기조절 사용 여부 선택"
                 >
                   <option value="Y">사용</option>
                   <option value="N">미사용</option>
@@ -659,6 +742,8 @@ export default function SYS1000M00() {
                   className="combo-base w-full"
                   value={selectedProgram?.popupMoni || 'N'}
                   onChange={(e) => setSelectedProgram(prev => prev ? { ...prev, popupMoni: e.target.value } : null)}
+                  data-testid="detail-popup-moni"
+                  aria-label="팝업전환 사용 여부 선택"
                 >
                   <option value="Y">사용</option>
                   <option value="N">미사용</option>
@@ -670,12 +755,14 @@ export default function SYS1000M00() {
         </table>
 
         {/* 버튼 영역 */}
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end" data-testid="button-section">
           <button 
             type="button" 
             className="btn-base btn-etc" 
             onClick={handlePreview}
             disabled={!selectedProgram}
+            data-testid="preview-button"
+            aria-label="프로그램 미리보기"
           >
             미리보기
           </button>
@@ -683,6 +770,8 @@ export default function SYS1000M00() {
             type="button" 
             className="btn-base btn-etc" 
             onClick={handleNew}
+            data-testid="new-button"
+            aria-label="새 프로그램 등록"
           >
             신규
           </button>
@@ -691,6 +780,8 @@ export default function SYS1000M00() {
             className="btn-base btn-act" 
             onClick={handleSave}
             disabled={!selectedProgram}
+            data-testid="save-button"
+            aria-label="프로그램 저장"
           >
             저장
           </button>

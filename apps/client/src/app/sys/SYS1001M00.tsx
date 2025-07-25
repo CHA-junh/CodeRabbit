@@ -1,3 +1,51 @@
+/**
+ * SYS1001M00 - 프로그램 그룹 관리 화면
+ *
+ * 주요 기능:
+ * - 프로그램 그룹 목록 조회 및 검색
+ * - 프로그램 그룹 신규 등록 및 수정
+ * - 프로그램 그룹별 프로그램 연결 관리
+ * - 프로그램 그룹 복사 기능
+ * - 프로그램 검색 및 그룹에 추가/제거
+ *
+ * API 연동:
+ * - GET /api/sys/program-groups - 프로그램 그룹 목록 조회
+ * - POST /api/sys/program-groups - 프로그램 그룹 저장
+ * - GET /api/sys/program-groups/:pgmGrpId/programs - 그룹별 프로그램 조회
+ * - POST /api/sys/program-groups/:pgmGrpId/programs - 그룹별 프로그램 저장
+ * - POST /api/sys/program-groups/:pgmGrpId/copy - 프로그램 그룹 복사
+ * - GET /api/sys/programs - 전체 프로그램 목록 조회 (검색용)
+ *
+ * 상태 관리:
+ * - 프로그램 그룹 목록 및 선택된 그룹
+ * - 그룹별 프로그램 목록 및 선택된 프로그램들
+ * - 검색 조건 (그룹명, 사용여부)
+ * - 신규/수정 모드 상태
+ *
+ * 사용자 인터페이스:
+ * - 검색 조건 입력 (그룹명, 사용여부)
+ * - 프로그램 그룹 목록 테이블 (AG-Grid)
+ * - 프로그램 그룹 상세 정보 입력 폼
+ * - 그룹별 프로그램 목록 테이블 (체크박스 선택)
+ * - 저장/신규/복사/프로그램추가/프로그램삭제 버튼
+ *
+ * 연관 화면:
+ * - SYS1000M00: 프로그램 관리 (프로그램 정보)
+ * - SYS1002M00: 메뉴별 프로그램 관리 (그룹 연결)
+ * - SYS1003M00: 사용자 역할 관리 (그룹 권한)
+ * - SYS1010D00: 프로그램 검색 팝업
+ *
+ * 데이터 구조:
+ * - ProgramGroup: 프로그램 그룹 정보 (pgmGrpId, pgmGrpNm, useYn 등)
+ * - ProgramGroupDetail: 프로그램 그룹 상세 정보 (그룹 정보 + 프로그램 목록)
+ * - ProgramGroupProgram: 그룹에 연결된 프로그램 정보 (pgmId, pgmNm, pgmDivNm, bizDivNm, useYn 등)
+ *
+ * 특이사항:
+ * - 프로그램 그룹 복사 시 기존 그룹명에 "_COPY" 접미사 추가
+ * - 프로그램 검색은 팝업을 통해 별도 화면에서 처리
+ * - 그룹별 프로그램은 체크박스로 다중 선택 가능
+ * - URL 파라미터를 통한 초기 그룹 선택 지원
+ */
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';

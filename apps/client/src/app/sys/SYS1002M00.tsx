@@ -1,3 +1,59 @@
+/**
+ * SYS1002M00 - 메뉴별 프로그램 관리 화면
+ *
+ * 주요 기능:
+ * - 메뉴 목록 조회 및 검색
+ * - 메뉴 신규 등록 및 수정/삭제
+ * - 메뉴별 프로그램 연결 관리
+ * - 메뉴 계층 구조 트리 표시
+ * - 메뉴 미리보기 기능
+ * - 메뉴 복사 기능
+ *
+ * API 연동:
+ * - GET /api/sys/sys-menus - 메뉴 목록 조회
+ * - POST /api/sys/sys-menus - 메뉴 저장
+ * - DELETE /api/sys/sys-menus/:menuId - 메뉴 삭제
+ * - POST /api/sys/sys-menus/:menuId/copy - 메뉴 복사
+ * - GET /api/sys/sys-menus/:menuId/programs - 메뉴별 프로그램 조회
+ * - POST /api/sys/sys-menus/:menuId/programs - 메뉴별 프로그램 저장
+ * - DELETE /api/sys/sys-menus/:menuId/programs - 메뉴별 프로그램 삭제
+ * - POST /api/common/search - 공통코드 조회 (구분: 304)
+ *
+ * 상태 관리:
+ * - 메뉴 목록 및 선택된 메뉴
+ * - 메뉴별 프로그램 목록 및 선택된 프로그램들
+ * - 메뉴 트리 구조 및 확장/축소 상태
+ * - 검색 조건 (메뉴ID/명, 사용여부)
+ * - 구분 코드 목록 (304 대분류)
+ *
+ * 사용자 인터페이스:
+ * - 검색 조건 입력 (메뉴ID/명, 사용여부)
+ * - 메뉴 목록 테이블 (AG-Grid)
+ * - 메뉴 계층 구조 트리 (좌측)
+ * - 메뉴별 프로그램 목록 테이블 (우측)
+ * - 메뉴 상세 정보 입력 폼
+ * - 저장/신규/삭제/복사/미리보기 버튼
+ *
+ * 연관 화면:
+ * - SYS1000M00: 프로그램 관리 (프로그램 정보)
+ * - SYS1001M00: 프로그램 그룹 관리 (그룹 연결)
+ * - SYS1003M00: 사용자 역할 관리 (메뉴 권한)
+ * - SYS1010D00: 프로그램 검색 팝업
+ * - SYS1012R00: 메뉴 미리보기 팝업
+ *
+ * 데이터 구조:
+ * - Menu: 메뉴 정보 (MENU_ID, MENU_NM, USE_YN, USER_CNT 등)
+ * - MenuProgram: 메뉴별 프로그램 정보 (MENU_SEQ, MENU_DSP_NM, MENU_SHP_DVCD, PGM_ID 등)
+ * - TreeNode: 메뉴 트리 노드 (children, treeIndex 등)
+ *
+ * 특이사항:
+ * - 메뉴는 계층 구조로 관리 (MENU_SEQ로 계층 표현)
+ * - 메뉴별 프로그램의 구분은 304 대분류 코드 사용
+ * - 메뉴 복사 시 하위 메뉴와 프로그램도 함께 복사
+ * - 메뉴 미리보기는 팝업으로 실제 메뉴 구조 표시
+ * - 트리 구조는 재귀적 컴포넌트로 구현
+ * - 메뉴별 프로그램은 계층적 삭제 지원
+ */
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -993,6 +1049,7 @@ export default function SYS1002M00() {
           animateRows={true}
           rowHeight={32}
           headerHeight={40}
+          data-testid="menu-grid"
         />
       </div>
 
@@ -1147,6 +1204,7 @@ export default function SYS1002M00() {
               animateRows={true}
               rowHeight={32}
               headerHeight={40}
+              data-testid="menu-program-grid"
               onCellValueChanged={(params) => {
                 const { data, colDef, newValue } = params;
                 const updated = [...menuPrograms];

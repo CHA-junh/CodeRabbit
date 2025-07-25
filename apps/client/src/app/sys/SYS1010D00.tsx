@@ -1,3 +1,50 @@
+/**
+ * SYS1010D00 - 프로그램 검색 팝업 화면
+ *
+ * 주요 기능:
+ * - 프로그램 목록 조회 및 검색
+ * - 프로그램 다중/단일 선택
+ * - 선택된 프로그램을 부모 화면으로 전달
+ * - 팝업 형태로 동작하여 부모 화면과 분리
+ *
+ * API 연동:
+ * - GET /api/sys/programs - 프로그램 목록 조회
+ * - POST /api/common/search - 공통코드 조회 (프로그램구분: 305, 업무구분: 303)
+ *
+ * 상태 관리:
+ * - 프로그램 목록 및 선택된 프로그램들
+ * - 검색 조건 (프로그램키워드, 프로그램구분, 업무구분)
+ * - 로딩 상태 및 팝업 제어
+ *
+ * 사용자 인터페이스:
+ * - 검색 조건 입력 (프로그램키워드, 프로그램구분, 업무구분)
+ * - 프로그램 목록 테이블 (AG-Grid)
+ * - 체크박스 다중 선택 (multiple=true인 경우)
+ * - 더블클릭 단일 선택
+ * - 선택/취소/닫기 버튼
+ *
+ * 연관 화면:
+ * - SYS1001M00: 프로그램 그룹 관리 (프로그램 추가)
+ * - SYS1002M00: 메뉴별 프로그램 관리 (프로그램 연결)
+ * - SYS1000M00: 프로그램 관리 (프로그램 정보)
+ *
+ * 데이터 구조:
+ * - Program: 프로그램 정보 (PGM_ID, PGM_NM, PGM_DIV_CD, BIZ_DIV_CD, USE_YN 등)
+ * - SYS1010D00Props: 팝업 속성 (onSelect, multiple)
+ *
+ * 특이사항:
+ * - 팝업 형태로 동작하여 부모 화면에서 호출
+ * - URL 파라미터를 통한 초기 설정 (PGM_ID, PGM_GRP_ID)
+ * - 다중 선택/단일 선택 모드 지원
+ * - 선택된 프로그램은 부모 화면의 콜백 함수로 전달
+ * - 더블클릭 시 즉시 선택 완료
+ * - 체크박스 선택 시 다중 선택 가능
+ *
+ * 사용 예시:
+ * - SYS1001M00에서 프로그램 그룹에 프로그램 추가 시
+ * - SYS1002M00에서 메뉴에 프로그램 연결 시
+ * - 기타 프로그램 선택이 필요한 모든 화면
+ */
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -283,6 +330,7 @@ export default function SYS1010D00({ onSelect, multiple = true }: SYS1010D00Prop
             pagination={false}
             domLayout="autoHeight"
             onRowDoubleClicked={handleRowDoubleClick}
+            data-testid="program-search-grid"
           />
         </div>
       </div>
