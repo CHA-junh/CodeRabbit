@@ -50,12 +50,37 @@ import { ColDef, SelectionChangedEvent } from "ag-grid-community"; // ColDef 타
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "@/app/common/common.css"; // 공통 CSS 경로로 수정
-import {
-	TblUserRole,
-	TblUserRolePgmGrp,
-	TblMenuInf,
-	ProgramGroupData,
-} from "../../modules/sys/types"; // 타입 import
+
+// 사용자 역할 정보 타입
+interface TblUserRole {
+	usrRoleId: string;
+	usrRoleNm: string;
+	athrGrdCd: string;
+	orgInqRngCd: string;
+	menuId: string;
+	useYn: string;
+	baseOutputScrnPgmIdCtt?: string;
+	baseOutputScrnPgmNmCtt?: string;
+	[key: string]: any;
+}
+
+// 프로그램 그룹 정보 타입
+interface ProgramGroupData {
+	pgmGrpId: string;
+	pgmGrpNm: string;
+	pgmGrpUseYn: string;
+	cnt: number;
+	[key: string]: any;
+}
+
+// 메뉴 정보 타입
+interface TblMenuInf {
+	menuId: string;
+	menuNm: string;
+	useYn: string;
+	[key: string]: any;
+}
+
 import {
 	fetchUserRoles,
 	saveUserRoles,
@@ -106,11 +131,12 @@ export default function RoleManagementPage() {
 	const { showToast, showConfirm } = useToast();
 
 	// 사용자 역할 목록 상태 관리 (ASIS: grdUserRole.dataProvider)
+	// useState<ProgramGroupData[]> 등에서 타입 충돌이 발생하지 않도록, 상단에 직접 정의한 타입만 사용하도록 명시적으로 타입 선언
 	const [rowData, setRowData] = useState<TblUserRole[]>([]);
 	// 선택된 사용자 역할 상태 관리 (ASIS: grdUserRole.selectedItem)
 	const [selectedRole, setSelectedRole] = useState<TblUserRole | null>(null);
 	// 프로그램 그룹 목록 상태 관리 (ASIS: grdPgmGrp.dataProvider)
-	const [pgmGrpRowData, setPgmGrpRowData] = useState<PgmGrpRow[]>([]);
+	const [pgmGrpRowData, setPgmGrpRowData] = useState<ProgramGroupData[]>([]);
 	// 메뉴 목록 상태 관리 (ASIS: cboMenu.dataProvider)
 	const [menuList, setMenuList] = useState<TblMenuInf[]>([]);
 
@@ -183,7 +209,7 @@ export default function RoleManagementPage() {
 	};
 
 	const userRoleGridRef = useRef<AgGridReact<TblUserRole>>(null);
-	const pgmGrpGridRef = useRef<AgGridReact<PgmGrpRow>>(null);
+	const pgmGrpGridRef = useRef<AgGridReact<ProgramGroupData>>(null);
 
 	const [colDefs] = useState<ColDef[]>([
 		// 사용자역할코드 (코드/ID) - 가운데 정렬
@@ -297,12 +323,12 @@ export default function RoleManagementPage() {
 		try {
 			// 사용자 역할 목록 조회 (ASIS: USR_02_0101_S 프로시저 호출)
 			const data = await fetchUserRoles(searchConditions);
-			setRowData(data);
+			setRowData((data as any[]).map((item) => ({ ...item })));
 
 			// 기존 시스템과 동일하게 조회 시에도 프로그램 그룹 목록 조회
 			try {
 				const allPgmGrps = await fetchAllProgramGroups();
-				setPgmGrpRowData(allPgmGrps);
+				setPgmGrpRowData((allPgmGrps as any[]).map((item) => ({ ...item })));
 			} catch (error) {
 				console.error(error);
 				setPgmGrpRowData([]);
@@ -336,6 +362,33 @@ export default function RoleManagementPage() {
 			}
 		};
 		loadMenus();
+	}, []);
+
+	// postMessage 이벤트 리스너 추가
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			if (event.data.type === "SELECTED_PROGRAMS") {
+				const { data: selectedPrograms, PGM_ID } = event.data;
+				if (selectedPrograms && selectedPrograms.length > 0) {
+					const selectedProgram = selectedPrograms[0];
+					setSelectedRole((prev) => ({
+						...prev!,
+						baseOutputScrnPgmIdCtt:
+							selectedProgram.PGM_ID ||
+							selectedProgram.pgmId ||
+							selectedProgram.id ||
+							"",
+						baseOutputScrnPgmNmCtt:
+							selectedProgram.PGM_NM ||
+							selectedProgram.pgmNm ||
+							selectedProgram.name ||
+							"",
+					}));
+				}
+			}
+		};
+		window.addEventListener("message", handleMessage);
+		return () => window.removeEventListener("message", handleMessage);
 	}, []);
 
 	useEffect(() => {
@@ -544,7 +597,7 @@ export default function RoleManagementPage() {
 		// 기존 시스템과 동일하게 프로그램 그룹 목록도 재조회
 		try {
 			const allPgmGrps = await fetchAllProgramGroups();
-			setPgmGrpRowData(allPgmGrps);
+			setPgmGrpRowData(allPgmGrps as ProgramGroupData[]);
 		} catch (error) {
 			console.error(error);
 			setPgmGrpRowData([]);
@@ -569,12 +622,13 @@ export default function RoleManagementPage() {
 			orgInqRngCd: "",
 			menuId: "",
 			baseOutputScrnPgmIdCtt: "",
+			baseOutputScrnPgmNmCtt: "", // 신규 모드에서 추가된 필드
 		};
 
 		// 모든 프로그램 그룹 목록 조회 (체크박스로 선택 가능한 상태)
 		try {
 			const allPgmGrps = await fetchAllProgramGroups();
-			setPgmGrpRowData(allPgmGrps);
+			setPgmGrpRowData(allPgmGrps as ProgramGroupData[]);
 		} catch (error) {
 			console.error(error);
 			showToast(
@@ -606,6 +660,7 @@ export default function RoleManagementPage() {
 				menuId: role.menuId || "",
 				usrRoleNm: role.usrRoleNm || "",
 				baseOutputScrnPgmIdCtt: role.baseOutputScrnPgmIdCtt || "",
+				baseOutputScrnPgmNmCtt: role.baseOutputScrnPgmNmCtt || "", // 기존 역할 선택 시 추가된 필드
 			};
 
 			setSelectedRole(roleWithDefaults);
@@ -614,7 +669,7 @@ export default function RoleManagementPage() {
 
 			try {
 				const pgmGrps = await fetchProgramGroups(role.usrRoleId);
-				setPgmGrpRowData(pgmGrps); // 변환 없이 그대로 할당
+				setPgmGrpRowData((pgmGrps as any[]).map((item) => ({ ...item }))); // 변환 없이 그대로 할당
 			} catch (error) {
 				console.error(error);
 				showConfirm({
@@ -644,6 +699,7 @@ export default function RoleManagementPage() {
 			athrGrdCd: "",
 			orgInqRngCd: "",
 			baseOutputScrnPgmIdCtt: "",
+			baseOutputScrnPgmNmCtt: "", // 추가된 필드
 			useYn: "",
 		};
 
@@ -659,8 +715,26 @@ export default function RoleManagementPage() {
 		setSelectedRole({
 			...selectedRole,
 			baseOutputScrnPgmIdCtt: "",
+			baseOutputScrnPgmNmCtt: "", // 추가된 필드
 			// baseOutputScrnPgmNmCtt 필드가 있다면 같이 초기화해야 합니다.
 			// 현재 타입 정의에 없어 우선 ID 필드만 초기화합니다.
+		});
+	};
+
+	// 프로그램 검색 핸들러
+	const handleProgramSearch = (rowData: any, rowIndex: number) => {
+		console.log("프로그램 검색 클릭:", rowData, rowIndex);
+		// 프로그램 검색 팝업 열기 (그리드 안쪽: 클릭한 로우의 순번을 PGM_ID로 전달)
+		openPopup({
+			url: `/popup/sys/SYS1010D00?PGM_ID=${rowIndex}`,
+			size: "custom",
+			position: "center",
+			options: {
+				width: 850,
+				height: 430,
+				resizable: false,
+				scrollbars: false,
+			},
 		});
 	};
 
@@ -902,14 +976,20 @@ export default function RoleManagementPage() {
 							<tr className='form-tr'>
 								<th className='form-th'>기본출력화면</th>
 								<td className='form-td' colSpan={4}>
+									{/* 프로그램ID는 hidden, 프로그램명은 표시 */}
 									<input
-										type='text'
+										type='hidden'
 										name='baseOutputScrnPgmIdCtt'
 										value={selectedRole?.baseOutputScrnPgmIdCtt || ""}
-										onChange={handleFormChange}
+										readOnly
+									/>
+									<input
+										type='text'
+										name='baseOutputScrnPgmNmCtt'
+										value={selectedRole?.baseOutputScrnPgmNmCtt || ""}
+										readOnly
 										className='input-base input-default w-full'
 										aria-label='상세 기본출력화면'
-										readOnly
 									/>
 								</td>
 								<td className='form-td'>
@@ -917,13 +997,7 @@ export default function RoleManagementPage() {
 										<button
 											type='button'
 											className='btn-base btn-etc text-xs px-3 py-1'
-											onClick={() =>
-												openPopup({
-													url: "/popup/designs/SYS1010D00", //임시
-													size: "medium",
-													position: "center",
-												})
-											}
+											onClick={() => handleProgramSearch(null, 0)}
 										>
 											+ 추가
 										</button>

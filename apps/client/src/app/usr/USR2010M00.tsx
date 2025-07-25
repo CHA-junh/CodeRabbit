@@ -106,6 +106,7 @@ function mapCodeApiToCodeData(apiData: any[]): CodeData[] {
 
 const USR2010M00: React.FC = () => {
 	const { showToast, showConfirm } = useToast();
+	const { openPopup } = usePopup(); // 팝업 오픈 함수 선언 복구
 	const { user } = useAuth();
 
 	// 검색 조건 상태 관리 (ASIS: txtHqDiv.text, txtDeptDiv.text, txtUserNm.text)
@@ -128,23 +129,38 @@ const USR2010M00: React.FC = () => {
 	// 폼 데이터 상태 관리 (ASIS: 폼 필드들의 초기값)
 	const [formData, setFormData] = useState(initialFormData);
 
-	// 승인결재자 후보 목록 상태 관리 (ASIS: COMZ100P00 팝업에서 사용)
-	const [potentialApprovers, setPotentialApprovers] = useState<any[]>([]);
-	// 팝업 관리 훅 (ASIS: PopUpManager와 동일한 역할)
-	const { openPopup } = usePopup();
+	// 1. 승인결재자 후보 목록 상태 관리 (메인 userData와 분리)
+	const [approverList, setApproverList] = useState<UserData[]>([]);
 
-	// postMessage 이벤트 리스너 추가
-	useEffect(() => {
-		const handleMessage = (event: MessageEvent) => {
-			if (event.data.type === "EMP_SELECTED") {
-				const empData = event.data.data;
-				handleApproverSelect(empData);
-			}
-		};
+	// 2. 승인결재자 검색 함수 (메인 userData를 건드리지 않음)
+	const handleApproverSearch = async (searchName: string) => {
+		const result = await usrApiService.getUserList({
+			hqDiv: "ALL",
+			deptDiv: "ALL",
+			userNm: searchName,
+		});
+		setApproverList(result);
+	};
 
-		window.addEventListener("message", handleMessage);
-		return () => window.removeEventListener("message", handleMessage);
-	}, []); // handleApproverSelect는 useCallback으로 메모이제이션되어 있어서 의존성에서 제거
+	// 3. 팝업 오픈 시 approverList를 전달
+	const openApproverPopup = () => {
+		openPopup({
+			url: "/popup/com/COMZ100P00",
+			size: "medium",
+			position: "center",
+			waitForReady: true,
+			readyResponseData: {
+				type: "CHOICE_EMP_INIT",
+				data: {
+					empNm: editedUser.apvApofNm || "",
+					empList: approverList,
+				},
+			},
+			onOpen: (popup) => {
+				console.log("📱 USR2010M00 - 팝업 열림");
+			},
+		});
+	};
 
 	const [hqCodeList, setHqCodeList] = useState<CodeData[]>([]);
 	const [deptCodeList, setDeptCodeList] = useState<CodeData[]>([]);
@@ -199,30 +215,31 @@ const USR2010M00: React.FC = () => {
 		if (rolesData) setUserRoleList(rolesData);
 	}, [hqData, deptData, authData, dutyDivData, workAuthData, rolesData]);
 
+	// useEffect([userData])에서 selectedUser를 무조건 null로 만드는 로직 개선 부분은 유지하되, 불필요한 setFormData/editedUser 초기화는 최소화
 	useEffect(() => {
 		if (userData) {
-			// 사용자 조회 결과가 있을 때
 			if (userData.length === 0) {
 				setSelectedUser(null);
-				setFormData(initialFormData);
 				setEditedUser({});
+			} else if (selectedUser) {
+				// userData에 현재 선택된 사용자가 있으면 유지
+				const stillExists = userData.some(
+					(u) => u.empNo === selectedUser.empNo
+				);
+				if (!stillExists) {
+					setSelectedUser(null);
+					setEditedUser({});
+				}
+				// else: selectedUser 유지 (초기화하지 않음)
 			}
+			// selectedUser가 null이면 아무것도 하지 않음 (초기화하지 않음)
+		}
+	}, [userData]);
 
-			// Flex 소스와 동일하게 사용자 조회 결과와 관계없이 항상 업무권한 조회
-			setWorkAuthLoading(true);
-			setWorkAuthError(null);
-
-			usrApiService
-				.getWorkAuthList("")
-				.then((list: WorkAuthData[]) => {
-					setWorkAuthList(list);
-					setWorkAuthLoading(false);
-				})
-				.catch((error: any) => {
-					console.error("업무권한 목록 조회 실패:", error);
-					setWorkAuthError("업무권한 목록을 불러올 수 없습니다.");
-					setWorkAuthLoading(false);
-				});
+	// userData 변경 시, selectedUser가 null이고 userData가 있으면 첫 번째 사용자 자동 선택
+	useEffect(() => {
+		if (userData && userData.length > 0 && !selectedUser) {
+			handleUserSelect(userData[0]);
 		}
 	}, [userData]);
 
@@ -291,7 +308,6 @@ const USR2010M00: React.FC = () => {
 	 * @param user 선택된 사용자 정보
 	 */
 	const handleUserSelect = (user: UserData) => {
-		// 선택된 사용자 상태 설정 (ASIS: grdUser.selectedItem = user)
 		setSelectedUser(user);
 
 		// 폼 데이터 설정 (ASIS: 폼 필드들에 사용자 정보 설정)
@@ -342,6 +358,118 @@ const USR2010M00: React.FC = () => {
 	};
 
 	/**
+	 * 사용자 정보 저장 진행 함수
+	 * ASIS: fnUserInfoSave() 함수와 동일한 역할
+	 * 승인결재자 정보와 함께 사용자 정보를 저장하고 결과를 처리
+	 * @param approver 승인결재자 정보 (id: 승인결재자ID, name: 승인결재자명)
+	 */
+	const proceedWithSave = useCallback(
+		async (approver: { id: string; name: string }, userForSave?: UserData) => {
+			// 저장 확인 메시지 표시 (ASIS: Alert.show("저장하시겠습니까?"))
+			showConfirm({
+				message: "저장하시겠습니까?",
+				type: "info",
+				onConfirm: async () => {
+					// 현재 업무권한 목록에서 부여된 권한만 필터링
+					const currentWorkAuthList = editedUser.workAuthList || workAuthList;
+
+					// 저장할 데이터 구성 (ASIS: 저장할 객체 구성)
+					const saveData: UserSaveData = {
+						...(userForSave || selectedUser!),
+						...editedUser,
+						empNo: userForSave?.empNo || editedUser.empNo || "", // ← 반드시 포함!
+						apvApofId: approver.id, // 승인결재자ID
+						apvApofNm: approver.name, // 승인결재자명
+						workAuthList: currentWorkAuthList,
+						regUserId: user && "empNo" in user ? (user as any).empNo : "",
+					};
+
+					try {
+						// 사용자 정보 저장 (ASIS: USR_01_0203_T 프로시저 호출)
+						await usrApiService.saveUser(saveData);
+						showToast("성공적으로 저장되었습니다.", "info");
+
+						// 저장 후 사용자 목록 새로고침 (ASIS: fn_srch() 호출)
+						await refetchUserList();
+
+						// 현재 선택된 사용자가 있다면 업데이트된 정보로 다시 설정
+						if (userForSave || selectedUser) {
+							const updatedUserList =
+								await usrApiService.getUserList(searchParams);
+							const updatedUser = updatedUserList.find(
+								(u) => u.empNo === (userForSave?.empNo || selectedUser?.empNo)
+							);
+							if (updatedUser) {
+								handleUserSelect(updatedUser);
+							}
+						}
+					} catch (error) {
+						console.error("Failed to save user:", error);
+						showConfirm({
+							message: `저장 중 오류가 발생했습니다: ${(error as Error).message}`,
+							type: "error",
+							onConfirm: () => {},
+							confirmOnly: true,
+						});
+					}
+				},
+			});
+		},
+		[
+			editedUser,
+			workAuthList,
+			selectedUser,
+			user,
+			searchParams,
+			showConfirm,
+			showToast,
+			refetchUserList,
+		]
+	);
+
+	// 4. handleApproverSelect는 editedUser만 갱신 (userData/selectedUser는 건드리지 않음)
+	const handleApproverSelect = useCallback(
+		(approver: { empNo: string; empNm: string; authCd: string }) => {
+			if (approver.authCd !== "10" && approver.authCd !== "00") {
+				showConfirm({
+					message:
+						"승인결재자는 부서장 이상이어야 합니다.\n재 입력 해 주십시요.",
+					type: "warning",
+					onConfirm: () => {
+						const apvApofInput = document.getElementById(
+							"apvApofNm"
+						) as HTMLInputElement;
+						if (apvApofInput) apvApofInput.focus();
+					},
+					confirmOnly: true,
+				});
+				return;
+			}
+			setEditedUser((prev) => ({
+				...prev,
+				apvApofId: approver.empNo,
+				apvApofNm: approver.empNm,
+			}));
+			// 팝업에서 선택 후 자동 저장 호출
+			proceedWithSave({ id: approver.empNo, name: approver.empNm });
+		},
+		[showConfirm, proceedWithSave]
+	);
+
+	// postMessage 이벤트 리스너 추가
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			if (event.data.type === "EMP_SELECTED") {
+				const empData = event.data.data;
+				handleApproverSelect(empData);
+			}
+		};
+
+		window.addEventListener("message", handleMessage);
+		return () => window.removeEventListener("message", handleMessage);
+	}, [handleApproverSelect]); // handleApproverSelect 의존성 추가
+
+	/**
 	 * 업무권한 변경 처리 함수
 	 * ASIS: rdoGrant_click(), rdoRevoke_click() 함수와 동일한 역할
 	 * 선택된 업무권한에 대해 부여/해제 액션을 적용
@@ -374,81 +502,13 @@ const USR2010M00: React.FC = () => {
 	// useEffect 제거 - 무한 루프 방지
 
 	/**
-	 * 사용자 정보 저장 진행 함수
-	 * ASIS: fnUserInfoSave() 함수와 동일한 역할
-	 * 승인결재자 정보와 함께 사용자 정보를 저장하고 결과를 처리
-	 * @param approver 승인결재자 정보 (id: 승인결재자ID, name: 승인결재자명)
-	 */
-	const proceedWithSave = useCallback(
-		async (approver: { id: string; name: string }) => {
-			// 저장 확인 메시지 표시 (ASIS: Alert.show("저장하시겠습니까?"))
-			showConfirm({
-				message: "저장하시겠습니까?",
-				type: "info",
-				onConfirm: async () => {
-					// 현재 업무권한 목록에서 부여된 권한만 필터링
-					const currentWorkAuthList = editedUser.workAuthList || workAuthList;
-
-					// 저장할 데이터 구성 (ASIS: 저장할 객체 구성)
-					const saveData: UserSaveData = {
-						...selectedUser!,
-						...editedUser,
-						apvApofId: approver.id, // 승인결재자ID
-						apvApofNm: approver.name, // 승인결재자명
-						workAuthList: currentWorkAuthList,
-						regUserId: user && "empNo" in user ? (user as any).empNo : "",
-					};
-
-					try {
-						// 사용자 정보 저장 (ASIS: USR_01_0203_T 프로시저 호출)
-						await usrApiService.saveUser(saveData);
-						showToast("성공적으로 저장되었습니다.", "info");
-
-						// 저장 후 사용자 목록 새로고침 (ASIS: fn_srch() 호출)
-						await refetchUserList();
-
-						// 현재 선택된 사용자가 있다면 업데이트된 정보로 다시 설정
-						if (selectedUser) {
-							const updatedUserList =
-								await usrApiService.getUserList(searchParams);
-							const updatedUser = updatedUserList.find(
-								(u) => u.empNo === selectedUser.empNo
-							);
-							if (updatedUser) {
-								handleUserSelect(updatedUser);
-							}
-						}
-					} catch (error) {
-						console.error("Failed to save user:", error);
-						showConfirm({
-							message: `저장 중 오류가 발생했습니다: ${(error as Error).message}`,
-							type: "error",
-							onConfirm: () => {},
-							confirmOnly: true,
-						});
-					}
-				},
-			});
-		},
-		[
-			editedUser,
-			workAuthList,
-			selectedUser,
-			user,
-			searchParams,
-			showConfirm,
-			showToast,
-			refetchUserList,
-		]
-	);
-
-	/**
 	 * 사용자 정보 저장 함수
 	 * ASIS: btnSave_click() 함수와 동일한 역할
 	 * 사용자 정보 유효성 검사 후 승인결재자 검색 및 저장 진행
 	 */
 	const handleSave = async () => {
-		if (!selectedUser || !editedUser.empNo) {
+		const userForSave = selectedUser;
+		if (!userForSave || !userForSave.empNo) {
 			showConfirm({
 				message: "저장할 사용자를 선택해주세요.",
 				type: "warning",
@@ -457,81 +517,64 @@ const USR2010M00: React.FC = () => {
 			});
 			return;
 		}
-
 		if (!editedUser.apvApofNm) {
 			showConfirm({
 				message: "승인결재자를 입력해 주십시요.",
 				type: "warning",
 				onConfirm: () => {
-					// 승인결재자 입력 필드에 포커스
 					const apvApofInput = document.getElementById(
 						"apvApofNm"
 					) as HTMLInputElement;
-					if (apvApofInput) {
-						apvApofInput.focus();
-					}
+					if (apvApofInput) apvApofInput.focus();
 				},
 				confirmOnly: true,
 			});
 			return;
 		}
-
 		if (!editedUser.authCd) {
 			showConfirm({
 				message: "사용자권한을 선택해 주십시요.",
 				type: "warning",
 				onConfirm: () => {
-					// 사용자권한 콤보박스에 포커스
 					const authSelect = document.getElementById(
 						"authCd"
 					) as HTMLSelectElement;
-					if (authSelect) {
-						authSelect.focus();
-					}
+					if (authSelect) authSelect.focus();
 				},
 				confirmOnly: true,
 			});
 			return;
 		}
-
 		if (!editedUser.dutyDivCd) {
 			showConfirm({
 				message: "직책구분을 선택해 주십시요.",
 				type: "warning",
 				onConfirm: () => {
-					// 직책구분 콤보박스에 포커스
 					const dutyDivSelect = document.getElementById(
 						"dutyDivCd"
 					) as HTMLSelectElement;
-					if (dutyDivSelect) {
-						dutyDivSelect.focus();
-					}
+					if (dutyDivSelect) dutyDivSelect.focus();
 				},
 				confirmOnly: true,
 			});
 			return;
 		}
-
 		try {
 			const approvers = await usrApiService.getUserList({
 				hqDiv: "ALL",
 				deptDiv: "ALL",
 				userNm: editedUser.apvApofNm,
 			});
-
 			if (approvers.length === 0) {
 				showConfirm({
 					message:
 						"사용자 정보에 미등록된 승인결재자 입니다. 승인결재자를 다시 입력해 주십시요.",
 					type: "warning",
 					onConfirm: () => {
-						// 승인결재자 입력 필드에 포커스
 						const apvApofInput = document.getElementById(
 							"apvApofNm"
 						) as HTMLInputElement;
-						if (apvApofInput) {
-							apvApofInput.focus();
-						}
+						if (apvApofInput) apvApofInput.focus();
 					},
 					confirmOnly: true,
 				});
@@ -544,69 +587,26 @@ const USR2010M00: React.FC = () => {
 							"승인결재자는 부서장 이상이어야 합니다.\n재 입력 해 주십시요.",
 						type: "warning",
 						onConfirm: () => {
-							// 승인결재자 입력 필드에 포커스
 							const apvApofInput = document.getElementById(
 								"apvApofNm"
 							) as HTMLInputElement;
-							if (apvApofInput) {
-								apvApofInput.focus();
-							}
+							if (apvApofInput) apvApofInput.focus();
 						},
 						confirmOnly: true,
 					});
 					return;
 				}
-				// 승인자 정보 업데이트 및 저장 진행
 				setEditedUser((prev) => ({
 					...prev,
 					apvApofId: approver.empNo,
 					apvApofNm: approver.empNm,
 				}));
-				proceedWithSave({ id: approver.empNo, name: approver.empNm });
+				proceedWithSave(
+					{ id: approver.empNo, name: approver.empNm },
+					userForSave
+				);
 			} else {
-				// 여러 명일 경우 팝업 열기 (ASIS: COM_02_0600 팝업과 동일)
-				// ASIS: var reg:COM_02_0600 = COM_02_0600(PopUpManager.createPopUp( this, COM_02_0600 , true));
-				// ASIS: reg.choiceEmpInit(txtApvNm.text, event.result.result_set.record);
-
-				// 승인결재자 후보 목록을 COMZ100P00 형식으로 변환
-				const empList = approvers.map((approver, index) => ({
-					LIST_NO: String(index + 1),
-					EMP_NO: approver.empNo,
-					EMP_NM: approver.empNm,
-					HQ_DIV_NM: approver.hqDivNm,
-					DEPT_DIV_NM: approver.deptDivNm,
-					DUTY_NM: approver.dutyNm,
-					AUTH_CD_NM: approver.authCdNm,
-					BSN_USE_YN: approver.bsnUseYn,
-					WPC_USE_YN: approver.wpcUseYn,
-					PSM_USE_YN: approver.psmUseYn,
-					RMK: "",
-					HQ_DIV_CD: approver.hqDivCd,
-					DEPT_DIV_CD: approver.deptDivCd,
-					DUTY_CD: approver.dutyCd,
-					DUTY_DIV_CD: approver.dutyDivCd,
-					AUTH_CD: approver.authCd,
-					APV_APOF_ID: approver.apvApofId,
-					EMAIL_ADDR: approver.emailAddr,
-				}));
-
-				// 팝업 열기 (ASIS: PopUpManager.createPopUp와 동일)
-				const popupInstance = openPopup({
-					url: "/popup/com/COMZ100P00",
-					size: "medium",
-					position: "center",
-					waitForReady: true, // 기본값: 준비 완료 메시지를 기다린 후 데이터 전송
-					readyResponseData: {
-						type: "CHOICE_EMP_INIT",
-						data: {
-							empNm: editedUser.apvApofNm || "",
-							empList: empList,
-						},
-					},
-					onOpen: (popup) => {
-						console.log('📱 USR2010M00 - 팝업 열림');
-					},
-				});
+				openApproverPopup();
 			}
 		} catch (error) {
 			console.error("Failed to search approver:", error);
@@ -618,49 +618,6 @@ const USR2010M00: React.FC = () => {
 			});
 		}
 	};
-
-	/**
-	 * 팝업에서 승인결재자 선택 시 처리 함수
-	 * ASIS: DblClick_COM_02_0600_Save() 함수와 동일한 로직
-	 * COMZ100P00 팝업에서 직원을 더블클릭하여 선택했을 때 호출되는 함수
-	 * 승인결재자 권한 체크 후 사용자 정보 저장을 진행
-	 * @param approver 선택된 승인결재자 정보 (empNo: 사번, empNm: 성명, authCd: 권한코드)
-	 */
-	const handleApproverSelect = useCallback(
-		(approver: { empNo: string; empNm: string; authCd: string }) => {
-			// ASIS: arr[0]: 직원번호, arr[1]: 직원명, arr[2]: 권한코드
-			// 권한 체크 (ASIS: fnApvNmAuthorityYn)
-			if (approver.authCd !== "10" && approver.authCd !== "00") {
-				showConfirm({
-					message:
-						"승인결재자는 부서장 이상이어야 합니다.\n재 입력 해 주십시요.",
-					type: "warning",
-					onConfirm: () => {
-						// 승인결재자 입력 필드에 포커스
-						const apvApofInput = document.getElementById(
-							"apvApofNm"
-						) as HTMLInputElement;
-						if (apvApofInput) {
-							apvApofInput.focus();
-						}
-					},
-					confirmOnly: true,
-				});
-				return;
-			}
-
-			// ASIS: txtApvId.text = arr[0]; txtApvNm.text = arr[1];
-			setEditedUser((prev) => ({
-				...prev,
-				apvApofId: approver.empNo, // 승인결재자ID
-				apvApofNm: approver.empNm, // 승인결재자명
-			}));
-
-			// ASIS: fnUserInfoSave() 호출
-			proceedWithSave({ id: approver.empNo, name: approver.empNm });
-		},
-		[showConfirm, proceedWithSave]
-	);
 
 	/**
 	 * 비밀번호 초기화 함수
@@ -921,7 +878,7 @@ const USR2010M00: React.FC = () => {
 				<AgGridReact
 					rowData={userData || []}
 					columnDefs={userColumnDefs}
-					onRowClicked={(event) => handleUserSelect(event.data)}
+					onRowClicked={(event) => handleUserSelect(event.data)} // 단일 클릭에도 반영
 					rowSelection='single'
 					getRowClass={(params: any) =>
 						selectedUser?.empNo === params.data.empNo ? "selected" : ""
