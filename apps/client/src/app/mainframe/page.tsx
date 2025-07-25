@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../modules/auth/hooks/useAuth'
 import COM0000M00 from './COM0000M00'
 import { MESSAGE_CONSTANTS, ROUTE_CONSTANTS } from '../../utils/constants'
+
+// 프리페치 방지
+export const dynamic = 'force-dynamic'
 
 /**
  * Mainframe Page - 메인프레임 페이지
@@ -21,17 +24,26 @@ import { MESSAGE_CONSTANTS, ROUTE_CONSTANTS } from '../../utils/constants'
 export default function MainframePage() {
 	const { isAuthenticated, loading } = useAuth()
 	const router = useRouter()
+	const [isClient, setIsClient] = useState(false)
+
+	// 클라이언트 사이드 렌더링 확인
+	useEffect(() => {
+		setIsClient(true)
+	}, [])
 
 	useEffect(() => {
+		// 클라이언트에서만 인증 체크
+		if (!isClient) return
+
 		// 로딩이 완료되고 인증되지 않은 경우 로그인 페이지로 리다이렉트
 		if (!loading && !isAuthenticated) {
 			console.log('🔒', MESSAGE_CONSTANTS.UNAUTHORIZED)
-			router.push(ROUTE_CONSTANTS.LOGIN)
+			window.location.href = '/signin'
 		}
-	}, [loading, isAuthenticated, router])
+	}, [loading, isAuthenticated, isClient])
 
-	// 로딩 중이거나 인증되지 않은 경우 로딩 화면 표시
-	if (loading || !isAuthenticated) {
+	// 클라이언트가 아니거나 로딩 중이거나 인증되지 않은 경우 로딩 화면 표시
+	if (!isClient || loading || !isAuthenticated) {
 		return (
 			<div className='min-h-screen flex items-center justify-center'>
 				<div className='flex items-center space-x-2'>
