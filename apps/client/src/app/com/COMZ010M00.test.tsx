@@ -7,6 +7,7 @@ global.fetch = jest.fn();
 
 // Mock useAuth hook
 jest.mock('@/modules/auth/hooks/useAuth', () => ({
+  ...jest.requireActual('@/modules/auth/hooks/useAuth'),
   useAuth: () => ({
     session: {
       user: {
@@ -19,6 +20,7 @@ jest.mock('@/modules/auth/hooks/useAuth', () => ({
 
 // Mock useToast hook
 jest.mock('@/contexts/ToastContext', () => ({
+  ...jest.requireActual('@/contexts/ToastContext'),
   useToast: () => ({
     showToast: jest.fn(),
     showConfirm: jest.fn(({ onConfirm }) => onConfirm())

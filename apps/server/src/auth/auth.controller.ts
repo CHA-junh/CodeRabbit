@@ -279,22 +279,52 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard)
-  async logout(@Req() req: RequestWithSession): Promise<any> {
+  async logout(
+    @Req() req: RequestWithSession,
+    @Res() res: Response,
+  ): Promise<any> {
     try {
       return new Promise((resolve) => {
+        // 세션 데이터 완전 초기화
+        req.session.user = null;
+
+        // 세션 완전 삭제
         req.session.destroy((err) => {
           if (err) {
+            console.error('세션 삭제 오류:', err);
+            // 쿠키 삭제 (path 명시)
+            res.clearCookie('bist-session', { path: '/' });
+            res.clearCookie('connect.sid', { path: '/' });
+            res.clearCookie('sessionId', { path: '/' });
             resolve({
               success: false,
               message: '로그아웃 중 오류가 발생했습니다.',
             });
           } else {
+            // 모든 쿠키 완전 삭제 (path 명시)
+            res.clearCookie('bist-session', { path: '/' });
+            res.clearCookie('connect.sid', { path: '/' });
+            res.clearCookie('sessionId', { path: '/' });
+
+            // 캐시 방지 헤더 설정
+            res.setHeader(
+              'Cache-Control',
+              'no-cache, no-store, must-revalidate, private',
+            );
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+
+            console.log('🔒 로그아웃 완료: 세션 및 쿠키 완전 삭제됨');
             resolve({ success: true, message: '로그아웃되었습니다.' });
           }
         });
       });
     } catch (error) {
+      console.error('로그아웃 처리 오류:', error);
+      // 에러가 발생해도 모든 쿠키 삭제 (path 명시)
+      res.clearCookie('bist-session', { path: '/' });
+      res.clearCookie('connect.sid', { path: '/' });
+      res.clearCookie('sessionId', { path: '/' });
       return { success: false, message: '로그아웃 중 오류가 발생했습니다.' };
     }
   }

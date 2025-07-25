@@ -51,8 +51,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // 로그 레벨 결정: 401, 403, 404는 WARN, 나머지는 ERROR
     const isClientError = status >= 400 && status < 500 && status !== 500;
     const isAuthError = status === 401 || status === 403;
+    const isSessionCheck = request.url?.includes('/api/auth/session');
 
-    if (isAuthError) {
+    // 세션 체크 401 에러는 로그 제외 (정상적인 동작)
+    if (isAuthError && isSessionCheck) {
+      // 로그 없음 - 정상적인 세션 체크 실패
+    } else if (isAuthError) {
       this.logger.warn(
         `🔒 인증 실패: ${request.method} ${request.url} from ${errorData.ip}`,
         errorData,

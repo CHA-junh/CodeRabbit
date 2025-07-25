@@ -116,6 +116,7 @@ export class SysService {
         .createQueryBuilder(TblUserRole, 'ur')
         .leftJoin('TBL_MENU_INF', 'm', 'ur.menuId = m.menuId')
         .leftJoin('TBL_USER_INF', 'u', 'ur.usrRoleId = u.usrRoleId')
+        .leftJoin('TBL_PGM_INF', 'p', 'ur.baseOutputScrnPgmIdCtt = p.pgmId')
         .select([
           'ur.usrRoleId as USR_ROLE_ID',
           'ur.menuId as MENU_ID',
@@ -126,6 +127,7 @@ export class SysService {
           'COUNT(u.userId) as CNT',
           'ur.orgInqRngCd as ORG_INQ_RANG_CD',
           'ur.baseOutputScrnPgmIdCtt as BASE_OUTPUT_SCRN_PGM_ID_CTT',
+          'p.pgmNm as BASE_OUTPUT_SCRN_PGM_NM_CTT', // 프로그램명 조인
         ]);
 
       // 조회 조건 적용 (GROUP BY 이전에 적용)
@@ -163,7 +165,7 @@ export class SysService {
 
       const rawRows = await queryBuilder
         .groupBy(
-          'ur.usrRoleId, ur.menuId, m.menuNm, ur.usrRoleNm, ur.athrGrdCd, ur.useYn, ur.orgInqRngCd, ur.baseOutputScrnPgmIdCtt',
+          'ur.usrRoleId, ur.menuId, m.menuNm, ur.usrRoleNm, ur.athrGrdCd, ur.useYn, ur.orgInqRngCd, ur.baseOutputScrnPgmIdCtt, p.pgmNm',
         )
         .orderBy('ur.usrRoleId')
         .getRawMany();

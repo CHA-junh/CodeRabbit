@@ -17,18 +17,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 	const handleLogout = async () => {
 		try {
 			setIsLoading(true)
-			const res = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/auth/logout`,
-				{
-					method: 'POST',
-					credentials: 'include',
-				}
-			)
-
-			if (res.ok) {
-				await logout()
-				router.push('/signin')
-			}
+			await logout()
 		} catch (error) {
 			console.error('로그아웃 오류:', error)
 		} finally {

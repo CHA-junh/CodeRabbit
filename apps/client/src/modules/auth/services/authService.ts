@@ -68,17 +68,22 @@ class AuthService {
 				credentials: 'include',
 			})
 
-			if (response.status === 401) {
-				// 인증 실패: 콘솔 에러 없이 실패 응답만 반환
+			// 401 또는 403 오류 시 세션 무효 (로그 제거)
+			if (response.status === 401 || response.status === 403) {
 				return { success: false, user: null }
 			}
 
-			const data = await response.json()
-			return data
+			// 성공적인 응답만 처리
+			if (response.ok) {
+				const data = await response.json()
+				return data
+			}
+
+			// 기타 오류 시에도 세션 무효로 처리 (로그 제거)
+			return { success: false, user: null }
 		} catch (error) {
-			// 네트워크 등 진짜 예외만 콘솔 출력
-			console.error('세션 확인 API 예외:', error)
-			throw error
+			// 네트워크 오류 시에도 세션 무효로 처리 (로그 제거)
+			return { success: false, user: null }
 		}
 	}
 
@@ -87,16 +92,28 @@ class AuthService {
 	 */
 	static async logout(): Promise<any> {
 		try {
+			console.log('🚪 로그아웃 API 호출 시작')
+
 			const response = await fetch(`${this.API_BASE_URL}/logout`, {
 				method: 'POST',
 				credentials: 'include',
 			})
 
+			console.log('🚪 로그아웃 API 응답 상태:', response.status)
+
+			// 로그아웃 성공 여부와 관계없이 성공으로 처리
+			// (서버에서 세션이 삭제되었으면 성공)
+			if (response.status === 200 || response.status === 401) {
+				console.log('🚪 로그아웃 처리 완료')
+				return { success: true, message: '로그아웃되었습니다.' }
+			}
+
 			const data = await response.json()
+			console.log('🚪 로그아웃 API 응답 데이터:', data)
 			return data
 		} catch (error) {
-			console.error('로그아웃 API 오류:', error)
-			throw error
+			// 오류 무시 - 페이지 이동으로 인한 정상적인 실패
+			return { success: true, message: '로그아웃되었습니다.' }
 		}
 	}
 

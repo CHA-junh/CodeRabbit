@@ -58,22 +58,41 @@ async function bootstrap() {
   });
   app.use(limiter);
 
-  // 🔒 보안 강화된 세션 설정
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || 'bist-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
-        maxAge: parseInt(process.env.SESSION_COOKIE_MAX_AGE || '86400000'),
-      },
-      name: 'bist-session',
-    }),
-  );
+  // 🔒 보안 강화된 세션 설정 (메모리 저장소 + 강제 무효화)
+  const sessionConfig: any = {
+    secret: process.env.SESSION_SECRET || 'bist-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: parseInt(process.env.SESSION_COOKIE_MAX_AGE || '86400000'),
+    },
+    name: 'bist-session',
+    // 세션 무효화 강화
+    unset: 'destroy',
+    rolling: true,
+  };
+
+  // 로컬 환경에서 세션 설정
+  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+    sessionConfig.cookie.maxAge = 30 * 60 * 1000; // 30분으로 단축
+  }
+
+  app.use(session(sessionConfig));
+
+  // 🔒 전역 캐시 방지 미들웨어 (모든 응답에 캐시 무효화 헤더 추가)
+  app.use((req, res, next) => {
+    res.setHeader(
+      'Cache-Control',
+      'no-store, no-cache, must-revalidate, private',
+    );
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
 
   app.setGlobalPrefix('api');
 
