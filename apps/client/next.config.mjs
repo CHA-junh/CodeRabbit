@@ -11,16 +11,12 @@ const nextConfig = {
 		},
 		// 프리페치 비활성화
 		prefetch: false,
-		// Fast Refresh 완전 비활성화 (경고 해결)
+		// Fast Refresh 비활성화 (HMR 문제 해결을 위해)
 		fastRefresh: false,
-		// 추가 Fast Refresh 비활성화 옵션
-		unstable_runtimeJS: false,
-		// 개발 모드에서 Fast Refresh 완전 비활성화
+		// 개발 모드에서 Fast Refresh 비활성화 (브라우저 오류 방지)
 		devIndicators: {
 			buildActivity: false,
 		},
-	},
-	experimental: {
 		optimizePackageImports: [],
 		allowedDevOrigins: [
 			'http://172.20.30.176:3000',
@@ -30,8 +26,11 @@ const nextConfig = {
 			'http://127.0.0.1:3000',
 			'http://127.0.0.1:*',
 		],
-		// WebSocket HMR 설정
-		webSocketUrl: 'ws://172.20.30.176:3000',
+		// WebSocket HMR 설정 - 개발계 IP 주소로 고정
+		webSocketUrl:
+			process.env.NODE_ENV === 'development'
+				? 'ws://172.20.30.176:3000'
+				: undefined,
 	},
 
 	// designs 폴더 빌드 제외 설정 (프로젝트 루트로 이동됨)
