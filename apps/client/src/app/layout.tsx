@@ -38,6 +38,25 @@ export default function RootLayout({
 		document.title = getPageTitle(pageTitle)
 	}, [pathname])
 
+	// WebSocket 오류 처리
+	useEffect(() => {
+		// 전역 오류 핸들러로 WebSocket 오류 무시
+		const handleError = (event: ErrorEvent) => {
+			if (event.message && event.message.includes('WebSocket')) {
+				console.log('WebSocket 오류 무시됨:', event.message)
+				event.preventDefault()
+				return false
+			}
+		}
+
+		window.addEventListener('error', handleError)
+
+		// 컴포넌트 언마운트 시 이벤트 리스너 제거
+		return () => {
+			window.removeEventListener('error', handleError)
+		}
+	}, [])
+
 	return (
 		<QueryClientProvider client={queryClient}>
 			<html lang='ko'>

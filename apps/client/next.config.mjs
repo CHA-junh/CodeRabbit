@@ -27,11 +27,8 @@ const nextConfig = {
 			'http://127.0.0.1:3000',
 			'http://127.0.0.1:*',
 		],
-		// WebSocket HMR 설정 - 개발계 IP로 고정
-		webSocketUrl:
-			process.env.NODE_ENV === 'development'
-				? 'ws://172.20.30.176:3000'
-				: undefined,
+		// WebSocket HMR 설정 - 완전 비활성화 (오류 방지)
+		webSocketUrl: undefined,
 	},
 
 	// designs 폴더 빌드 제외 설정 (프로젝트 루트로 이동됨)
