@@ -46,12 +46,11 @@ export default function RootLayout({
 			url: string,
 			protocols?: string | string[]
 		) {
-			// webpack-hmr 관련 연결 시도만 차단
+			// webpack-hmr 관련 연결 시도만 차단 (메시지 없이)
 			if (
 				url &&
 				(url.includes('webpack-hmr') || url.includes('_next/webpack-hmr'))
 			) {
-				console.log('WebSocket HMR 연결 차단됨:', url)
 				return {
 					readyState: 3,
 					url: url,
