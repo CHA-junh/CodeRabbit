@@ -11,8 +11,8 @@ const nextConfig = {
 		},
 		// 프리페치 비활성화
 		prefetch: false,
-		// Fast Refresh 비활성화 (WebSocket 오류 방지)
-		fastRefresh: false,
+		// Fast Refresh 활성화 (HMR 유지)
+		fastRefresh: true,
 		// 개발 모드 완전 비활성화
 		devIndicators: {
 			buildActivity: false,
