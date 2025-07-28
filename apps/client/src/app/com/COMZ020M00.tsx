@@ -237,6 +237,9 @@ export default function MainPage() {
 			price: '',
 		}))
 		setSelectedRow(-1)
+		
+		// 그리드 데이터 초기화 (이전 데이터 제거)
+		setRows([])
 
 		setLoading(true)
 		try {
@@ -253,12 +256,16 @@ export default function MainPage() {
 
 			if (response.ok) {
 				const data = await response.json()
-				setRows(data.data || [])
+				const newRows = data.data || []
+				setRows(newRows)
 
-				// ASIS: 조회 후 첫번째 행 클릭한 효과 주기
-				if (data.data && data.data.length > 0) {
-					setSelectedRow(0)
-					handleRowClick(0)
+				// ASIS: 조회 후 첫번째 행 클릭한 효과 주기 (새로운 데이터 로드 후)
+				if (newRows.length > 0) {
+					// 새로운 데이터를 직접 전달
+					setTimeout(() => {
+						setSelectedRow(0)
+						handleRowClick(0, newRows[0]) // 새로운 데이터 직접 전달
+					}, 100)
 				}
 			} else {
 				showToast('조회 중 오류가 발생했습니다.', 'error')
@@ -277,10 +284,12 @@ export default function MainPage() {
 	 *
 	 * 선택된 행의 데이터를 폼에 자동 입력
 	 */
-	const handleRowClick = (index: number) => {
+	const handleRowClick = (index: number, rowData?: UnitPriceData) => {
 		setSelectedRow(index)
-		if (rows[index]) {
-			const row = rows[index]
+		// 새로운 데이터가 전달되면 그것을 사용, 없으면 기존 rows에서 가져옴
+		const row = rowData || rows[index]
+		
+		if (row) {
 			// ASIS: 폼에 선택된 행 데이터 설정 (검색 조건은 유지)
 			setFormData((prev) => ({
 				...prev, // 기존 검색 조건 유지 (type, year)
