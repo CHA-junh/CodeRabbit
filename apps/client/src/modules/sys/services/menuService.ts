@@ -1,6 +1,6 @@
 import { Menu, MenuSearchParams, MenuCreateDto, MenuUpdateDto, MenuListResponse } from '../types/menu.types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export class MenuService {
   /**

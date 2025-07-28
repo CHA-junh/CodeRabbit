@@ -470,8 +470,9 @@ export default function SYS1000M00() {
                   aria-label="프로그램 구분 선택"
                 >
                   <option value="">전체</option>
-                  <option value="1">화면</option>
-                  <option value="2">팝업</option>
+                  {pgmDivOptions.map(opt => (
+                    <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>
+                  ))}
                 </select>
               </td>
 
