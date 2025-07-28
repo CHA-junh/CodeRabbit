@@ -8,7 +8,7 @@ test.use({
 });
 
 test.describe('메인 프레임 E2E', () => {
-  test('메인 프레임 기본 로딩 테스트', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
       await page.goto('http://localhost:3000/signin');
     });
@@ -32,7 +32,9 @@ test.describe('메인 프레임 E2E', () => {
     await test.step('메인프레임으로 이동', async () => {
       await page.goto('http://localhost:3000/mainframe');
     });
+  });
 
+  test('메인 프레임 기본 로딩 테스트', async ({ page }) => {
     await test.step('메인프레임 요소들이 로드되었는지 확인', async () => {
       // TopFrame이 있는지 확인
       await expect(page.locator('header')).toBeVisible();
@@ -42,30 +44,6 @@ test.describe('메인 프레임 E2E', () => {
   });
 
   test('로그인 정보 확인 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('메인프레임으로 이동', async () => {
-      await page.goto('http://localhost:3000/mainframe');
-    });
-
     await test.step('TopFrame의 사용자 정보가 표시되는지 확인', async () => {
       // TopFrame의 사용자 정보 영역이 있는지 확인
       await expect(page.locator('header')).toBeVisible();
@@ -77,30 +55,6 @@ test.describe('메인 프레임 E2E', () => {
   });
 
   test('메뉴트리 로그인 정보 확인 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('메인프레임으로 이동', async () => {
-      await page.goto('http://localhost:3000/mainframe');
-    });
-
     await test.step('메뉴트리가 표시되는지 확인', async () => {
       // 메뉴트리 영역이 있는지 확인
       await expect(page.locator('body')).toBeVisible();
@@ -108,30 +62,6 @@ test.describe('메인 프레임 E2E', () => {
   });
 
   test('로그아웃 기능 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('메인프레임으로 이동', async () => {
-      await page.goto('http://localhost:3000/mainframe');
-    });
-
     await test.step('메뉴 버튼 클릭', async () => {
       await page.getByRole('button', { name: '메뉴' }).click();
     });
@@ -149,30 +79,6 @@ test.describe('메인 프레임 E2E', () => {
   });
 
   test('홈페이지 바로가기 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('메인프레임으로 이동', async () => {
-      await page.goto('http://localhost:3000/mainframe');
-    });
-
     await test.step('부뜰 홈페이지 바로가기 버튼 클릭', async () => {
       const page3Promise = page.waitForEvent('popup');
       await page.getByRole('button', { name: '부뜰 홈페이지 바로가기' }).click();
@@ -182,30 +88,6 @@ test.describe('메인 프레임 E2E', () => {
   });
 
   test('그룹웨어 바로가기 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('메인프레임으로 이동', async () => {
-      await page.goto('http://localhost:3000/mainframe');
-    });
-
     await test.step('그룹웨어로 바로가기 버튼 클릭', async () => {
       const page4Promise = page.waitForEvent('popup');
       await page.getByRole('button', { name: '그룹웨어로 바로가기' }).click();
@@ -215,30 +97,6 @@ test.describe('메인 프레임 E2E', () => {
   });
 
   test('메뉴 탭 생성 확인 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('메인프레임으로 이동', async () => {
-      await page.goto('http://localhost:3000/mainframe');
-    });
-
     await test.step('메뉴 아이콘 클릭', async () => {
       await page.getByRole('button', { name: '메뉴 아이콘 메뉴' }).click();
     });
@@ -282,26 +140,6 @@ test.describe('메인 프레임 E2E', () => {
   });
 
   test('메뉴트리 열기/닫기 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
     await test.step('메뉴 버튼 클릭', async () => {
       await page.getByRole('button', { name: '메뉴' }).click();
     });
