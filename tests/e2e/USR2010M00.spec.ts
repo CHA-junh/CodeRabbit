@@ -1,6 +1,9 @@
 import { test, expect } from "@playwright/test";
 
-test.use({ viewport: { width: 2560, height: 1440 } });
+test.use({
+	viewport: { width: 2560, height: 1440 },
+	screenshot: "on",
+});
 
 // 팝업 제거 함수
 async function removeAllPopups(page: any) {

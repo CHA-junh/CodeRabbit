@@ -32,7 +32,13 @@ function extractProgramId(filePath) {
 }
 
 function getProgramName(programId) {
-	// 프로그램명은 빈 값으로 표시 (사용자가 직접 입력)
+	// developer-mapping.json에서 프로그램명 가져오기
+	if (
+		developerMapping.programs[programId] &&
+		developerMapping.programs[programId].programName
+	) {
+		return developerMapping.programs[programId].programName;
+	}
 	return "";
 }
 
@@ -49,7 +55,7 @@ function getDeveloperByPath(filePath) {
 }
 
 // 테스트 파일에서 test.step() 정보를 추출하는 함수
-function extractTestSteps(filePath) {
+function extractTestSteps(filePath, scenarioTitle = "") {
 	try {
 		// 상대 경로를 절대 경로로 변환
 		let fullPath;
@@ -61,90 +67,146 @@ function extractTestSteps(filePath) {
 			fullPath = path.join(__dirname, "..", "tests", "e2e", filePath);
 		}
 
-		console.log(`파일 경로 확인: ${filePath} -> ${fullPath}`);
-
 		if (!fs.existsSync(fullPath)) {
-			console.log(`파일이 존재하지 않음: ${fullPath}`);
 			return ["(파일 없음)"];
 		}
 
 		const content = fs.readFileSync(fullPath, "utf8");
 		const steps = [];
 
-		// test.step() 패턴 찾기
-		const stepPattern = /await\s+test\.step\s*\(\s*["']([^"']+)["']/g;
-		let match;
+		// 시나리오별로 정확한 test() 블록을 찾아서 그 안의 test.step()만 추출
+		if (scenarioTitle) {
+			// 라인별 파싱으로 해당 시나리오의 test() 블록을 찾기
+			const lines = content.split("\n");
+			let inTargetTest = false;
+			let braceCount = 0;
+			let foundTestStart = false;
+			let testBlockContent = "";
+			let inTestStep = false;
+			let testStepBraceCount = 0;
 
-		while ((match = stepPattern.exec(content)) !== null) {
-			let stepTitle = match[1];
+			for (let i = 0; i < lines.length; i++) {
+				const line = lines[i];
 
-			// 스텝 제목을 "~ 확인한다" 형태로 변환
-			if (!stepTitle.includes("확인한다") && !stepTitle.includes("한다")) {
-				// 특정 패턴에 따라 변환
-				if (stepTitle.includes("클릭")) {
-					stepTitle = stepTitle.replace("클릭", "클릭한다");
-				} else if (stepTitle.includes("입력")) {
-					stepTitle = stepTitle.replace("입력", "입력한다");
-				} else if (stepTitle.includes("선택")) {
-					stepTitle = stepTitle.replace("선택", "선택한다");
-				} else if (stepTitle.includes("검색")) {
-					stepTitle = stepTitle.replace("검색", "검색한다");
-				} else if (stepTitle.includes("저장")) {
-					stepTitle = stepTitle.replace("저장", "저장한다");
-				} else if (stepTitle.includes("대기")) {
-					stepTitle = stepTitle.replace("대기", "대기한다");
-				} else if (stepTitle.includes("렌더링")) {
-					stepTitle = stepTitle.replace("렌더링", "렌더링한다");
-				} else if (stepTitle.includes("노출")) {
-					stepTitle = stepTitle.replace("노출", "노출한다");
-				} else if (stepTitle.includes("제거")) {
-					stepTitle = stepTitle.replace("제거", "제거한다");
-				} else if (stepTitle.includes("생성")) {
-					stepTitle = stepTitle.replace("생성", "생성한다");
-				} else if (stepTitle.includes("복사")) {
-					stepTitle = stepTitle.replace("복사", "복사한다");
-				} else if (stepTitle.includes("초기화")) {
-					stepTitle = stepTitle.replace("초기화", "초기화한다");
-				} else if (stepTitle.includes("부여")) {
-					stepTitle = stepTitle.replace("부여", "부여한다");
-				} else if (stepTitle.includes("누른다")) {
-					// 이미 "~한다" 형태인 경우 그대로 유지
-				} else {
-					// 기본적으로 "~한다" 추가
-					stepTitle = stepTitle + "한다";
+				// test() 블록 시작 확인
+				if (line.includes("test(") && line.includes(scenarioTitle)) {
+					inTargetTest = true;
+					foundTestStart = false;
+					braceCount = 0;
+					testBlockContent = "";
+					inTestStep = false;
+					testStepBraceCount = 0;
+					continue;
 				}
-			}
 
-			steps.push(stepTitle);
-		}
+				// 대상 test() 블록 내부인 경우
+				if (inTargetTest) {
+					testBlockContent += line + "\n";
 
-		// test.step()이 없으면 test() 함수 내부의 주요 액션들을 찾기
-		if (steps.length === 0) {
-			// 주요 액션 패턴들
-			const actionPatterns = [
-				/await\s+page\.getByRole\s*\(\s*["']button["']\s*,\s*{\s*name:\s*["']([^"']+)["']/g,
-				/await\s+page\.locator\s*\(\s*["']([^"']+)["']/g,
-				/await\s+page\.getByText\s*\(\s*["']([^"']+)["']/g,
-				/await\s+expect\s*\(([^)]+)\)\.toBeVisible/g,
-			];
+					// test() 블록의 첫 번째 중괄호를 찾았는지 확인
+					if (!foundTestStart && line.includes("{")) {
+						foundTestStart = true;
+						braceCount = 1;
+						continue;
+					}
 
-			for (const pattern of actionPatterns) {
-				while ((match = pattern.exec(content)) !== null) {
-					let action = match[1].replace(/["']/g, "").trim();
-
-					// 액션을 "~한다" 형태로 변환
-					if (action && !steps.includes(action)) {
-						if (!action.includes("한다")) {
-							action = action + "한다";
+					// 첫 번째 중괄호 이후부터 중괄호 카운팅
+					if (foundTestStart) {
+						// test.step() 블록 시작 확인
+						if (line.includes("test.step(") && line.includes("{")) {
+							inTestStep = true;
+							testStepBraceCount = 1;
+							continue;
 						}
-						steps.push(action);
+
+						// test.step() 블록 내부인 경우
+						if (inTestStep) {
+							testStepBraceCount += (line.match(/{/g) || []).length;
+							testStepBraceCount -= (line.match(/}/g) || []).length;
+
+							// test.step() 블록이 끝났는지 확인
+							if (testStepBraceCount <= 0) {
+								inTestStep = false;
+								testStepBraceCount = 0;
+							}
+							continue; // test.step() 블록 내부에서는 test() 블록 중괄호 카운팅하지 않음
+						}
+
+						// test.step() 블록 외부에서만 test() 블록 중괄호 카운팅
+						braceCount += (line.match(/{/g) || []).length;
+						braceCount -= (line.match(/}/g) || []).length;
+
+						// test() 블록이 끝났는지 확인
+						if (braceCount <= 0) {
+							break;
+						}
 					}
 				}
 			}
+
+			// 찾은 블록에서 test.step() 추출
+			if (testBlockContent) {
+				const stepPattern = /await\s+test\.step\s*\(\s*["']([^"']+)["']/g;
+				let stepMatch;
+
+				while ((stepMatch = stepPattern.exec(testBlockContent)) !== null) {
+					let stepTitle = stepMatch[1];
+					steps.push(stepTitle);
+				}
+			}
+		} else {
+			// 시나리오 제목이 없으면 전체 파일에서 test.step() 찾기
+			const stepPattern = /await\s+test\.step\s*\(\s*["']([^"']+)["']/g;
+			let match;
+
+			while ((match = stepPattern.exec(content)) !== null) {
+				let stepTitle = match[1];
+				steps.push(stepTitle);
+			}
 		}
 
-		console.log(`추출된 스텝 수: ${steps.length}`);
-		return steps.length > 0 ? steps : ["(스텝 없음)"];
+		// 스텝 제목을 "~ 확인한다" 형태로 변환
+		const formattedSteps = steps.map((stepTitle) => {
+			if (!stepTitle.includes("확인한다") && !stepTitle.includes("한다")) {
+				// 특정 패턴에 따라 변환
+				if (stepTitle.includes("클릭")) {
+					return stepTitle.replace("클릭", "클릭한다");
+				} else if (stepTitle.includes("입력")) {
+					return stepTitle.replace("입력", "입력한다");
+				} else if (stepTitle.includes("선택")) {
+					return stepTitle.replace("선택", "선택한다");
+				} else if (stepTitle.includes("검색")) {
+					return stepTitle.replace("검색", "검색한다");
+				} else if (stepTitle.includes("저장")) {
+					return stepTitle.replace("저장", "저장한다");
+				} else if (stepTitle.includes("대기")) {
+					return stepTitle.replace("대기", "대기한다");
+				} else if (stepTitle.includes("렌더링")) {
+					return stepTitle.replace("렌더링", "렌더링한다");
+				} else if (stepTitle.includes("노출")) {
+					return stepTitle.replace("노출", "노출한다");
+				} else if (stepTitle.includes("제거")) {
+					return stepTitle.replace("제거", "제거한다");
+				} else if (stepTitle.includes("생성")) {
+					return stepTitle.replace("생성", "생성한다");
+				} else if (stepTitle.includes("복사")) {
+					return stepTitle.replace("복사", "복사한다");
+				} else if (stepTitle.includes("초기화")) {
+					return stepTitle.replace("초기화", "초기화한다");
+				} else if (stepTitle.includes("부여")) {
+					return stepTitle.replace("부여", "부여한다");
+				} else if (stepTitle.includes("누른다")) {
+					// 이미 "~한다" 형태인 경우 그대로 유지
+					return stepTitle;
+				} else {
+					// 기본적으로 "~한다" 추가
+					return stepTitle + "한다";
+				}
+			}
+			return stepTitle;
+		});
+
+		return formattedSteps.length > 0 ? formattedSteps : ["(스텝 없음)"];
 	} catch (error) {
 		console.error(`테스트 스텝 추출 실패 (${filePath}):`, error.message);
 		return ["(스텝 추출 실패)"];
@@ -181,54 +243,64 @@ function getBrowser(result, test, spec, suite) {
 }
 
 function collectSpecs(suite, rows) {
+	// specs 배열이 있는 경우 처리
 	if (suite.specs && suite.specs.length > 0) {
 		suite.specs.forEach((spec) => {
-			spec.tests.forEach((test) => {
-				test.results.forEach((result) => {
-					const isFail = result.status !== "passed";
-					const browser = getBrowser(result, test, spec, suite);
-					const developer = getDeveloperByPath(spec.file);
+			if (spec.tests && spec.tests.length > 0) {
+				spec.tests.forEach((test) => {
+					if (test.results && test.results.length > 0) {
+						test.results.forEach((result) => {
+							const isFail = result.status !== "passed";
+							const browser = getBrowser(result, test, spec, suite);
+							const developer = getDeveloperByPath(spec.file);
 
-					// 프로그램ID와 프로그램명 추출
-					const programId = extractProgramId(spec.file);
-					const programName = getProgramName(programId);
+							// 프로그램ID와 프로그램명 추출
+							const programId = extractProgramId(spec.file);
+							const programName = getProgramName(programId);
 
-					// 테스트 파일에서 스텝 정보 추출
-					const stepTitles = extractTestSteps(spec.file);
+							// results.json에서 직접 스텝 정보 추출
+							const stepTitles =
+								result.steps && result.steps.length > 0
+									? result.steps.map((step) => step.title)
+									: ["(스텝 없음)"];
 
-					if (STEP_SPLIT_ROW) {
-						stepTitles.forEach((stepTitle, idx) => {
-							rows.push({
-								programId: programId,
-								programName: programName,
-								file: spec.file,
-								scenario: spec.title,
-								step: stepTitle,
-								browser,
-								status: result.status,
-								duration: `${(result.duration / 1000).toFixed(1)}s`,
-								error: isFail && result.error ? result.error.message : "",
-								developer,
-							});
-						});
-					} else {
-						rows.push({
-							programId: programId,
-							programName: programName,
-							file: spec.file,
-							scenario: spec.title,
-							step: stepTitles.join("\n"),
-							browser,
-							status: result.status,
-							duration: `${(result.duration / 1000).toFixed(1)}s`,
-							error: isFail && result.error ? result.error.message : "",
-							developer,
+							if (STEP_SPLIT_ROW) {
+								stepTitles.forEach((stepTitle, idx) => {
+									rows.push({
+										programId: programId,
+										programName: programName,
+										file: spec.file,
+										scenario: spec.title,
+										step: stepTitle,
+										browser,
+										status: result.status,
+										duration: `${(result.duration / 1000).toFixed(1)}s`,
+										error: isFail && result.error ? result.error.message : "",
+										developer,
+									});
+								});
+							} else {
+								rows.push({
+									programId: programId,
+									programName: programName,
+									file: spec.file,
+									scenario: spec.title,
+									step: stepTitles.join("\n"),
+									browser,
+									status: result.status,
+									duration: `${(result.duration / 1000).toFixed(1)}s`,
+									error: isFail && result.error ? result.error.message : "",
+									developer,
+								});
+							}
 						});
 					}
 				});
-			});
+			}
 		});
 	}
+
+	// suites 배열이 있는 경우 재귀적으로 처리
 	if (suite.suites && suite.suites.length > 0) {
 		suite.suites.forEach((childSuite) => collectSpecs(childSuite, rows));
 	}

@@ -1,7 +1,10 @@
 import { test, expect } from "@playwright/test";
 import type { Locator } from "@playwright/test";
 
-test.use({ viewport: { width: 2560, height: 1440 } });
+test.use({
+	viewport: { width: 2560, height: 1440 },
+	screenshot: "on",
+});
 
 test.describe("SYS1003M00 사용자역할관리 E2E", () => {
 	test.beforeEach(async ({ page }) => {
