@@ -35,6 +35,14 @@ interface TabItem {
 	menuPath: string
 }
 
+// Toast 메시지 상수
+const TOAST_MESSAGES = {
+	BUSINESS_PREPARING: '사업관리 기능이 준비중입니다.',
+	PROJECT_PREPARING: '프로젝트관리 기능이 준비중입니다.',
+	COST_PREPARING: '업무추진비 기능이 준비중입니다.',
+	PROGRAM_NOT_FOUND: '프로그램을 찾을 수 없습니다.',
+} as const
+
 export default function COM0000M00() {
 	const { user, session, logout, isAuthenticated } = useAuth()
 	const { showToast } = useToast()
@@ -127,15 +135,15 @@ export default function COM0000M00() {
 				break
 			case 'business':
 				// 사업관리메인(BSN0000) - 준비중 알림
-				showToast('준비중입니다.', 'info')
+				showToast(TOAST_MESSAGES.BUSINESS_PREPARING, 'info')
 				break
 			case 'project':
 				// 프로젝트관리메인(PRJ0000) - 준비중 알림
-				showToast('준비중입니다.', 'info')
+				showToast(TOAST_MESSAGES.PROJECT_PREPARING, 'info')
 				break
 			case 'cost':
 				// 업무추진비메인(WPC_00_0000) - 준비중 알림
-				showToast('준비중입니다.', 'info')
+				showToast(TOAST_MESSAGES.COST_PREPARING, 'info')
 				break
 			case 'hr':
 				// 기본정보등록(개인별) (PSM0010) - 새 탭으로 호출
@@ -147,7 +155,7 @@ export default function COM0000M00() {
 				)
 
 				if (!hrProgram) {
-					showToast('프로그램을 찾을 수 없습니다.', 'error')
+					showToast(TOAST_MESSAGES.PROGRAM_NOT_FOUND, 'error')
 					return
 				}
 
@@ -155,7 +163,6 @@ export default function COM0000M00() {
 				const hrMenuPath = hrProgram.LINK_PATH
 					? hrProgram.LINK_PATH.replace(/\.tsx$/i, '')
 					: 'psm/PSM0010M00'
-
 
 				// 이미 열린 탭이면 포커스만 이동
 				if (tabs.some((tab) => tab.programId === hrPgmId)) {
@@ -188,7 +195,7 @@ export default function COM0000M00() {
 				)
 
 				if (!sysProgram) {
-					showToast('프로그램을 찾을 수 없습니다.', 'error')
+					showToast(TOAST_MESSAGES.PROGRAM_NOT_FOUND, 'error')
 					return
 				}
 

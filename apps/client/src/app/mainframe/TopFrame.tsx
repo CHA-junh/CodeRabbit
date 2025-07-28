@@ -1,8 +1,9 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import '../common/common.css'
 import { getSystemName } from '../../utils/environment'
+import { useToast } from '../../contexts/ToastContext'
 
 interface TopFrameProps {
 	userName?: string
@@ -19,6 +20,9 @@ const TopFrame: React.FC<TopFrameProps> = ({
 	userEmpNo = '25',
 	notice = '공지사항내용이 표시됩니다.',
 }) => {
+	const { showToast } = useToast()
+	const [searchTerm, setSearchTerm] = useState('')
+
 	// 사용자 정보 표시 형식: "SI 2팀(25) 성지훈 차장"
 	const userDisplayName = (() => {
 		if (!userTeam || !userName || !userPosition) {
@@ -26,6 +30,26 @@ const TopFrame: React.FC<TopFrameProps> = ({
 		}
 		return `${userTeam}(${userEmpNo}) ${userName} ${userPosition}`
 	})()
+
+	// 검색 핸들러
+	const handleSearch = (e: React.FormEvent) => {
+		e.preventDefault()
+		if (searchTerm.trim()) {
+			showToast('KMS 검색 연동이 준비중입니다.', 'info')
+		}
+	}
+
+	// 검색어 입력 핸들러
+	const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchTerm(e.target.value)
+	}
+
+	// 검색 아이콘 클릭 핸들러
+	const handleSearchIconClick = () => {
+		if (searchTerm.trim()) {
+			showToast('KMS 검색 연동이 준비중입니다.', 'info')
+		}
+	}
 
 	return (
 		<header className='w-full h-16 bg-[#374151] px-4 flex items-center text-white text-sm min-w-[900px] whitespace-nowrap'>
@@ -56,18 +80,24 @@ const TopFrame: React.FC<TopFrameProps> = ({
 			{/* 구분선 */}
 			<div className='h-full w-px bg-gray-600 mx-3' />
 			{/* 검색창 */}
-			<div className='flex items-center ml-auto bg-[#3f4a5a] rounded px-3 py-1 w-[240px]'>
+			<form
+				onSubmit={handleSearch}
+				className='flex items-center ml-auto bg-[#3f4a5a] rounded px-3 py-1 w-[240px]'
+			>
 				<input
 					type='text'
 					placeholder='검색어를 입력하세요'
+					value={searchTerm}
+					onChange={handleSearchInput}
 					className='flex-1 bg-transparent text-white placeholder:text-gray-300 text-sm outline-none'
 				/>
 				<svg
-					className='w-4 h-4 text-gray-300 ml-2'
+					className='w-4 h-4 text-gray-300 ml-2 cursor-pointer hover:text-white transition-colors'
 					fill='none'
 					stroke='currentColor'
 					strokeWidth={2}
 					viewBox='0 0 24 24'
+					onClick={handleSearchIconClick}
 				>
 					<path
 						strokeLinecap='round'
@@ -75,7 +105,7 @@ const TopFrame: React.FC<TopFrameProps> = ({
 						d='M21 21l-5.2-5.2m0 0A7.5 7.5 0 1010 17.5a7.5 7.5 0 005.8-1.7z'
 					/>
 				</svg>
-			</div>
+			</form>
 			{/* 구분선 */}
 			<div className='h-full w-px bg-gray-600 mx-3' />
 			{/* 버튼 2개 */}
