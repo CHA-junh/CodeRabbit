@@ -45,7 +45,7 @@ interface SaveUserRolesPayload {
 }
 
 @Injectable()
-export class SysService {
+export class UserRoleService {
   constructor(
     @InjectRepository(TblUserRole)
     private userRoleRepository: Repository<TblUserRole>,

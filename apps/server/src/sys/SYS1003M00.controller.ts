@@ -35,7 +35,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import session from 'express-session';
-import { SysService } from './SYS1003M00.service';
+import { UserRoleService } from './SYS1003M00.service';
 import { TblUserRole } from '../entities/tbl-user-role.entity';
 import { TblUserRolePgmGrp } from '../entities/tbl-user-role-pgm-grp.entity';
 import { Response } from 'express';
@@ -59,9 +59,9 @@ interface SaveUserRolesPayload {
   deletedRows: TblUserRole[];
 }
 
-@Controller('sys')
-export class SysController {
-  constructor(private readonly sysService: SysService) {}
+@Controller('sys/user-roles')
+export class UserRoleController {
+  constructor(private readonly userRoleService: UserRoleService) {}
 
   /**
    * 메뉴 목록 조회 (GET)
@@ -79,7 +79,7 @@ export class SysController {
    */
   @Get('menus')
   async findAllMenus() {
-    return this.sysService.findAllMenus();
+    return this.userRoleService.findAllMenus();
   }
 
   /**
@@ -112,7 +112,7 @@ export class SysController {
     console.log('전체 쿼리 객체:', { usrRoleId, useYn });
     console.log('request.query:', request?.query);
     console.log('request.url:', request?.url);
-    return this.sysService.findAllUserRoles(usrRoleId, useYn);
+    return this.userRoleService.findAllUserRoles(usrRoleId, useYn);
   }
 
   /**
@@ -160,7 +160,7 @@ export class SysController {
       const currentUserId = currentUser.empNo || currentUser.userId;
       console.log('🔍 현재 로그인 사용자:', currentUserId);
 
-      const savedRoles = await this.sysService.saveUserRoles(
+      const savedRoles = await this.userRoleService.saveUserRoles(
         payload,
         currentUserId,
       );
@@ -196,7 +196,7 @@ export class SysController {
   async findProgramGroupsByRoleId(
     @Param('usrRoleId') usrRoleId: string,
   ): Promise<TblUserRolePgmGrp[]> {
-    return this.sysService.findProgramGroupsByRoleId(usrRoleId);
+    return this.userRoleService.findProgramGroupsByRoleId(usrRoleId);
   }
 
   /**
@@ -216,7 +216,7 @@ export class SysController {
    */
   @Get('program-groups')
   async findAllProgramGroups(): Promise<any[]> {
-    return this.sysService.findAllProgramGroups();
+    return this.userRoleService.findAllProgramGroups();
   }
 
   /**
@@ -262,7 +262,7 @@ export class SysController {
       const currentUserId = currentUser.empNo || currentUser.userId;
       console.log('🔍 현재 로그인 사용자:', currentUserId);
 
-      await this.sysService.saveProgramGroupsForRole(
+      await this.userRoleService.saveProgramGroupsForRole(
         usrRoleId,
         pgmGrps,
         currentUserId,
@@ -319,7 +319,7 @@ export class SysController {
       const currentUserId = currentUser.empNo || currentUser.userId;
       console.log('🔍 현재 로그인 사용자:', currentUserId);
 
-      const newRole = await this.sysService.copyUserRole(
+      const newRole = await this.userRoleService.copyUserRole(
         originalRoleId,
         currentUserId,
       );

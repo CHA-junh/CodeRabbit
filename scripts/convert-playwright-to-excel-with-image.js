@@ -30,6 +30,12 @@ function extractProgramId(filePath) {
 	const fileName = filePath.replace(/\\/g, "/").split("/").pop();
 	return fileName ? fileName.replace(/\.(test|spec)\.(tsx?|jsx?)$/, "") : "";
 }
+
+function getProgramName(programId) {
+	// 프로그램명은 빈 값으로 표시 (사용자가 직접 입력)
+	return "";
+}
+
 function getDeveloperByPath(filePath) {
 	const programId = extractProgramId(filePath);
 	if (developerMapping.programs[programId]) {
@@ -41,6 +47,110 @@ function getDeveloperByPath(filePath) {
 	}
 	return "미지정";
 }
+
+// 테스트 파일에서 test.step() 정보를 추출하는 함수
+function extractTestSteps(filePath) {
+	try {
+		// 상대 경로를 절대 경로로 변환
+		let fullPath;
+		if (filePath.startsWith("tests/")) {
+			// 이미 tests/로 시작하는 경우
+			fullPath = path.join(__dirname, "..", filePath);
+		} else {
+			// 파일명만 있는 경우 tests/e2e/ 디렉토리에서 찾기
+			fullPath = path.join(__dirname, "..", "tests", "e2e", filePath);
+		}
+
+		console.log(`파일 경로 확인: ${filePath} -> ${fullPath}`);
+
+		if (!fs.existsSync(fullPath)) {
+			console.log(`파일이 존재하지 않음: ${fullPath}`);
+			return ["(파일 없음)"];
+		}
+
+		const content = fs.readFileSync(fullPath, "utf8");
+		const steps = [];
+
+		// test.step() 패턴 찾기
+		const stepPattern = /await\s+test\.step\s*\(\s*["']([^"']+)["']/g;
+		let match;
+
+		while ((match = stepPattern.exec(content)) !== null) {
+			let stepTitle = match[1];
+
+			// 스텝 제목을 "~ 확인한다" 형태로 변환
+			if (!stepTitle.includes("확인한다") && !stepTitle.includes("한다")) {
+				// 특정 패턴에 따라 변환
+				if (stepTitle.includes("클릭")) {
+					stepTitle = stepTitle.replace("클릭", "클릭한다");
+				} else if (stepTitle.includes("입력")) {
+					stepTitle = stepTitle.replace("입력", "입력한다");
+				} else if (stepTitle.includes("선택")) {
+					stepTitle = stepTitle.replace("선택", "선택한다");
+				} else if (stepTitle.includes("검색")) {
+					stepTitle = stepTitle.replace("검색", "검색한다");
+				} else if (stepTitle.includes("저장")) {
+					stepTitle = stepTitle.replace("저장", "저장한다");
+				} else if (stepTitle.includes("대기")) {
+					stepTitle = stepTitle.replace("대기", "대기한다");
+				} else if (stepTitle.includes("렌더링")) {
+					stepTitle = stepTitle.replace("렌더링", "렌더링한다");
+				} else if (stepTitle.includes("노출")) {
+					stepTitle = stepTitle.replace("노출", "노출한다");
+				} else if (stepTitle.includes("제거")) {
+					stepTitle = stepTitle.replace("제거", "제거한다");
+				} else if (stepTitle.includes("생성")) {
+					stepTitle = stepTitle.replace("생성", "생성한다");
+				} else if (stepTitle.includes("복사")) {
+					stepTitle = stepTitle.replace("복사", "복사한다");
+				} else if (stepTitle.includes("초기화")) {
+					stepTitle = stepTitle.replace("초기화", "초기화한다");
+				} else if (stepTitle.includes("부여")) {
+					stepTitle = stepTitle.replace("부여", "부여한다");
+				} else if (stepTitle.includes("누른다")) {
+					// 이미 "~한다" 형태인 경우 그대로 유지
+				} else {
+					// 기본적으로 "~한다" 추가
+					stepTitle = stepTitle + "한다";
+				}
+			}
+
+			steps.push(stepTitle);
+		}
+
+		// test.step()이 없으면 test() 함수 내부의 주요 액션들을 찾기
+		if (steps.length === 0) {
+			// 주요 액션 패턴들
+			const actionPatterns = [
+				/await\s+page\.getByRole\s*\(\s*["']button["']\s*,\s*{\s*name:\s*["']([^"']+)["']/g,
+				/await\s+page\.locator\s*\(\s*["']([^"']+)["']/g,
+				/await\s+page\.getByText\s*\(\s*["']([^"']+)["']/g,
+				/await\s+expect\s*\(([^)]+)\)\.toBeVisible/g,
+			];
+
+			for (const pattern of actionPatterns) {
+				while ((match = pattern.exec(content)) !== null) {
+					let action = match[1].replace(/["']/g, "").trim();
+
+					// 액션을 "~한다" 형태로 변환
+					if (action && !steps.includes(action)) {
+						if (!action.includes("한다")) {
+							action = action + "한다";
+						}
+						steps.push(action);
+					}
+				}
+			}
+		}
+
+		console.log(`추출된 스텝 수: ${steps.length}`);
+		return steps.length > 0 ? steps : ["(스텝 없음)"];
+	} catch (error) {
+		console.error(`테스트 스텝 추출 실패 (${filePath}):`, error.message);
+		return ["(스텝 추출 실패)"];
+	}
+}
+
 function getAllScreenshots(limit = 100) {
 	if (!fs.existsSync(resultDir)) return [];
 	const screenshots = [];
@@ -59,6 +169,7 @@ function getAllScreenshots(limit = 100) {
 	}
 	return screenshots;
 }
+
 function getBrowser(result, test, spec, suite) {
 	return (
 		result.projectName ||
@@ -68,6 +179,7 @@ function getBrowser(result, test, spec, suite) {
 		""
 	);
 }
+
 function collectSpecs(suite, rows) {
 	if (suite.specs && suite.specs.length > 0) {
 		suite.specs.forEach((spec) => {
@@ -76,15 +188,19 @@ function collectSpecs(suite, rows) {
 					const isFail = result.status !== "passed";
 					const browser = getBrowser(result, test, spec, suite);
 					const developer = getDeveloperByPath(spec.file);
-					let stepTitles = [];
-					if (Array.isArray(result.steps) && result.steps.length > 0) {
-						stepTitles = result.steps.map((s) => s.title);
-					} else {
-						stepTitles = ["(스텝 없음)"];
-					}
+
+					// 프로그램ID와 프로그램명 추출
+					const programId = extractProgramId(spec.file);
+					const programName = getProgramName(programId);
+
+					// 테스트 파일에서 스텝 정보 추출
+					const stepTitles = extractTestSteps(spec.file);
+
 					if (STEP_SPLIT_ROW) {
 						stepTitles.forEach((stepTitle, idx) => {
 							rows.push({
+								programId: programId,
+								programName: programName,
 								file: spec.file,
 								scenario: spec.title,
 								step: stepTitle,
@@ -97,6 +213,8 @@ function collectSpecs(suite, rows) {
 						});
 					} else {
 						rows.push({
+							programId: programId,
+							programName: programName,
 							file: spec.file,
 							scenario: spec.title,
 							step: stepTitles.join("\n"),
@@ -120,9 +238,12 @@ function collectSpecs(suite, rows) {
 	const data = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
 	const rows = [];
 	const workbook = new ExcelJS.Workbook();
+
 	// Sheet1: 테스트 결과
 	const sheet1 = workbook.addWorksheet("테스트 결과");
 	sheet1.columns = [
+		{ header: "프로그램ID", key: "programId", width: 15 },
+		{ header: "프로그램명", key: "programName", width: 20 },
 		{ header: "파일", key: "file", width: 30 },
 		{ header: "시나리오", key: "scenario", width: 30 },
 		{ header: "테스트 스텝", key: "step", width: 60 },
@@ -133,6 +254,7 @@ function collectSpecs(suite, rows) {
 		{ header: "스크린샷", key: "screenshot", width: 20 },
 		{ header: "개발담당자", key: "developer", width: 15 },
 	];
+
 	// Sheet2: 스크린샷 전용
 	const sheet2 = workbook.addWorksheet("스크린샷");
 	sheet2.columns = [
@@ -143,6 +265,7 @@ function collectSpecs(suite, rows) {
 
 	// 테스트 결과 rows 생성
 	data.suites.forEach((suite) => collectSpecs(suite, rows));
+
 	// 스크린샷 파일 목록(최대 100개)
 	const screenshotList = getAllScreenshots(100);
 

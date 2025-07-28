@@ -350,184 +350,128 @@ describe("사용자 역할 관리 API - 실제 거래 호출 테스트 (서버 �
 		}
 	});
 
-	test("사용자 역할 목록 조회 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
-
-		const response = await axios.get(`${baseURL}/api/sys/user-roles`);
-
-		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
-		expect(Array.isArray((response.data as any).data)).toBe(true);
-
-		// 실제 DB 데이터 검증
-		if ((response.data as any).data.length > 0) {
-			const role = (response.data as any).data[0];
-			expect(role).toHaveProperty("usrRoleId");
-			expect(role).toHaveProperty("usrRoleNm");
-			expect(role).toHaveProperty("useYn");
-		}
-	});
-
-	test("사용자 역할 저장 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
-
+	it("should create a new user role", async () => {
 		const newRole = {
-			usrRoleId: "",
+			usrRoleId: "A250715001",
 			usrRoleNm: "테스트 역할",
 			useYn: "Y",
-			athrGrdCd: "Y", // 실제 DB에 있는 값으로 수정
-			orgInqRngCd: "Y", // 실제 DB에 있는 값으로 수정
-			menuId: "MENU001",
+			athrGrdCd: "2",
+			orgInqRngCd: "1",
+			menuId: "M001",
 		};
 
-		const response = await axios.post(`${baseURL}/api/sys/user-roles`, {
-			createdRows: [newRole],
-			updatedRows: [],
-			deletedRows: [],
-		});
-
-		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
-	});
-
-	test("사용자 역할 수정 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
-
-		const updateRole = {
-			usrRoleId: "ROLE001",
-			usrRoleNm: "수정된 역할",
-			useYn: "Y",
-			athrGrdCd: "Y", // 실제 DB에 있는 값으로 수정
-			orgInqRngCd: "Y", // 실제 DB에 있는 값으로 수정
-			menuId: "MENU002",
-		};
-
-		const response = await axios.post(`${baseURL}/api/sys/user-roles`, {
-			createdRows: [],
-			updatedRows: [updateRole],
-			deletedRows: [],
-		});
-
-		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
-	});
-
-	test("사용자 역할 삭제 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
-
-		const deleteRole = {
-			usrRoleId: "ROLE001",
-			usrRoleNm: "삭제할 역할",
-			useYn: "N",
-		};
-
-		const response = await axios.post(`${baseURL}/api/sys/user-roles`, {
-			createdRows: [],
-			updatedRows: [],
-			deletedRows: [deleteRole],
-		});
-
-		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
-	});
-
-	test("프로그램 그룹 목록 조회 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
-
-		const response = await axios.get(`${baseURL}/api/sys/program-groups`);
-
-		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
-		expect(Array.isArray((response.data as any).data)).toBe(true);
-
-		// 실제 DB 데이터 검증
-		if ((response.data as any).data.length > 0) {
-			const programGroup = (response.data as any).data[0];
-			expect(programGroup).toHaveProperty("pgmGrpId");
-			expect(programGroup).toHaveProperty("pgmGrpNm");
-			// usrRoleId는 선택적 속성이므로 제거
-		}
-	});
-
-	test("메뉴 목록 조회 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
-
-		const response = await axios.get(`${baseURL}/api/sys/menus`);
-
-		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
-		expect(Array.isArray((response.data as any).data)).toBe(true);
-
-		// 실제 DB 데이터 검증
-		if ((response.data as any).data.length > 0) {
-			const menu = (response.data as any).data[0];
-			expect(menu).toHaveProperty("menuId");
-			expect(menu).toHaveProperty("menuNm");
-		}
-	});
-
-	test("사용자 역할 복사 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
-
-		const roleId = "ROLE001";
 		const response = await axios.post(
-			`${baseURL}/api/sys/user-roles/${roleId}/copy`
+			`${baseURL}/api/sys/user-roles/user-roles`,
+			{
+				createdRows: [newRole],
+				updatedRows: [],
+				deletedRows: [],
+			}
 		);
 
 		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
+		expect(response.data.message).toBe("저장되었습니다.");
 	});
 
-	test("프로그램 그룹 저장 API가 정상적으로 동작한다", async () => {
-		const serverRunning = await isServerRunning();
-		if (!serverRunning) {
-			console.log("⏭️ 서버가 실행되지 않아 테스트를 건너뜁니다.");
-			return;
-		}
+	it("should update an existing user role", async () => {
+		const updatedRole = {
+			usrRoleId: "A250715001",
+			usrRoleNm: "수정된 일반사용자",
+			athrGrdCd: "2",
+			orgInqRngCd: "1",
+			menuId: "M001",
+			useYn: "Y",
+		};
 
-		const roleId = "ROLE001";
+		const response = await axios.post(
+			`${baseURL}/api/sys/user-roles/user-roles`,
+			{
+				createdRows: [],
+				updatedRows: [updatedRole],
+				deletedRows: [],
+			}
+		);
+
+		expect(response.status).toBe(200);
+		expect(response.data.message).toBe("저장되었습니다.");
+	});
+
+	it("should delete a user role", async () => {
+		const deletedRole = {
+			usrRoleId: "A250715001",
+			usrRoleNm: "삭제할 역할",
+			athrGrdCd: "2",
+			orgInqRngCd: "1",
+			menuId: "M001",
+			useYn: "Y",
+		};
+
+		const response = await axios.post(
+			`${baseURL}/api/sys/user-roles/user-roles`,
+			{
+				createdRows: [],
+				updatedRows: [],
+				deletedRows: [deletedRole],
+			}
+		);
+
+		expect(response.status).toBe(200);
+		expect(response.data.message).toBe("저장되었습니다.");
+	});
+
+	it("should fetch all program groups", async () => {
+		const response = await axios.get(
+			`${baseURL}/api/sys/user-roles/program-groups`
+		);
+
+		expect(response.status).toBe(200);
+		expect(Array.isArray(response.data)).toBe(true);
+	});
+
+	it("should fetch all menus", async () => {
+		const response = await axios.get(`${baseURL}/api/sys/user-roles/menus`);
+
+		expect(response.status).toBe(200);
+		expect(Array.isArray(response.data)).toBe(true);
+	});
+
+	it("should copy a user role", async () => {
+		const roleId = "A250715001";
+		const response = await axios.post(
+			`${baseURL}/api/sys/user-roles/user-roles/${roleId}/copy`
+		);
+
+		expect(response.status).toBe(200);
+		expect(response.data.message).toBe("사용자 역할이 복사되었습니다.");
+		expect(response.data.newRole).toBeDefined();
+	});
+
+	it("should fetch program groups for a specific role", async () => {
+		const roleId = "A250715001";
+		const response = await axios.get(
+			`${baseURL}/api/sys/user-roles/user-roles/${roleId}/program-groups`
+		);
+
+		expect(response.status).toBe(200);
+		expect(Array.isArray(response.data)).toBe(true);
+	});
+
+	it("should save program groups for a specific role", async () => {
+		const roleId = "A250715001";
 		const programGroups = [
 			{
 				usrRoleId: roleId,
-				pgmGrpId: "PGM001",
+				pgmGrpId: "PG001",
 				useYn: "Y",
 			},
 		];
 
 		const response = await axios.post(
-			`${baseURL}/api/sys/user-roles/${roleId}/program-groups`,
+			`${baseURL}/api/sys/user-roles/user-roles/${roleId}/program-groups`,
 			programGroups
 		);
 
 		expect(response.status).toBe(200);
-		expect((response.data as any).success).toBe(true);
+		expect(response.data.message).toBe("프로그램 그룹이 저장되었습니다.");
 	});
 });
