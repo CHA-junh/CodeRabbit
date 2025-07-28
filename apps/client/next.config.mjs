@@ -12,7 +12,7 @@ const nextConfig = {
 		// 프리페치 비활성화
 		prefetch: false,
 		// Fast Refresh 비활성화 (HMR 문제 해결을 위해)
-		fastRefresh: false,
+		fastRefresh: process.env.NODE_ENV === 'development' ? false : false,
 		// 개발 모드 완전 비활성화
 		devIndicators: {
 			buildActivity: false,
@@ -27,10 +27,11 @@ const nextConfig = {
 			'http://127.0.0.1:3000',
 			'http://127.0.0.1:*',
 		],
-		// WebSocket HMR 설정 - 완전 비활성화 (오류 방지)
-		webSocketUrl: undefined,
-		// WebSocket 서버 설정 비활성화
-		webSocketServer: false,
+		// WebSocket HMR 설정 - 개발계 IP로 고정
+		webSocketUrl:
+			process.env.NODE_ENV === 'development'
+				? 'ws://172.20.30.176:3000'
+				: undefined,
 	},
 
 	// designs 폴더 빌드 제외 설정 (프로젝트 루트로 이동됨)
@@ -47,15 +48,6 @@ const nextConfig = {
 			test: /[\\/]designs[\\/].*\.(tsx|ts|jsx|js)$/,
 			use: 'ignore-loader',
 		})
-
-		// WebSocket 관련 모듈 비활성화
-		if (!isServer) {
-			config.resolve.fallback = {
-				...config.resolve.fallback,
-				ws: false,
-				websocket: false,
-			}
-		}
 
 		return config
 	},
