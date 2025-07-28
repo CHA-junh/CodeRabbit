@@ -80,7 +80,6 @@ interface TreeNodeProps {
 }
 
 const TreeNode: React.FC<TreeNodeProps> = ({ node, level, index, onToggle, onSelect, openIndexes, selectedTreeNode }) => {
-  console.log('🌲 [DEBUG] TreeNode 렌더링:', node.MENU_DSP_NM, 'MENU_SEQ:', node.MENU_SEQ);
   const hasChildren = node.children && node.children.length > 0;
   const isOpen = openIndexes.includes(node.treeIndex || index);
   const isTopLevel = node.MENU_SEQ === '0'; // 최상위 노드 여부
@@ -661,8 +660,9 @@ export default function SYS1002M00() {
           // 새로운 계층 삭제 API 호출
           await MenuService.deleteMenuProgramsHierarchical(selectedMenu.MENU_ID, menuSeqs);
           showToast('선택된 프로그램들과 하위 항목들이 모두 삭제되었습니다.', 'success');
-          // 화면 갱신
-          await loadMenuPrograms(selectedMenu.MENU_ID, 0);
+          // 화면 갱신 - 원래 선택한 메뉴의 시퀀스 사용
+          const selectedMenuSeq = selectedTreeNode?.MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0;
+          await loadMenuPrograms(selectedMenu.MENU_ID, selectedMenuSeq);
           await loadMenuTreeByMenu(selectedMenu.MENU_ID, selectedMenu);
           setSelectedPrograms(new Set());
         } catch (error: any) {
@@ -701,15 +701,19 @@ export default function SYS1002M00() {
       message: '프로그램 정보를 저장하시겠습니까?',
       type: 'info',
       onConfirm: async () => {
-        // HGRK_MENU_SEQ 보장
+        // HGRK_MENU_SEQ 보장 - 트리에서 선택한 메뉴의 MENU_SEQ 사용
         const programsToSave = menuPrograms.map(row => ({
           ...row,
-          HGRK_MENU_SEQ: row.HGRK_MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0
+          HGRK_MENU_SEQ: selectedTreeNode?.MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0
         }));
 
         try {
           await MenuService.saveMenuPrograms(selectedMenu.MENU_ID, programsToSave);
           showToast('저장되었습니다.', 'success');
+          // 화면 갱신 - 원래 선택한 메뉴의 시퀀스 사용
+          const selectedMenuSeq = selectedTreeNode?.MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0;
+          await loadMenuPrograms(selectedMenu.MENU_ID, selectedMenuSeq);
+          await loadMenuTreeByMenu(selectedMenu.MENU_ID, selectedMenu);
           setSelectedPrograms(new Set());
         } catch (e: any) {
           showToast('저장 실패: ' + (e?.message || '알 수 없는 오류'), 'error');
