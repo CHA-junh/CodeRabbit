@@ -170,6 +170,27 @@ export default function EmployeeMainPage() {
 	]
 
 	/**
+	 * 퇴사자 여부를 확인하는 함수
+	 */
+	const isRetiredEmployee = (data: any) => {
+		const workStatus = data?.WKG_ST_DIV
+		const workStatusCd = data?.WKG_ST_DIV_CD
+		return workStatus === '퇴사' || workStatusCd === '3'
+	}
+
+	/**
+	 * 퇴사자 텍스트를 빨간색으로 렌더링하는 공통 함수
+	 */
+	const renderRetiredText = (value: any, data: any) => {
+		if (isRetiredEmployee(data)) {
+			return React.createElement('span', {
+				style: { color: 'red' }
+			}, value || '')
+		}
+		return value || ''
+	}
+
+	/**
 	 * AG Grid 컬럼 정의
 	 * AS-IS AdvancedDataGrid와 동일한 컬럼 구성
 	 */
@@ -178,70 +199,124 @@ export default function EmployeeMainPage() {
 			{
 				headerName: 'NO',
 				width: 40,
-				cellRenderer: (params: any) => params.node.rowIndex + 1, // 순번 자동 생성
+				cellRenderer: (params: any) => {
+					const value = params.node.rowIndex + 1
+					return renderRetiredText(value, params.data)
+				},
 				sortable: false,
 				filter: false,
 			},
-			{ headerName: '사원번호', field: 'EMP_NO', width: 100 },
-			{ headerName: '구분', field: 'OWN_OUTS_DIV', width: 70 },
+			{ 
+				headerName: '사원번호', 
+				field: 'EMP_NO', 
+				width: 100,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '구분', 
+				field: 'OWN_OUTS_DIV', 
+				width: 70,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
 			{
 				headerName: '성명',
 				field: 'EMP_NM',
 				width: 80,
-				// 퇴사자/휴직자 스타일 적용
-				cellClassRules: {
-					'retired-row': (params) =>
-						params.data?.WKG_ST_DIV === '퇴사' ||
-						params.data?.WKG_ST_DIV_CD === '3',
-					'leave-row': (params) =>
-						params.data?.WKG_ST_DIV === '휴직' ||
-						params.data?.WKG_ST_DIV_CD === '2',
-				},
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
 			},
-			{ headerName: '직책', field: 'DUTY', width: 70 },
-			{ headerName: '본부', field: 'HQ_DIV', width: 150, hide: false },
-			{ headerName: '부서', field: 'DEPT_DIV', width: 150, hide: false },
-			{ headerName: '업체명', field: 'CRPN_NM', width: 90, hide: true },
+			{ 
+				headerName: '직책', 
+				field: 'DUTY', 
+				width: 70,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '본부', 
+				field: 'HQ_DIV', 
+				width: 150, 
+				hide: false,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '부서', 
+				field: 'DEPT_DIV', 
+				width: 150, 
+				hide: false,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '업체명', 
+				field: 'CRPN_NM', 
+				width: 90, 
+				hide: true,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
 			{
 				headerName: '입사일자',
 				field: 'ENTR_DT',
 				width: 110,
-				// YYYYMMDD 형식을 YYYY-MM-DD 형식으로 변환
 				cellRenderer: (params: any) => {
-					const value = params.value
-					if (!value) return ''
+					// YYYYMMDD 형식을 YYYY-MM-DD 형식으로 변환
+					let value = params.value
+					if (!value) value = ''
 					if (
 						typeof value === 'string' &&
 						value.length === 8 &&
 						/^\d{8}$/.test(value)
 					) {
-						return `${value.substring(0, 4)}-${value.substring(4, 6)}-${value.substring(6, 8)}`
+						value = `${value.substring(0, 4)}-${value.substring(4, 6)}-${value.substring(6, 8)}`
 					}
-					return value
+					return renderRetiredText(value, params.data)
 				},
 			},
-			{ headerName: '상태', field: 'WKG_ST_DIV', width: 80 },
-			{ headerName: '등급', field: 'LAST_TCN_GRD_CD', width: 80 },
-			{ headerName: '경력', field: 'CARR_YM', width: 100 },
-			{ headerName: '자격증', field: 'CTQL_CD_NM', width: 130 },
-			{ headerName: '연락처', field: 'MOB_PHN_NO', width: 130, hide: false },
+			{ 
+				headerName: '상태', 
+				field: 'WKG_ST_DIV', 
+				width: 80,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '등급', 
+				field: 'LAST_TCN_GRD_CD', 
+				width: 80,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '경력', 
+				field: 'CARR_YM', 
+				width: 100,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '자격증', 
+				field: 'CTQL_CD_NM', 
+				width: 130,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
+			{ 
+				headerName: '연락처', 
+				field: 'MOB_PHN_NO', 
+				width: 130, 
+				hide: false,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
 			{
 				headerName: '퇴사일자',
 				field: 'RETIR_DT',
 				width: 110,
 				hide: false,
-				// YYYYMMDD 형식을 YYYY-MM-DD 형식으로 변환
 				cellRenderer: (params: any) => {
-					const value = params.value
-					if (!value) return ''
+					// YYYYMMDD 형식을 YYYY-MM-DD 형식으로 변환
+					let value = params.value
+					if (!value) value = ''
 					if (
 						typeof value === 'string' &&
 						value.length === 8 &&
 						/^\d{8}$/.test(value)
 					) {
-						return `${value.substring(0, 4)}-${value.substring(4, 6)}-${value.substring(6, 8)}`
+						value = `${value.substring(0, 4)}-${value.substring(4, 6)}-${value.substring(6, 8)}`
 					}
-					return value
+					return renderRetiredText(value, params.data)
 				},
 			},
 			{
@@ -249,20 +324,29 @@ export default function EmployeeMainPage() {
 				field: 'LAST_IN_STRT_DT',
 				width: 100,
 				hide: true,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
 			},
 			{
 				headerName: '최종철수일',
 				field: 'LAST_IN_END_DT',
 				width: 100,
 				hide: true,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
 			},
 			{
 				headerName: '최종프로젝트',
 				field: 'LAST_PRJT',
 				width: 150,
 				hide: true,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
 			},
-			{ headerName: '비고', field: 'RMK', flex: 1, minWidth: 200 },
+			{ 
+				headerName: '비고', 
+				field: 'RMK', 
+				flex: 1, 
+				minWidth: 200,
+				cellRenderer: (params: any) => renderRetiredText(params.value, params.data),
+			},
 		],
 		[]
 	)
@@ -902,15 +986,9 @@ export default function EmployeeMainPage() {
 					onRowClicked={onRowClicked}
 					onRowDoubleClicked={onRowDoubleClicked}
 					getRowClass={(params) => {
-						const workStatus = params.data?.WKG_ST_DIV
-						const workStatusCd = params.data?.WKG_ST_DIV_CD
 						const isSelected = selectedEmployee?.EMP_NO === params.data?.EMP_NO
 						let classes = []
 						if (isSelected) classes.push('selected-row')
-						if (workStatus === '퇴사' || workStatusCd === '3')
-							classes.push('retired-row')
-						else if (workStatus === '휴직' || workStatusCd === '2')
-							classes.push('leave-row')
 						return classes
 					}}
 					suppressRowClickSelection={true}
