@@ -47,7 +47,7 @@ const TopFrame: React.FC<TopFrameProps> = ({
 	// 검색 아이콘 클릭 핸들러
 	const handleSearchIconClick = () => {
 		if (searchTerm.trim()) {
-			showToast('KMS 검색 연동이 준비중입니다.', 'info')
+			showToast('KMS 검색 연동 준비중입니다.', 'info')
 		}
 	}
 
