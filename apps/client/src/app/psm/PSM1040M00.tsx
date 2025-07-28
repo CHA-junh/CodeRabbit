@@ -519,6 +519,7 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
                   <td className="form-td">
                     <select 
                       className="combo-base w-full"
+                      data-field="apntDiv"
                       value={inputData.apntDiv}
                       onChange={(e) => handleApntDivChange(e.target.value)}
                     >
@@ -536,6 +537,7 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
                     <input 
                       type="date" 
                       className="input-base input-default w-full"
+                      data-field="apntDt"
                       value={inputData.apntDt}
                       onChange={(e) => setInputData(prev => ({ ...prev, apntDt: e.target.value }))}
                     />
@@ -547,6 +549,7 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
                     <select 
                       className="combo-base w-full"
                       value={inputData.hqDiv}
+                      data-field="hqDiv"
                       onChange={(e) => handleHqDivChange(e.target.value)}
                       disabled={!fieldEnableState.hqDiv}
                     >
@@ -564,6 +567,7 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
                     <select 
                       className="combo-base w-full"
                       value={inputData.deptDiv}
+                      data-field="deptDiv"
                       onChange={(e) => setInputData(prev => ({ ...prev, deptDiv: e.target.value }))}
                       disabled={!fieldEnableState.deptDiv}
                     >
@@ -628,7 +632,7 @@ export default function PSM1040M00({ selectedEmployee, isTab, onRegisterSuccess 
                 onClick={handleRegister}
                 disabled={isLoading || !isRegisterEnabled}
               >
-                {isLoading ? '등록중...' : '등록'}
+                등록
               </button>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { RowDoubleClickedEvent } from 'ag-grid-community';
 import '../common/common.css';
 import DataGrid from '../../components/grid/DataGrid';
 
@@ -576,7 +577,10 @@ const PSM1030M00 = forwardRef<PSM1030M00Ref, PSM1030M00Props>(({ selectedEmploye
   };
 
   // AS-IS 인사발령내역 더블클릭
-  const handleAppointmentDoubleClick = async (appointment: AppointmentData) => {
+  const handleAppointmentDoubleClick = async (event: RowDoubleClickedEvent) => {
+    const appointment = event.data as AppointmentData;
+    if (!appointment) return;
+
     setSelectedAppointment(appointment);
     setNewFlag(false);
 
@@ -699,13 +703,13 @@ const PSM1030M00 = forwardRef<PSM1030M00Ref, PSM1030M00Props>(({ selectedEmploye
               height="300px"
               onRowSelected={undefined}
               onGridReady={undefined}
+              onRowDoubleClicked={handleAppointmentDoubleClick}
               enablePagination={false}
               enableSelection={false}
               enableExport={false}
               enableSorting={true}
               enableFiltering={true}
               className="ag-custom"
-              // onRowDoubleClicked는 DataGrid에 아직 없음. 추후 필요시 DataGrid에 추가
             />
           </div>
           <p className="text-[13px] text-[#00509A] py-1">
@@ -738,6 +742,7 @@ const PSM1030M00 = forwardRef<PSM1030M00Ref, PSM1030M00Props>(({ selectedEmploye
                   <td className="form-td">
                     <input 
                       type="date" 
+                      data-field="apntDt"
                       className="input-base input-default w-full"
                       value={inputData.apntDt}
                       onChange={(e) => setInputData(prev => ({ ...prev, apntDt: e.target.value }))}
@@ -781,6 +786,7 @@ const PSM1030M00 = forwardRef<PSM1030M00Ref, PSM1030M00Props>(({ selectedEmploye
                   <td className="form-td">
                     <select 
                       className="combo-base w-full"
+                      data-field="duty"
                       value={inputData.duty}
                       onChange={(e) => setInputData(prev => ({ ...prev, duty: e.target.value }))}
                       disabled={inputData.apntDiv === '3' || inputData.apntDiv === '4'}
