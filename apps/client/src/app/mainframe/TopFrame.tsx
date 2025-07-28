@@ -35,7 +35,7 @@ const TopFrame: React.FC<TopFrameProps> = ({
 	const handleSearch = (e: React.FormEvent) => {
 		e.preventDefault()
 		if (searchTerm.trim()) {
-			showToast('KMS 검색 연동이 준비중입니다.', 'info')
+			showToast('KMS 검색 연동 준비중입니다.', 'info')
 		}
 	}
 
