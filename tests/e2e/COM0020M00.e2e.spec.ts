@@ -10,7 +10,7 @@ test.use({
 test.describe('COM0020M00 로그인 화면 E2E', () => {
   test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
+      await page.goto('http://172.20.30.176:3000/signin');
     });
   });
 

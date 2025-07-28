@@ -3,14 +3,14 @@ import { test, expect } from '@playwright/test';
 test.use({
   viewport: {
     height: 800,
-    width: 1200
+    width: 1270
   }
 });
 
 test.describe('COMZ050P00 사업명검색 E2E', () => {
   test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
+      await page.goto('http://172.20.30.176:3000/signin');
     });
 
     await test.step('ID 입력', async () => {
@@ -30,7 +30,8 @@ test.describe('COMZ050P00 사업명검색 E2E', () => {
     });
 
     await test.step('사업명검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ050P00');
+      await page.goto('http://172.20.30.176:3000/com/COMZ050P00');
+      await page.waitForTimeout(3000);
     });
   });
 

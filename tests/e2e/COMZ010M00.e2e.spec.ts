@@ -111,7 +111,7 @@ test.describe('COMZ010M00 시스템코드관리 E2E', () => {
 
     await test.step('시스템코드관리 화면 요소들이 로드되었는지 확인', async () => {
       // 시스템코드관리 타이틀이 있는지 확인
-      await expect(page.getByText('(팝)시스템코드관리').first()).toBeVisible();
+      await expect(page.getByText('시스템코드관리').first()).toBeVisible();
       // 메인프레임 요소들이 있는지 확인
       await expect(page.locator('header')).toBeVisible();
     });

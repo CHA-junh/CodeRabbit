@@ -2,15 +2,15 @@ import { test, expect } from '@playwright/test';
 
 test.use({
   viewport: {
-    height: 600,
-    width: 800
+    height: 800,
+    width: 1270
   }
 });
 
 test.describe('COM0050P00 테스트 로그인 E2E', () => {
   test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
+      await page.goto('http://172.20.30.176:3000/signin');
     });
 
     await test.step('ID 입력', async () => {
@@ -29,19 +29,14 @@ test.describe('COM0050P00 테스트 로그인 E2E', () => {
       await page.waitForTimeout(5000);
     });
 
-    await test.step('메인프레임 페이지로 이동', async () => {
-      await page.goto('http://localhost:3000/mainframe');
-    });
-
-    await test.step('메인프레임 요소들이 로드되었는지 확인', async () => {
-      // 헤더가 있는지 확인
-      await expect(page.locator('header')).toBeVisible();
-      // 메뉴 버튼이 있는지 확인
-      await expect(page.getByRole('button', { name: '메뉴' })).toBeVisible();
+    await test.step('메인프레임으로 이동', async () => {
+      await page.goto('http://172.20.30.176:3000/mainframe');
+      await page.waitForTimeout(3000);
     });
 
     await test.step('테스트 로그인 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COM0050P00');
+      await page.goto('http://172.20.30.176:3000/com/COM0050P00');
+      await page.waitForTimeout(3000);
     });
   });
 

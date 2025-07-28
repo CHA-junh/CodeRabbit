@@ -3,14 +3,14 @@ import { test, expect } from '@playwright/test';
 test.use({
   viewport: {
     height: 800,
-    width: 1200
+    width: 1270
   }
 });
 
 test.describe('COMZ040P00 사업번호검색 E2E', () => {
   test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
+      await page.goto('http://172.20.30.176:3000/signin');
     });
 
     await test.step('ID 입력', async () => {
@@ -30,7 +30,8 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
     });
 
     await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
+      await page.goto('http://172.20.30.176:3000/com/COMZ040P00');
+      await page.waitForTimeout(3000);
     });
   });
 
@@ -138,8 +139,8 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
     });
 
     await test.step('검색이 실행되었는지 확인', async () => {
-      // AG-Grid가 로드되었는지 확인
-      await expect(page.locator('.ag-theme-alpine')).toBeVisible();
+      // AG-Grid가 로드되었는지 확인 (팝업이 아닌 메인 그리드만 확인)
+      await expect(page.locator('.ag-theme-alpine').first()).toBeVisible();
     });
   });
 
@@ -171,7 +172,7 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
     });
 
     await test.step('AG-Grid가 표시되는지 확인', async () => {
-      await expect(page.locator('.ag-theme-alpine')).toBeVisible();
+      await expect(page.locator('.ag-theme-alpine').first()).toBeVisible();
     });
 
     await test.step('AG-Grid 헤더가 표시되는지 확인', async () => {
@@ -222,8 +223,8 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
     });
 
     await test.step('검색이 실행되었는지 확인', async () => {
-      // AG-Grid가 로드되었는지 확인
-      await expect(page.locator('.ag-theme-alpine')).toBeVisible();
+      // AG-Grid가 로드되었는지 확인 (팝업이 아닌 메인 그리드만 확인)
+      await expect(page.locator('.ag-theme-alpine').first()).toBeVisible();
     });
   });
 }); 
