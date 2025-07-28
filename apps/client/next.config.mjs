@@ -36,11 +36,33 @@ const nextConfig = {
 
 	// designs 폴더 빌드 제외 설정 (프로젝트 루트로 이동됨)
 	webpack: (config, { isServer }) => {
+		if (!isServer) {
+			config.resolve.fallback = {
+				...config.resolve.fallback,
+				fs: false,
+				net: false,
+				tls: false,
+				readline: false,
+				electron: false,
+				child_process: false,
+				path: false,
+				os: false,
+				crypto: false,
+				stream: false,
+				util: false,
+				url: false,
+				querystring: false,
+				http2: false,
+				'chromium-bidi/lib/cjs/bidiMapper/BidiMapper': false,
+				'chromium-bidi': false,
+				'playwright-core': false,
+				'@playwright/test': false,
+			};
+		}
 		// designs 폴더의 모든 파일을 빌드에서 제외
 		config.resolve.alias = {
 			...config.resolve.alias,
-			'@/designs': false,
-			designs: false,
+			'@designs': false,
 		}
 
 		// designs 폴더의 모든 파일을 무시 (프로젝트 루트 기준)
