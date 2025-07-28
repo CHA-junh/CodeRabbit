@@ -862,6 +862,20 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
   };
 
   /**
+   * 조회 버튼 클릭 핸들러
+   * 현재 선택된 사원의 프로필과 경력 데이터를 새로고침
+   */
+  const handleRefreshData = () => {
+    if (!employeeData?.EMP_NO.trim()) {
+      showToast('사원명을 입력해 주십시요.', 'warning');
+      return;
+    } else {
+      loadProfileList(employeeData.EMP_NO);
+      loadProfileCarrData(employeeData.EMP_NO);
+    }
+  };
+
+  /**
    * AS-IS DblClick_COM_02_0410 함수와 동일한 기능
    * 사원 선택 팝업에서 선택된 사원 정보 처리
    * @param {string} empNo - 선택된 사원번호
@@ -1309,6 +1323,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
                   <div className="flex items-center gap-1">
                     <input 
                       type="text" 
+                      data-field="searchEmpNm"
                       className={`input-base input-default !w-[80px] ${isTabMode ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                       value={searchEmpNm}
                       onChange={(e) => setSearchEmpNm(e.target.value)}
@@ -1484,7 +1499,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
               <td className="text-right">
                 <button 
                   className="btn-base btn-search"
-                  onClick={handleEmpSearch}
+                  onClick={handleRefreshData}
                   disabled={!isEnableSrchEmpAuthority()}
                 >
                   조회
@@ -1700,6 +1715,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
                     <input 
                       ref={strtDateRef}
                       type="month" 
+                      data-field="strtDate"
                       className="input-base input-calender w-full"
                       value={profileForm.strtDate}
                       onChange={(e) => handleFormChange('strtDate', e.target.value)}
@@ -1710,6 +1726,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
                     <input 
                       ref={endDateRef}
                       type="month" 
+                      data-field="endDate"
                       className="input-base input-calender w-full"
                       value={profileForm.endDate}
                       onChange={(e) => handleFormChange('endDate', e.target.value)}
@@ -1720,6 +1737,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
                     <input 
                       ref={prjtNmRef}
                       type="text" 
+                      data-field="prjtNm"
                       className="input-base input-default w-full"
                       value={profileForm.prjtNm}
                       onChange={(e) => handleFormChange('prjtNm', e.target.value)}
@@ -1730,6 +1748,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
                     <input 
                       ref={mmbrCoRef}
                       type="text" 
+                      data-field="mmbrCo"
                       className="input-base input-default w-full"
                       value={profileForm.mmbrCo}
                       onChange={(e) => handleFormChange('mmbrCo', e.target.value)}
@@ -1739,6 +1758,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
                   <td className="grid-td">
                     <select 
                       ref={chrgWrkRef}
+                      data-field="chrgWrk"
                       className="input-base input-default w-full"
                       value={profileForm.chrgWrk}
                       onChange={(e) => handleFormChange('chrgWrk', e.target.value)}
@@ -1756,6 +1776,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
                     <input 
                       ref={delpEnvrRef}
                       type="text" 
+                      data-field="delpEnvr"
                       className="input-base input-default w-full"
                       value={profileForm.delpEnvr}
                       onChange={(e) => handleFormChange('delpEnvr', e.target.value)}

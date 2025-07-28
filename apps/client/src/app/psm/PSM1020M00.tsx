@@ -1629,6 +1629,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
                 <select 
                   className="combo-base min-w-[150px] w-full"
                   value={employeeData?.ENTR_CD || ''}
+                  data-field="crpnNm"
                   onChange={(e) => handleEmployeeChange('ENTR_CD', e.target.value)}
                   disabled={newFlag ? false : !fieldEnableState?.crpnNm}
                 >
@@ -1733,6 +1734,7 @@ const SearchSection = forwardRef<PSM1020M00Ref, PSM1020M00Props>(({ selectedEmpl
               <td className="search-td">
                 <select 
                   className="combo-base min-w-[150px] w-full"
+                  data-field="deptDiv"
                   value={employeeData?.DEPT_DIV_CD || ''}
                   onChange={(e) => handleEmployeeChange('DEPT_DIV_CD', e.target.value)}
                   disabled={newFlag ? false : !fieldEnableState?.deptDiv}

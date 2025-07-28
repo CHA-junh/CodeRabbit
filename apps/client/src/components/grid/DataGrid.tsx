@@ -7,6 +7,7 @@ import {
 	GridOptions,
 	GridReadyEvent,
 	SelectionChangedEvent,
+	RowDoubleClickedEvent,
 } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
@@ -16,6 +17,7 @@ interface DataGridProps {
 	columnDefs: ColDef[]
 	onRowSelected?: (selectedRows: any[]) => void
 	onGridReady?: (params: GridReadyEvent) => void
+	onRowDoubleClicked?: (params: RowDoubleClickedEvent) => void
 	height?: string
 	className?: string
 	enablePagination?: boolean
@@ -30,6 +32,7 @@ export default function DataGrid({
 	columnDefs,
 	onRowSelected,
 	onGridReady,
+	onRowDoubleClicked,
 	height = '600px',
 	className = '',
 	enablePagination = true,
@@ -105,6 +108,7 @@ export default function DataGrid({
 				gridOptions={gridOptions}
 				onSelectionChanged={onSelectionChanged}
 				onGridReady={onGridReadyHandler}
+				onRowDoubleClicked={onRowDoubleClicked}
 			/>
 		</div>
 	)
