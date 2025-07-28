@@ -296,8 +296,8 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmMessage, setDeleteConfirmMessage] = useState('');
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-  const [showEmployeeSearchPopup, setShowEmployeeSearchPopup] = useState(false);
   const [employeeSearchData, setEmployeeSearchData] = useState<any>(null);
+  const [popupWindow, setPopupWindow] = useState<Window | null>(null);
 
   const gridApiRef = useRef<GridApi | null>(null);
   
@@ -704,16 +704,10 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
       if (result.success && result.data && result.data.length > 0) {
         // AS-IS empBscInfSeltHandler 로직과 동일
         if (result.data.length > 1) {
-          // 2건 이상일 경우 사원 선택 팝업 호출 (AS-IS: COM_02_0410)
-          // TO-BE: COMZ080P00 팝업 호출
-          setEmployeeSearchData({
-            searchType: kb,
-            searchValue: strEmp,
-            ownOutsDiv: strOutsOwn,
-            searchResults: result.data
-          });
-          setShowEmployeeSearchPopup(true);
-          return;
+        // 2건 이상일 경우 사원 선택 팝업 호출 (AS-IS: COM_02_0410)
+        // TO-BE: COMZ080P00 팝업 호출
+        openEmployeeSearchPopup(kb, strEmp, strOutsOwn, result.data);
+        return;
         } else {
           // 한 건일 경우 사원 정보 설정
           console.log('[PSM0050M00] Employee found:', result.data[0]);
@@ -882,10 +876,82 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
    * @param {string} empNm - 선택된 사원명
    * @param {string} ownOutsDiv - 자사/외주 구분
    */
+  /**
+   * COMZ080P00 팝업 열기 함수
+   */
+  const openEmployeeSearchPopup = (searchType: string, searchValue: string, ownOutsDiv: string, empList: any[]) => {
+    const width = 1000;
+    const height = 700;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+
+    const popup = window.open(
+      `/popup/com/COMZ080P00`,
+      `COMZ080P00_popup`,
+      `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+    );
+
+    if (popup) {
+      setPopupWindow(popup);
+      
+      // 팝업이 로드된 후 데이터 전송
+      popup.onload = () => {
+        setTimeout(() => {
+          sendDataToEmployeePopup(popup, searchType, searchValue, ownOutsDiv, empList);
+        }, 500);
+      };
+    }
+  };
+
+  /**
+   * 팝업에 데이터 전송
+   */
+  const sendDataToEmployeePopup = (popup: Window, searchType: string, searchValue: string, ownOutsDiv: string, empList: any[]) => {
+    const popupData = {
+      empNm: searchType === '2' ? searchValue : '',
+      ownOutDiv: ownOutsDiv,
+      empList: empList
+    };
+    
+    popup.postMessage({
+      type: 'CHOICE_EMP_INIT',
+      data: popupData
+    }, '*');
+  };
+
+  /**
+   * 메시지 수신 처리
+   */
+  React.useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'EMP_SELECTED') {
+        const selectedEmp = event.data.data;
+        handleEmployeeSelected(selectedEmp.empNo, selectedEmp.empNm, selectedEmp.ownOutsDiv);
+        
+        // 팝업 닫기
+        if (popupWindow) {
+          popupWindow.close();
+          setPopupWindow(null);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [popupWindow]);
+
   const handleEmployeeSelected = (empNo: string, empNm: string, ownOutsDiv: string) => {
+    setEmployeeData({ EMP_NO: empNo, EMP_NM: empNm, OWN_OUTS_DIV: ownOutsDiv } as EmployeeData);
     setSearchEmpNm(empNm);
-    // AS-IS와 동일하게 사원번호로 재조회
-    searchEmployeeInfo('1', empNo, ownOutsDiv);
+    
+    // AS-IS와 동일하게 프로필 내역 조회
+    loadProfileList(empNo);
+    loadProfileCarrData(empNo);
+    
+    // 사원 조회 시 프로필 입력 폼 초기화 (AS-IS: onClickBtnNew)
+    handleNew();
   };
 
   /**
@@ -1842,23 +1908,7 @@ const PSM0050M00: React.FC<PSM0050M00Props> = ({
         />
       )}
 
-      {showEmployeeSearchPopup && employeeSearchData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-7xl w-[95vw] h-[50vh] overflow-hidden">
-            <COMZ080P00
-              defaultEmpNm={employeeSearchData.searchValue}
-              defaultOwnOutDiv={employeeSearchData.ownOutsDiv}
-              defaultEmpList={employeeSearchData.searchResults}
-              onSelect={(empData) => {
-                // AS-IS DblClick_COM_02_0410 로직과 동일
-                handleEmployeeSelected(empData.empNo, empData.empNm, empData.ownOutsDiv);
-                setShowEmployeeSearchPopup(false);
-              }}
-              onClose={() => setShowEmployeeSearchPopup(false)}
-            />
-          </div>
-        </div>
-      )}
+
 
       {/* 삭제 확인 다이얼로그 */}
       <ConfirmDialog
