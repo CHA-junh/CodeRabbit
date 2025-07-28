@@ -218,13 +218,27 @@ export class ProgramGroupService {
    * @returns 저장 결과
    */
   static async saveProgramGroup(programGroup: any): Promise<{ success: boolean; message: string }> {
-    const response = await fetch(`${API_BASE_URL}/api/sys/sys-program-groups/${programGroup.pgmGrpId}/programs`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(programGroup),
-    });
+    // 프로그램 그룹 정보 저장 (생성 또는 수정)
+    let response;
+    if (programGroup.pgmGrpId) {
+      // 기존 그룹 수정
+      response = await fetch(`${API_BASE_URL}/api/sys/sys-program-groups/${programGroup.pgmGrpId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(programGroup),
+      });
+    } else {
+      // 신규 그룹 생성
+      response = await fetch(`${API_BASE_URL}/api/sys/sys-program-groups`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(programGroup),
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
