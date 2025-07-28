@@ -1,7 +1,14 @@
 require("dotenv").config({ path: "./.env" });
 
-// Next.js Jest 설정 대신 일반 Jest 설정 사용
-module.exports = {
+const nextJest = require("next/jest");
+
+const createJestConfig = nextJest({
+	// Next.js 앱의 경로를 제공하여 next/jest가 TypeScript와 CSS 파일을 로드할 수 있도록 합니다
+	dir: "./apps/client",
+});
+
+// Jest에 전달할 사용자 정의 설정
+const customJestConfig = {
 	// 테스트 환경 설정
 	testEnvironment: "jsdom",
 
@@ -40,36 +47,6 @@ module.exports = {
 	// 테스트 타임아웃 (30초)
 	testTimeout: 30000,
 
-	// TypeScript 및 JSX 지원 - Jest 설정에서 직접 처리
-	preset: "ts-jest",
-	transform: {
-		"^.+\\.(ts|tsx)$": [
-			"ts-jest",
-			{
-				tsconfig: {
-					jsx: "react-jsx",
-					esModuleInterop: true,
-					allowSyntheticDefaultImports: true,
-					moduleResolution: "node",
-					target: "es5",
-					lib: ["dom", "dom.iterable", "es6"],
-					allowJs: true,
-					skipLibCheck: true,
-					strict: true,
-					noEmit: true,
-					module: "esnext",
-					resolveJsonModule: true,
-					isolatedModules: true,
-					incremental: true,
-					baseUrl: ".",
-					paths: {
-						"@/*": ["./src/*"],
-					},
-				},
-			},
-		],
-	},
-
 	// 리포터 설정 - 통합 경로로 변경
 	reporters: [
 		"default",
@@ -83,3 +60,6 @@ module.exports = {
 		],
 	],
 };
+
+// createJestConfig는 비동기 함수이므로 .then()을 사용하여 설정을 수정할 수 있습니다
+module.exports = createJestConfig(customJestConfig);
