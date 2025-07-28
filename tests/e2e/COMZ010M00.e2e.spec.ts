@@ -8,7 +8,7 @@ test.use({
 });
 
 test.describe('COMZ010M00 시스템코드관리 E2E', () => {
-  test('로그인 테스트', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
       await page.goto('http://localhost:3000/signin');
     });
@@ -30,34 +30,15 @@ test.describe('COMZ010M00 시스템코드관리 E2E', () => {
     await test.step('로그인 후 페이지 로딩 대기', async () => {
       await page.waitForTimeout(5000);
     });
+  });
 
+  test('로그인 테스트', async ({ page }) => {
     await test.step('로그인 성공 확인', async () => {
       await expect(page.getByText('로그인')).not.toBeVisible();
     });
   });
 
   test('메인페이지 로딩 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByRole('textbox', { name: 'ID' }).click();
-      await page.getByRole('textbox', { name: 'ID' }).fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByRole('textbox', { name: 'Password' }).fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
     await test.step('메인페이지 로딩 확인', async () => {
       await expect(page.locator('body')).toBeVisible();
     });
@@ -75,27 +56,6 @@ test.describe('COMZ010M00 시스템코드관리 E2E', () => {
   });
 
   test('기본 네비게이션 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByRole('textbox', { name: 'ID' }).click();
-      await page.getByRole('textbox', { name: 'ID' }).fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByRole('textbox', { name: 'Password' }).fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
     await test.step('페이지가 정상적으로 로드되었는지 확인', async () => {
       await expect(page.locator('body')).toBeVisible();
     });
@@ -109,26 +69,6 @@ test.describe('COMZ010M00 시스템코드관리 E2E', () => {
   });
 
   test('시스템코드관리 화면 진입 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
     await test.step('메인프레임 페이지로 이동', async () => {
       await page.goto('http://localhost:3000/mainframe');
     });
@@ -171,33 +111,13 @@ test.describe('COMZ010M00 시스템코드관리 E2E', () => {
 
     await test.step('시스템코드관리 화면 요소들이 로드되었는지 확인', async () => {
       // 시스템코드관리 타이틀이 있는지 확인
-      await expect(page.getByText('(팝)시스템코드관리').first()).toBeVisible();
+      await expect(page.getByText('시스템코드관리').first()).toBeVisible();
       // 메인프레임 요소들이 있는지 확인
       await expect(page.locator('header')).toBeVisible();
     });
   });
 
   test('시스템코드관리 CRUD 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
     await test.step('메인프레임 페이지로 이동', async () => {
       await page.goto('http://localhost:3000/mainframe');
     });

@@ -49,9 +49,12 @@ import { Program } from '@/modules/sys/types/program.types';
 import { ProgramService } from '@/modules/sys/services/programService';
 import '../common/common.css';
 import { SystemCode } from '@/modules/com/types';
+import { useToast } from '@/contexts/ToastContext';
 
 
 export default function SYS1000M00() {
+  const { showToast, showConfirm } = useToast();
+  
   // AG-Grid ref
   const gridRef = useRef<AgGridReact<Program>>(null);
 
@@ -157,12 +160,12 @@ export default function SYS1000M00() {
       const response = await ProgramService.getProgramList(searchConditions);
       console.log('API 응답:', response);
       setPrograms(response.data || []);
-    } catch (error: any) {
-      console.error('프로그램 목록 로드 실패:', error);
-      alert(`프로그램 목록 로드 실패: ${error?.message || '알 수 없는 오류'}`);
-    } finally {
-      setLoading(false);
-    }
+            } catch (error: any) {
+          console.error('프로그램 목록 로드 실패:', error);
+          showToast(`프로그램 목록 로드 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
+        } finally {
+          setLoading(false);
+        }
   }, [searchConditions]);
 
   // 초기 로드 시에만 데이터 조회
@@ -240,38 +243,97 @@ export default function SYS1000M00() {
     
     // 필수 입력 검증
     if (!selectedProgram.pgmId) {
-      alert('프로그램 ID를 입력해주세요.');
+      showToast('프로그램 ID를 입력해주세요.', 'warning');
       return;
     }
     if (!selectedProgram.pgmNm) {
-      alert('프로그램명을 입력해주세요.');
+      showToast('프로그램명을 입력해주세요.', 'warning');
       return;
     }
     if (!selectedProgram.pgmDivCd) {
-      alert('프로그램 구분을 선택해주세요.');
+      showToast('프로그램 구분을 선택해주세요.', 'warning');
       return;
     }
     if (!selectedProgram.linkPath) {
-      alert('파일 경로를 입력해주세요.');
+      showToast('파일 경로를 입력해주세요.', 'warning');
       return;
     }
     if (!selectedProgram.useYn) {
-      alert('사용 여부를 선택해주세요.');
+      showToast('사용 여부를 선택해주세요.', 'warning');
       return;
     }
     
     // 저장 확인
-    if (!confirm('저장하시겠습니까?')) {
-      return;
-    }
+    showConfirm({
+      message: '저장하시겠습니까?',
+      type: 'info',
+      onConfirm: async () => {
+        try {
+          // 팝업 크기 데이터 처리 및 로깅
+          console.log('=== 저장 전 데이터 확인 ===');
+          console.log('원본 selectedProgram:', selectedProgram);
+          console.log('pgmWdth (원본):', selectedProgram.pgmWdth, '타입:', typeof selectedProgram.pgmWdth);
+          console.log('pgmHght (원본):', selectedProgram.pgmHght, '타입:', typeof selectedProgram.pgmHght);
+          
+          // 빈 문자열, 0, null, undefined를 null로 변환하는 함수
+          const processNumericValue = (value: any): number | null => {
+            if (value === '' || value === null || value === undefined || value === 0) {
+              return null;
+            }
+            const numValue = Number(value);
+            return isNaN(numValue) ? null : numValue;
+          };
+          
+          const processedPgmWdth = processNumericValue(selectedProgram.pgmWdth);
+          const processedPgmHght = processNumericValue(selectedProgram.pgmHght);
+          const processedPgmPsnTop = processNumericValue(selectedProgram.pgmPsnTop);
+          const processedPgmPsnLft = processNumericValue(selectedProgram.pgmPsnLft);
+          
+          console.log('처리된 값들:');
+          console.log('pgmWdth (처리후):', processedPgmWdth);
+          console.log('pgmHght (처리후):', processedPgmHght);
+          console.log('pgmPsnTop (처리후):', processedPgmPsnTop);
+          console.log('pgmPsnLft (처리후):', processedPgmPsnLft);
+          
+          if (selectedProgram.pgmId && !isNewCode) {
+            // 수정
+            const updateData = {
+              ...selectedProgram,
+              pgmWdth: processedPgmWdth,
+              pgmHght: processedPgmHght,
+              pgmPsnTop: processedPgmPsnTop,
+              pgmPsnLft: processedPgmPsnLft,
+            };
+            
+            console.log('수정 데이터:', updateData);
+            await ProgramService.updateProgram(selectedProgram.pgmId, updateData);
+          } else {
+            // 신규 - 특정 필드들을 null로 설정
+            const newProgram = {
+              ...selectedProgram,
+              svcSrvrId: '',
+              linkSvcId: '',
+              upPgmId: '',
+              pgmWdth: processedPgmWdth,
+              pgmHght: processedPgmHght,
+              pgmPsnTop: processedPgmPsnTop,
+              pgmPsnLft: processedPgmPsnLft,
+            };
+            
+            console.log('신규 등록 데이터:', newProgram);
+            await ProgramService.createProgram(newProgram);
+          }
+          loadData();
+          showToast('저장되었습니다.', 'success');
+        } catch (error) {
+          console.error('프로그램 저장 실패:', error);
+          showToast('저장에 실패했습니다.', 'error');
+        }
+      }
+    });
+    return;
     
     try {
-      // 팝업 크기 데이터 처리 및 로깅
-      console.log('=== 저장 전 데이터 확인 ===');
-      console.log('원본 selectedProgram:', selectedProgram);
-      console.log('pgmWdth (원본):', selectedProgram.pgmWdth, '타입:', typeof selectedProgram.pgmWdth);
-      console.log('pgmHght (원본):', selectedProgram.pgmHght, '타입:', typeof selectedProgram.pgmHght);
-      
       // 빈 문자열, 0, null, undefined를 null로 변환하는 함수
       const processNumericValue = (value: any): number | null => {
         if (value === '' || value === null || value === undefined || value === 0) {
@@ -281,10 +343,10 @@ export default function SYS1000M00() {
         return isNaN(numValue) ? null : numValue;
       };
       
-      const processedPgmWdth = processNumericValue(selectedProgram.pgmWdth);
-      const processedPgmHght = processNumericValue(selectedProgram.pgmHght);
-      const processedPgmPsnTop = processNumericValue(selectedProgram.pgmPsnTop);
-      const processedPgmPsnLft = processNumericValue(selectedProgram.pgmPsnLft);
+      const processedPgmWdth = processNumericValue(selectedProgram?.pgmWdth);
+      const processedPgmHght = processNumericValue(selectedProgram?.pgmHght);
+      const processedPgmPsnTop = processNumericValue(selectedProgram?.pgmPsnTop);
+      const processedPgmPsnLft = processNumericValue(selectedProgram?.pgmPsnLft);
       
       console.log('처리된 값들:');
       console.log('pgmWdth (처리후):', processedPgmWdth);
@@ -292,7 +354,7 @@ export default function SYS1000M00() {
       console.log('pgmPsnTop (처리후):', processedPgmPsnTop);
       console.log('pgmPsnLft (처리후):', processedPgmPsnLft);
       
-      if (selectedProgram.pgmId && !isNewCode) {
+      if (selectedProgram?.pgmId && !isNewCode) {
         // 수정
         const updateData = {
           ...selectedProgram,
@@ -303,11 +365,11 @@ export default function SYS1000M00() {
         };
         
         console.log('수정 데이터:', updateData);
-        await ProgramService.updateProgram(selectedProgram.pgmId, updateData);
+        await ProgramService.updateProgram(selectedProgram!.pgmId, updateData);
       } else {
         // 신규 - 특정 필드들을 null로 설정
         const newProgram = {
-          ...selectedProgram,
+          ...selectedProgram!,
           svcSrvrId: '',
           linkSvcId: '',
           upPgmId: '',
@@ -321,10 +383,10 @@ export default function SYS1000M00() {
         await ProgramService.createProgram(newProgram);
       }
       loadData();
-      alert('저장되었습니다.');
+      showToast('저장되었습니다.', 'success');
     } catch (error) {
       console.error('프로그램 저장 실패:', error);
-      alert('저장에 실패했습니다.');
+      showToast('저장에 실패했습니다.', 'error');
     }
   };
 
@@ -360,12 +422,12 @@ export default function SYS1000M00() {
   // 미리보기 버튼 클릭
   const handlePreview = () => {
     if (!selectedProgram) {
-      alert('프로그램을 선택해주세요.');
+      showToast('프로그램을 선택해주세요.', 'warning');
       return;
     }
 
     if (!selectedProgram.linkPath) {
-      alert('파일 경로가 없습니다.');
+      showToast('파일 경로가 없습니다.', 'warning');
       return;
     }
 
@@ -403,38 +465,40 @@ export default function SYS1000M00() {
   // 엑셀 다운로드
   const handleExcelDownload = () => {
     if (programs.length === 0) {
-      alert('다운로드할 데이터가 없습니다.');
+      showToast('다운로드할 데이터가 없습니다.', 'warning');
       return;
     }
     
-    if (!confirm('엑셀 파일을 다운로드하시겠습니까?')) {
-      return;
-    }
-    
-    // CSV 형식으로 데이터 변환
-    const headers = ['프로그램ID', '프로그램명', '프로그램구분', '업무구분', '사용여부', '파일경로'];
-    const csvData = programs.map(program => [
-      program.pgmId,
-      program.pgmNm,
-      program.pgmDivCd,
-      program.bizDivCd,
-      program.useYn === 'Y' ? '사용' : '미사용',
-      program.linkPath
-    ]);
-    
-    const csvContent = [headers, ...csvData]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
-    
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `프로그램목록_${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    alert('정상적으로 다운로드되었습니다.');
+    showConfirm({
+      message: '엑셀 파일을 다운로드하시겠습니까?',
+      type: 'info',
+      onConfirm: () => {
+        // CSV 형식으로 데이터 변환
+        const headers = ['프로그램ID', '프로그램명', '프로그램구분', '업무구분', '사용여부', '파일경로'];
+        const csvData = programs.map(program => [
+          program.pgmId,
+          program.pgmNm,
+          program.pgmDivCd,
+          program.bizDivCd,
+          program.useYn === 'Y' ? '사용' : '미사용',
+          program.linkPath
+        ]);
+        
+        const csvContent = [headers, ...csvData]
+          .map(row => row.map(cell => `"${cell}"`).join(','))
+          .join('\n');
+        
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `프로그램목록_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('정상적으로 다운로드되었습니다.', 'success');
+      }
+    });
   };
 
   return (

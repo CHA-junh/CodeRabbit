@@ -47,7 +47,6 @@ export default function MainLayout({
 
 	// 메뉴 클릭 시 탭 추가/선택
 	const handleMenuClick = (programId: string, title: string) => {
-		console.log('handleMenuClick', programId, title)
 		setTabs((prev) => {
 			if (prev.find((t) => t.programId === programId)) return prev
 			return [...prev, { programId, title }]

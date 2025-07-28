@@ -1,6 +1,6 @@
 import { TblUserRole, TblUserRolePgmGrp, ProgramGroupData } from "../types";
 
-const API_URL = "/api/sys";
+const API_URL = "/api/sys/user-roles";
 
 // 메뉴 목록 조회
 export const fetchMenus = async () => {

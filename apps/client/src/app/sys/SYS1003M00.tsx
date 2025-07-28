@@ -9,13 +9,13 @@
  * - 메뉴 정보 조회
  *
  * API 연동:
- * - GET /api/sys/menus - 메뉴 목록 조회
- * - GET /api/sys/user-roles - 사용자 역할 목록 조회
- * - POST /api/sys/user-roles - 사용자 역할 저장
- * - GET /api/sys/user-roles/:usrRoleId/program-groups - 역할별 프로그램 그룹 조회
- * - GET /api/sys/program-groups - 전체 프로그램 그룹 조회
- * - POST /api/sys/user-roles/:usrRoleId/program-groups - 역할별 프로그램 그룹 저장
- * - POST /api/sys/user-roles/:usrRoleId/copy - 사용자 역할 복사
+ * - GET /api/sys/user-roles/menus - 메뉴 목록 조회
+ * - GET /api/sys/user-roles/user-roles - 사용자 역할 목록 조회
+ * - POST /api/sys/user-roles/user-roles - 사용자 역할 저장
+ * - GET /api/sys/user-roles/user-roles/:usrRoleId/program-groups - 역할별 프로그램 그룹 조회
+ * - GET /api/sys/user-roles/program-groups - 전체 프로그램 그룹 조회
+ * - POST /api/sys/user-roles/user-roles/:usrRoleId/program-groups - 역할별 프로그램 그룹 저장
+ * - POST /api/sys/user-roles/user-roles/:usrRoleId/copy - 사용자 역할 복사
  *
  * 상태 관리:
  * - 사용자 역할 목록 및 선택된 역할

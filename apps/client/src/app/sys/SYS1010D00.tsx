@@ -54,6 +54,7 @@ import { ColDef, SelectionChangedEvent, GridReadyEvent } from 'ag-grid-community
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import '../common/common.css';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Program {
   PGM_ID: string;
@@ -70,6 +71,7 @@ interface SYS1010D00Props {
 }
 
 export default function SYS1010D00({ onSelect, multiple = true }: SYS1010D00Props) {
+  const { showToast } = useToast();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedPrograms, setSelectedPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(false);
@@ -165,11 +167,11 @@ export default function SYS1010D00({ onSelect, multiple = true }: SYS1010D00Prop
         }, 0);
       } else {
         console.error('프로그램 목록 로드 실패:', result.message);
-        alert(`프로그램 목록 로드 실패: ${result.message}`);
+        showToast(`프로그램 목록 로드 실패: ${result.message}`, 'error');
       }
     } catch (error: any) {
       console.error('프로그램 목록 로드 실패:', error);
-      alert(`프로그램 목록 로드 실패: ${error?.message || '알 수 없는 오류'}`);
+      showToast(`프로그램 목록 로드 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -224,7 +226,7 @@ export default function SYS1010D00({ onSelect, multiple = true }: SYS1010D00Prop
     console.log('선택된 프로그램 데이터:', selectedPrograms);
     
     if (selectedPrograms.length === 0) {
-      alert('추가할 프로그램을 선택해주세요.');
+      showToast('추가할 프로그램을 선택해주세요.', 'warning');
       return;
     }
 

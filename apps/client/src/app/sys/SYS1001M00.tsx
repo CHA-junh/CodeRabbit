@@ -59,8 +59,11 @@ import '../common/common.css';
 import { ProgramGroupService } from '@/modules/sys/services/programGroupService';
 import { ProgramGroup, ProgramGroupDetail, ProgramGroupProgram } from '@/modules/sys/types/programGroup.types';
 import { usePopup } from '@/modules/com/hooks/usePopup';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function SYS1001M00() {
+  const { showToast, showConfirm } = useToast();
+  
   // AG-Grid refs
   const programGroupGridRef = useRef<AgGridReact<ProgramGroup>>(null);
   const programGridRef = useRef<AgGridReact<ProgramGroupProgram>>(null);
@@ -146,7 +149,7 @@ export default function SYS1001M00() {
       }
     } catch (error: any) {
       console.error('프로그램 그룹 목록 로드 실패:', error);
-      alert(`프로그램 그룹 목록 로드 실패: ${error?.message || '알 수 없는 오류'}`);
+      showToast(`프로그램 그룹 목록 로드 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
       setProgramGroups([]);
     } finally {
       setLoading(false);
@@ -174,7 +177,7 @@ export default function SYS1001M00() {
         
         if (!selectedGroup?.pgmGrpId) {
           console.log('❌ 프로그램 그룹이 선택되지 않음');
-          alert('프로그램 그룹이 선택되지 않았습니다.');
+          showToast('프로그램 그룹이 선택되지 않았습니다.', 'warning');
           return;
         }
 
@@ -185,12 +188,12 @@ export default function SYS1001M00() {
           // 선택된 프로그램 ID만 추출
           const programIds = event.data.data.map((p: any) => p.PGM_ID);
           const addedCount = await ProgramGroupService.addProgramsToGroup(selectedGroup.pgmGrpId, programIds);
-          alert(`${addedCount}개의 프로그램이 추가되었습니다.`);
+          showToast(`${addedCount}개의 프로그램이 추가되었습니다.`, 'success');
           // 프로그램 목록 다시 조회
           loadPrograms(selectedGroup.pgmGrpId);
         } catch (error: any) {
           console.error('❌ 프로그램 추가 실패:', error);
-          alert('프로그램 추가에 실패했습니다.');
+          showToast('프로그램 추가에 실패했습니다.', 'error');
         }
       } else {
         console.log('❌ 프로그램 선택 이벤트가 아님 또는 프로그램 데이터 없음');
@@ -301,15 +304,15 @@ export default function SYS1001M00() {
             loadPrograms(group.pgmGrpId);
           } else {
             console.error('API 응답 실패:', response.message);
-            alert(response.message);
+            showToast(response.message, 'error');
           }
         }).catch(error => {
           console.error('프로그램 그룹 상세 조회 실패:', error);
-          alert('프로그램 그룹 상세 조회에 실패했습니다.');
+          showToast('프로그램 그룹 상세 조회에 실패했습니다.', 'error');
         });
       } catch (error: any) {
         console.error('프로그램 그룹 상세 조회 실패:', error);
-        alert('프로그램 그룹 상세 조회에 실패했습니다.');
+        showToast('프로그램 그룹 상세 조회에 실패했습니다.', 'error');
       }
     } else {
       setSelectedGroup(null);
@@ -349,11 +352,11 @@ export default function SYS1001M00() {
         loadPrograms(group.pgmGrpId);
       } else {
         console.error('API 응답 실패:', response.message);
-        alert(response.message);
+        showToast(response.message, 'error');
       }
     } catch (error: any) {
       console.error('프로그램 그룹 상세 조회 실패:', error);
-      alert('프로그램 그룹 상세 조회에 실패했습니다.');
+      showToast('프로그램 그룹 상세 조회에 실패했습니다.', 'error');
     }
   };
 
@@ -363,18 +366,18 @@ export default function SYS1001M00() {
     
     // 필수 입력 검증
     if (!selectedGroup.pgmGrpNm) {
-      alert('프로그램 그룹명을 입력해주세요.');
+      showToast('프로그램 그룹명을 입력해주세요.', 'warning');
       return;
     }
     if (!selectedGroup.useYn) {
-      alert('사용 여부를 선택해주세요.');
+      showToast('사용 여부를 선택해주세요.', 'warning');
       return;
     }
     
     try {
       const response = await ProgramGroupService.saveProgramGroup(selectedGroup);
       if (response.success) {
-        alert('저장되었습니다.');
+        showToast('저장되었습니다.', 'success');
         loadProgramGroups();
         // 저장 후 상세 정보 다시 조회
         if (selectedGroup.pgmGrpId) {
@@ -384,11 +387,11 @@ export default function SYS1001M00() {
           }
         }
       } else {
-        alert(response.message);
+        showToast(response.message, 'error');
       }
     } catch (error) {
       console.error('프로그램 그룹 저장 실패:', error);
-      alert('저장에 실패했습니다.');
+      showToast('저장에 실패했습니다.', 'error');
     }
   };
 
@@ -406,23 +409,25 @@ export default function SYS1001M00() {
 
   // 프로그램 그룹 복사
   const handleCopyGroup = async (group: ProgramGroup) => {
-    if (!confirm('프로그램 그룹을 복사하시겠습니까?')) {
-      return;
-    }
-
-    try {
-      const response = await ProgramGroupService.copyProgramGroup(group.pgmGrpId);
-      
-      if (response.success) {
-        alert('프로그램 그룹이 복사되었습니다.');
-        loadProgramGroups();
-      } else {
-        alert(response.message);
+    showConfirm({
+      message: '프로그램 그룹을 복사하시겠습니까?',
+      type: 'info',
+      onConfirm: async () => {
+        try {
+          const response = await ProgramGroupService.copyProgramGroup(group.pgmGrpId);
+          
+          if (response.success) {
+            showToast('프로그램 그룹이 복사되었습니다.', 'success');
+            loadProgramGroups();
+          } else {
+            showToast(response.message, 'error');
+          }
+        } catch (error: any) {
+          console.error('프로그램 그룹 복사 실패:', error);
+          showToast('프로그램 그룹 복사에 실패했습니다.', 'error');
+        }
       }
-    } catch (error: any) {
-      console.error('프로그램 그룹 복사 실패:', error);
-      alert('프로그램 그룹 복사에 실패했습니다.');
-    }
+    });
   };
 
   // 프로그램 선택 체크박스
@@ -441,7 +446,7 @@ export default function SYS1001M00() {
     
     if (!selectedGroup?.pgmGrpId) {
       console.log('❌ 프로그램 그룹이 선택되지 않음');
-      alert('프로그램 그룹을 선택해주세요.');
+      showToast('프로그램 그룹을 선택해주세요.', 'warning');
       return;
     }
 
@@ -467,35 +472,39 @@ export default function SYS1001M00() {
   // 프로그램 삭제
   const handleDeletePrograms = async () => {
     if (!selectedGroup?.pgmGrpId) {
-      alert('프로그램 그룹을 선택해주세요.');
+      showToast('프로그램 그룹을 선택해주세요.', 'warning');
       return;
     }
 
     if (selectedPrograms.length === 0) {
-      alert('삭제할 프로그램을 선택해주세요.');
+      showToast('삭제할 프로그램을 선택해주세요.', 'warning');
       return;
     }
     
-    if (confirm('선택한 프로그램을 삭제하시겠습니까?')) {
-      try {
-        const response = await ProgramGroupService.removeProgramsFromGroup(
-          selectedGroup.pgmGrpId,
-          selectedPrograms
-        );
-        
-        if (response.success) {
-          alert('프로그램이 삭제되었습니다.');
-          setSelectedPrograms([]);
-          // 프로그램 목록 다시 조회
-          loadPrograms(selectedGroup.pgmGrpId);
-        } else {
-          alert(response.message);
+    showConfirm({
+      message: '선택한 프로그램을 삭제하시겠습니까?',
+      type: 'warning',
+      onConfirm: async () => {
+        try {
+          const response = await ProgramGroupService.removeProgramsFromGroup(
+            selectedGroup.pgmGrpId,
+            selectedPrograms
+          );
+          
+          if (response.success) {
+            showToast('프로그램이 삭제되었습니다.', 'success');
+            setSelectedPrograms([]);
+            // 프로그램 목록 다시 조회
+            loadPrograms(selectedGroup.pgmGrpId);
+          } else {
+            showToast(response.message, 'error');
+          }
+        } catch (error: any) {
+          console.error('프로그램 삭제 실패:', error);
+          showToast('프로그램 삭제에 실패했습니다.', 'error');
         }
-      } catch (error: any) {
-        console.error('프로그램 삭제 실패:', error);
-        alert('프로그램 삭제에 실패했습니다.');
       }
-    }
+    });
   };
 
   return (

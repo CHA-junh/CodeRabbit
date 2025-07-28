@@ -66,6 +66,7 @@ import { Menu, MenuListResponse, MenuCreateDto, MenuUpdateDto } from '@/modules/
 import { MenuService } from '@/modules/sys/services/menuService';
 import { usePopup } from '@/modules/com/hooks/usePopup';
 import '../common/common.css';
+import { useToast } from '@/contexts/ToastContext';
 
 // 재귀적 트리 노드 컴포넌트
 interface TreeNodeProps {
@@ -79,7 +80,6 @@ interface TreeNodeProps {
 }
 
 const TreeNode: React.FC<TreeNodeProps> = ({ node, level, index, onToggle, onSelect, openIndexes, selectedTreeNode }) => {
-  console.log('🌲 [DEBUG] TreeNode 렌더링:', node.MENU_DSP_NM, 'MENU_SEQ:', node.MENU_SEQ);
   const hasChildren = node.children && node.children.length > 0;
   const isOpen = openIndexes.includes(node.treeIndex || index);
   const isTopLevel = node.MENU_SEQ === '0'; // 최상위 노드 여부
@@ -132,6 +132,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, level, index, onToggle, onSel
 };
 
 export default function SYS1002M00() {
+  const { showToast, showConfirm } = useToast();
+  
   // AG-Grid refs
   const menuGridRef = useRef<AgGridReact<Menu>>(null);
   const menuProgramGridRef = useRef<AgGridReact<any>>(null);
@@ -373,7 +375,7 @@ export default function SYS1002M00() {
       const response: MenuListResponse = await MenuService.getMenuList(searchConditions);
       setMenus(response.data || []);
     } catch (error: any) {
-      alert(`메뉴 목록 조회 실패: ${error?.message || '알 수 없는 오류'}`);
+      showToast(`메뉴 목록 조회 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -564,14 +566,14 @@ export default function SYS1002M00() {
   const updateTreeOrder = useCallback(async (menuId: string, treeData: any[]) => {
     try {
       await MenuService.updateMenuTreeOrder(menuId, treeData);
-      alert('트리 순서가 업데이트되었습니다.');
+      showToast('트리 순서가 업데이트되었습니다.', 'success');
       // 실시간 업데이트
       await refreshTree();
     } catch (error: any) {
       console.error('트리 순서 업데이트 실패:', error);
-      alert(`트리 순서 업데이트 실패: ${error?.message || '알 수 없는 오류'}`);
+      showToast(`트리 순서 업데이트 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
     }
-  }, [refreshTree]);
+  }, [refreshTree, showToast]);
 
   // 메뉴에 프로그램 추가
   const addMenuProgram = useCallback(async (program: any) => {
@@ -588,30 +590,35 @@ export default function SYS1002M00() {
       await loadMenuPrograms(selectedMenu.MENU_ID, 0);
       setShowProgramSearch(false);
       setProgramSearchKeyword('');
-      alert('프로그램이 추가되었습니다.');
+      showToast('프로그램이 추가되었습니다.', 'success');
     } catch (error: any) {
-      alert(`프로그램 추가 실패: ${error.message}`);
+      showToast(`프로그램 추가 실패: ${error.message}`, 'error');
     }
-  }, [selectedMenu, loadMenuPrograms]);
+  }, [selectedMenu, loadMenuPrograms, showToast]);
 
   // 메뉴 프로그램 삭제
   const deleteMenuPrograms = useCallback(async () => {
     if (!selectedMenu || selectedPrograms.size === 0) return;
-    if (!confirm('선택된 프로그램들을 삭제하시겠습니까?')) return;
-
-    try {
-      const deletePromises = Array.from(selectedPrograms).map(menuSeq =>
-        MenuService.deleteMenuProgram(selectedMenu.MENU_ID, menuSeq)
-      );
-      await Promise.all(deletePromises);
-      await loadMenuPrograms(selectedMenu.MENU_ID, 0);
-      await loadMenuTreeByMenu(selectedMenu.MENU_ID, selectedMenu); // 메뉴 트리뷰 재조회
-      setSelectedPrograms(new Set());
-      alert('선택된 프로그램들이 삭제되었습니다.');
-    } catch (error: any) {
-      alert(`프로그램 삭제 실패: ${error.message}`);
-    }
-  }, [selectedMenu, selectedPrograms, loadMenuPrograms, loadMenuTreeByMenu]);
+    
+    showConfirm({
+      message: '선택된 프로그램들을 삭제하시겠습니까?',
+      type: 'warning',
+      onConfirm: async () => {
+        try {
+          const deletePromises = Array.from(selectedPrograms).map(menuSeq =>
+            MenuService.deleteMenuProgram(selectedMenu.MENU_ID, menuSeq)
+          );
+          await Promise.all(deletePromises);
+          await loadMenuPrograms(selectedMenu.MENU_ID, 0);
+          await loadMenuTreeByMenu(selectedMenu.MENU_ID, selectedMenu); // 메뉴 트리뷰 재조회
+          setSelectedPrograms(new Set());
+          showToast('선택된 프로그램들이 삭제되었습니다.', 'success');
+        } catch (error: any) {
+          showToast(`프로그램 삭제 실패: ${error.message}`, 'error');
+        }
+      }
+    });
+  }, [selectedMenu, selectedPrograms, loadMenuPrograms, loadMenuTreeByMenu, showToast, showConfirm]);
 
   // 메뉴별 프로그램 행 추가
   const handleAddProgramRow = () => {
@@ -633,74 +640,86 @@ export default function SYS1002M00() {
   // 메뉴별 프로그램 행 삭제 (계층 구조 삭제)
   const handleDeleteProgramRows = async () => {
     if (selectedPrograms.size === 0) {
-      alert('삭제할 항목을 선택해주세요.');
-      return;
-    }
-    if (!confirm('선택된 프로그램들과 하위 항목들을 모두 삭제하시겠습니까?')) {
+      showToast('삭제할 항목을 선택해주세요.', 'warning');
       return;
     }
     if (!selectedMenu?.MENU_ID) {
-      alert('메뉴가 선택되지 않았습니다.');
+      showToast('메뉴가 선택되지 않았습니다.', 'warning');
       return;
     }
-    setLoading(true);
-    try {
-      // 선택된 행의 MENU_SEQ만 추출
-      const selectedRows = Array.from(selectedPrograms).map(idx => menuPrograms[idx]);
-      const menuSeqs = selectedRows.map(row => row.MENU_SEQ).filter(Boolean);
-      // 새로운 계층 삭제 API 호출
-      await MenuService.deleteMenuProgramsHierarchical(selectedMenu.MENU_ID, menuSeqs);
-      alert('선택된 프로그램들과 하위 항목들이 모두 삭제되었습니다.');
-      // 화면 갱신
-      await loadMenuPrograms(selectedMenu.MENU_ID, 0);
-      await loadMenuTreeByMenu(selectedMenu.MENU_ID, selectedMenu);
-      setSelectedPrograms(new Set());
-    } catch (error: any) {
-      alert(`삭제 실패: ${error?.message || '알 수 없는 오류'}`);
-    } finally {
-      setLoading(false);
-    }
+    
+    showConfirm({
+      message: '선택된 프로그램들과 하위 항목들을 모두 삭제하시겠습니까?',
+      type: 'warning',
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          // 선택된 행의 MENU_SEQ만 추출
+          const selectedRows = Array.from(selectedPrograms).map(idx => menuPrograms[idx]);
+          const menuSeqs = selectedRows.map(row => row.MENU_SEQ).filter(Boolean);
+          // 새로운 계층 삭제 API 호출
+          await MenuService.deleteMenuProgramsHierarchical(selectedMenu.MENU_ID, menuSeqs);
+          showToast('선택된 프로그램들과 하위 항목들이 모두 삭제되었습니다.', 'success');
+          // 화면 갱신 - 원래 선택한 메뉴의 시퀀스 사용
+          const selectedMenuSeq = selectedTreeNode?.MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0;
+          await loadMenuPrograms(selectedMenu.MENU_ID, selectedMenuSeq);
+          await loadMenuTreeByMenu(selectedMenu.MENU_ID, selectedMenu);
+          setSelectedPrograms(new Set());
+        } catch (error: any) {
+          showToast(`삭제 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   // 메뉴별 프로그램 저장
   const handleSavePrograms = async () => {
     if (!selectedMenu) {
-      alert('메뉴가 선택되지 않았습니다.');
+      showToast('메뉴가 선택되지 않았습니다.', 'warning');
       return;
     }
     if (menuPrograms.length === 0) {
-      alert('저장할 프로그램이 없습니다.');
+      showToast('저장할 프로그램이 없습니다.', 'warning');
       return;
     }
     // 유효성 검사
     for (let i = 0; i < menuPrograms.length; i++) {
       const row = menuPrograms[i];
       if (!row.MENU_DSP_NM) {
-        alert('표시명을 입력하세요.');
+        showToast('표시명을 입력하세요.', 'warning');
         return;
       }
       if (row.MENU_SHP_DVCD === 'P' && !row.PGM_ID) {
-        alert('프로그램을 선택하세요.');
+        showToast('프로그램을 선택하세요.', 'warning');
         return;
       }
     }
-    if (!confirm('프로그램 정보를 저장하시겠습니까?')) {
-      return;
-    }
 
-    // HGRK_MENU_SEQ 보장
-    const programsToSave = menuPrograms.map(row => ({
-      ...row,
-      HGRK_MENU_SEQ: row.HGRK_MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0
-    }));
+    showConfirm({
+      message: '프로그램 정보를 저장하시겠습니까?',
+      type: 'info',
+      onConfirm: async () => {
+        // HGRK_MENU_SEQ 보장 - 트리에서 선택한 메뉴의 MENU_SEQ 사용
+        const programsToSave = menuPrograms.map(row => ({
+          ...row,
+          HGRK_MENU_SEQ: selectedTreeNode?.MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0
+        }));
 
-    try {
-      await MenuService.saveMenuPrograms(selectedMenu.MENU_ID, programsToSave);
-      alert('저장되었습니다.');
-      setSelectedPrograms(new Set());
-    } catch (e: any) {
-      alert('저장 실패: ' + (e?.message || '알 수 없는 오류'));
-    }
+        try {
+          await MenuService.saveMenuPrograms(selectedMenu.MENU_ID, programsToSave);
+          showToast('저장되었습니다.', 'success');
+          // 화면 갱신 - 원래 선택한 메뉴의 시퀀스 사용
+          const selectedMenuSeq = selectedTreeNode?.MENU_SEQ ?? selectedMenu.MENU_SEQ ?? 0;
+          await loadMenuPrograms(selectedMenu.MENU_ID, selectedMenuSeq);
+          await loadMenuTreeByMenu(selectedMenu.MENU_ID, selectedMenu);
+          setSelectedPrograms(new Set());
+        } catch (e: any) {
+          showToast('저장 실패: ' + (e?.message || '알 수 없는 오류'), 'error');
+        }
+      }
+    });
   };
 
   // 검색 조건 변경 핸들러
@@ -756,7 +775,7 @@ export default function SYS1002M00() {
     if (!selectedMenu) return;
 
     if (!selectedMenu.MENU_NM.trim()) {
-      alert('메뉴명을 입력해주세요.');
+      showToast('메뉴명을 입력해주세요.', 'warning');
       return;
     }
 
@@ -771,7 +790,7 @@ export default function SYS1002M00() {
         };
 
         await MenuService.createMenu(menuData);
-        alert('메뉴가 생성되었습니다.');
+        showToast('메뉴가 생성되었습니다.', 'success');
         
         // 저장 후 모든 데이터 초기화 및 재조회
         await loadMenus();
@@ -782,13 +801,13 @@ export default function SYS1002M00() {
         };
 
         await MenuService.updateMenu(selectedMenu.MENU_ID, menuData);
-        alert('메뉴가 수정되었습니다.');
+        showToast('메뉴가 수정되었습니다.', 'success');
         
         // 저장 후 모든 데이터 초기화 및 재조회
         await loadMenus();
       }
     } catch (error: any) {
-      alert(`저장 실패: ${error?.message || '알 수 없는 오류'}`);
+      showToast(`저장 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
     }
   };
 
@@ -796,47 +815,52 @@ export default function SYS1002M00() {
   const handleDelete = async () => {
     if (!selectedMenu) return;
 
-    if (!confirm('정말로 삭제하시겠습니까?')) return;
-
-    try {
-      await MenuService.deleteMenu(selectedMenu.MENU_ID);
-      alert('메뉴가 삭제되었습니다.');
-      // 삭제 후 모든 데이터 초기화 및 재조회
-      await loadMenus();
-    } catch (error: any) {
-      alert(`삭제 실패: ${error?.message || '알 수 없는 오류'}`);
-    }
+    showConfirm({
+      message: '정말로 삭제하시겠습니까?',
+      type: 'warning',
+      onConfirm: async () => {
+        try {
+          await MenuService.deleteMenu(selectedMenu.MENU_ID);
+          showToast('메뉴가 삭제되었습니다.', 'success');
+          // 삭제 후 모든 데이터 초기화 및 재조회
+          await loadMenus();
+        } catch (error: any) {
+          showToast(`삭제 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
+        }
+      }
+    });
   };
 
   // 복사 저장
   const handleCopy = async () => {
     if (!selectedMenu) {
-      alert('복사할 메뉴를 먼저 선택해주세요.');
+      showToast('복사할 메뉴를 먼저 선택해주세요.', 'warning');
       return;
     }
 
-    const confirmMessage = `${selectedMenu.MENU_NM} 메뉴를 새로 복사하시겠습니까?`;
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // SEIZE_TO_BIST 방식으로 복사 (메뉴 정보 + 메뉴 상세 모두 복사)
-      const result = await MenuService.copyMenu(selectedMenu.MENU_ID, selectedMenu.MENU_NM);
-      
-      alert(`새 메뉴 '${result.MENU_NM}'이(가) 성공적으로 생성되었습니다.`);
-      
-      // 복사 후 모든 데이터 초기화 및 재조회
-      await loadMenus();
-      
-    } catch (error: any) {
-      console.error('메뉴 복사 실패:', error);
-      alert(`복사 실패: ${error?.message || '알 수 없는 오류'}`);
-    } finally {
-      setLoading(false);
-    }
+    showConfirm({
+      message: `${selectedMenu.MENU_NM} 메뉴를 새로 복사하시겠습니까?`,
+      type: 'info',
+      onConfirm: async () => {
+        try {
+          setLoading(true);
+          
+          // SEIZE_TO_BIST 방식으로 복사 (메뉴 정보 + 메뉴 상세 모두 복사)
+          const result = await MenuService.copyMenu(selectedMenu.MENU_ID, selectedMenu.MENU_NM);
+          
+          showToast(`새 메뉴 '${result.MENU_NM}'이(가) 성공적으로 생성되었습니다.`, 'success');
+          
+          // 복사 후 모든 데이터 초기화 및 재조회
+          await loadMenus();
+          
+        } catch (error: any) {
+          console.error('메뉴 복사 실패:', error);
+          showToast(`복사 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   // 상세 체크박스
@@ -883,7 +907,7 @@ export default function SYS1002M00() {
       setMenuPrograms(programs);
       setSelectedPrograms(new Set());
     } catch (error: any) {
-      alert(`프로그램 목록 조회 실패: ${error?.message || '알 수 없는 오류'}`);
+      showToast(`프로그램 목록 조회 실패: ${error?.message || '알 수 없는 오류'}`, 'error');
     }
   };
 
@@ -947,7 +971,7 @@ export default function SYS1002M00() {
         } else {
           // 받은 PGM_ID가 숫자라면 해당 순번에 삽입/치환
           if (programs.length > 1) {
-            alert('1개만 선택해 주세요.');
+            showToast('1개만 선택해 주세요.', 'warning');
             return;
           }
           const insertIndex = Number(pgmIdParam);
@@ -1160,9 +1184,9 @@ export default function SYS1002M00() {
         <div className="w-2/3 flex flex-col">
           <div className="tit_area flex justify-between items-center">
             <h3>메뉴 별 프로그램</h3>
-            <button type="button" className="btn-base btn-etc text-xs px-2 py-1" onClick={() => {
+            <button type="button" className="btn-base btn-etc text-xs px-2 py-1"             onClick={() => {
               if (!selectedMenu) {
-                alert('메뉴를 먼저 선택해주세요.');
+                showToast('메뉴를 먼저 선택해주세요.', 'warning');
                 return;
               }
               console.log('메뉴 미리보기 클릭 - selectedMenu:', selectedMenu);
@@ -1238,9 +1262,9 @@ export default function SYS1002M00() {
           </div>
 
           <div className="flex gap-2 justify-end mt-2">
-            <button type="button" className="btn-base btn-etc text-xs px-2 py-1" onClick={() => {
+            <button type="button" className="btn-base btn-etc text-xs px-2 py-1"             onClick={() => {
               if (!selectedMenu) {
-                alert('메뉴를 먼저 선택해주세요.');
+                showToast('메뉴를 먼저 선택해주세요.', 'warning');
                 return;
               }
               // 프로그램 검색 팝업 열기 (하단 버튼: INSERT_ROWS를 PGM_ID로 전달)

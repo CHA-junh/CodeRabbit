@@ -8,11 +8,13 @@ test.use({
 });
 
 test.describe('COM0020M00 로그인 화면 E2E', () => {
-  test('기본 로그인 테스트', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
+      await page.goto('http://172.20.30.176:3000/signin');
     });
+  });
 
+  test('기본 로그인 테스트', async ({ page }) => {
     await test.step('ID 입력', async () => {
       await page.getByRole('textbox', { name: 'ID' }).click();
       await page.getByRole('textbox', { name: 'ID' }).fill('10757');
@@ -37,10 +39,6 @@ test.describe('COM0020M00 로그인 화면 E2E', () => {
   });
 
   test('비밀번호 변경 후 로그인 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
     await test.step('ID 입력', async () => {
       await page.getByRole('textbox', { name: 'ID' }).click();
       await page.getByRole('textbox', { name: 'ID' }).fill('10757');
@@ -99,10 +97,6 @@ test.describe('COM0020M00 로그인 화면 E2E', () => {
   });
 
   test('로그인 화면 UI 요소 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
     await test.step('페이지 제목 확인', async () => {
       await expect(page.getByText('Sign in')).toBeVisible();
     });
@@ -129,10 +123,6 @@ test.describe('COM0020M00 로그인 화면 E2E', () => {
   });
 
   test('입력 검증 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
     await test.step('ID 필드에 숫자만 입력 가능한지 확인', async () => {
       const idInput = page.getByRole('textbox', { name: 'ID' });
       await idInput.click();
@@ -164,10 +154,6 @@ test.describe('COM0020M00 로그인 화면 E2E', () => {
   });
 
   test('잘못된 로그인 정보 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
     await test.step('잘못된 ID로 로그인 시도', async () => {
       await page.getByRole('textbox', { name: 'ID' }).fill('99999');
       await page.getByRole('textbox', { name: 'Password' }).fill('wrongpassword');

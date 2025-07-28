@@ -3,14 +3,14 @@ import { test, expect } from '@playwright/test';
 test.use({
   viewport: {
     height: 800,
-    width: 1200
+    width: 1270
   }
 });
 
 test.describe('COMZ040P00 사업번호검색 E2E', () => {
-  test('기본 화면 로딩 테스트', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
+      await page.goto('http://172.20.30.176:3000/signin');
     });
 
     await test.step('ID 입력', async () => {
@@ -30,9 +30,12 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
     });
 
     await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
+      await page.goto('http://172.20.30.176:3000/com/COMZ040P00');
+      await page.waitForTimeout(3000);
     });
+  });
 
+  test('기본 화면 로딩 테스트', async ({ page }) => {
     await test.step('사업번호검색 화면 요소들이 로드되었는지 확인', async () => {
       // 팝업 헤더가 있는지 확인
       await expect(page.locator('.popup-header')).toBeVisible();
@@ -46,30 +49,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('조회구분 라디오 버튼 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('전체 라디오 버튼 클릭', async () => {
       await page.getByRole('radio', { name: '전체' }).click();
     });
@@ -96,30 +75,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('본부/부서 선택 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('사업부서 라디오 버튼 클릭', async () => {
       await page.getByRole('radio', { name: '사업부서' }).click();
     });
@@ -141,30 +96,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('진행상태 체크박스 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('진행상태 체크박스들이 표시되는지 확인', async () => {
       await expect(page.getByRole('checkbox', { name: '(모두선택)' })).toBeVisible();
       await expect(page.getByRole('checkbox', { name: '신규' })).toBeVisible();
@@ -183,30 +114,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('검색 조건 입력 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('사업년도 선택', async () => {
       const yearSelect = page.locator('select').nth(2);
       await yearSelect.selectOption('2024');
@@ -227,65 +134,17 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('검색 실행 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('조회 버튼 클릭', async () => {
       await page.getByRole('button', { name: '조회' }).click();
     });
 
     await test.step('검색이 실행되었는지 확인', async () => {
-      // AG-Grid가 로드되었는지 확인
-      await expect(page.locator('.ag-theme-alpine')).toBeVisible();
+      // AG-Grid가 로드되었는지 확인 (팝업이 아닌 메인 그리드만 확인)
+      await expect(page.locator('.ag-theme-alpine').first()).toBeVisible();
     });
   });
 
   test('AG-Grid 데이터 표시 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('조회 버튼 클릭', async () => {
       await page.getByRole('button', { name: '조회' }).click();
     });
@@ -304,30 +163,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('행 선택 및 더블클릭 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('조회 버튼 클릭', async () => {
       await page.getByRole('button', { name: '조회' }).click();
     });
@@ -337,7 +172,7 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
     });
 
     await test.step('AG-Grid가 표시되는지 확인', async () => {
-      await expect(page.locator('.ag-theme-alpine')).toBeVisible();
+      await expect(page.locator('.ag-theme-alpine').first()).toBeVisible();
     });
 
     await test.step('AG-Grid 헤더가 표시되는지 확인', async () => {
@@ -346,30 +181,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('ESC 키로 팝업 닫기 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('ESC 키 입력', async () => {
       await page.keyboard.press('Escape');
     });
@@ -381,30 +192,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('닫기 버튼으로 팝업 닫기 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('닫기 버튼 클릭', async () => {
       await page.getByRole('button', { name: '×' }).click();
     });
@@ -416,30 +203,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('종료 버튼으로 팝업 닫기 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('종료 버튼 클릭', async () => {
       await page.getByRole('button', { name: '종료' }).click();
     });
@@ -451,30 +214,6 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
   });
 
   test('엔터키로 검색 실행 테스트', async ({ page }) => {
-    await test.step('로그인 페이지 진입', async () => {
-      await page.goto('http://localhost:3000/signin');
-    });
-
-    await test.step('ID 입력', async () => {
-      await page.getByLabel('ID').fill('10757');
-    });
-
-    await test.step('비밀번호 입력', async () => {
-      await page.getByLabel('Password').fill('buttle1!');
-    });
-
-    await test.step('로그인 버튼 클릭', async () => {
-      await page.getByRole('button', { name: 'Login' }).click();
-    });
-
-    await test.step('로그인 후 페이지 로딩 대기', async () => {
-      await page.waitForTimeout(5000);
-    });
-
-    await test.step('사업번호검색 팝업 페이지로 직접 이동', async () => {
-      await page.goto('http://localhost:3000/com/COMZ040P00');
-    });
-
     await test.step('사업번호 입력 필드에 포커스', async () => {
       await page.getByRole('textbox', { name: '사업번호 입력' }).click();
     });
@@ -484,8 +223,8 @@ test.describe('COMZ040P00 사업번호검색 E2E', () => {
     });
 
     await test.step('검색이 실행되었는지 확인', async () => {
-      // AG-Grid가 로드되었는지 확인
-      await expect(page.locator('.ag-theme-alpine')).toBeVisible();
+      // AG-Grid가 로드되었는지 확인 (팝업이 아닌 메인 그리드만 확인)
+      await expect(page.locator('.ag-theme-alpine').first()).toBeVisible();
     });
   });
 }); 

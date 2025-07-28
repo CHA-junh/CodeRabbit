@@ -20,6 +20,8 @@ export interface Program {
   regDttm?: string;
   chngDttm?: string;
   chngrId?: string;
+  pgmDivNm?: string;
+  bizDivNm?: string;
 }
 
 export interface ProgramCreateDto {
