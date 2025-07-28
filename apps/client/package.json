@@ -8,6 +8,7 @@
 		"dev:local": "next dev -H localhost -p 3000",
 		"dev:hmr:local": "NEXT_PUBLIC_WS_URL=ws://localhost:3000 next dev -H localhost -p 3000",
 		"dev:hmr:dev": "NEXT_PUBLIC_WS_URL=ws://172.20.30.176:3000 next dev -H 0.0.0.0 -p 3000",
+		"dev:no-hmr": "NEXT_DISABLE_HMR=true next dev -H 0.0.0.0 -p 3000",
 		"build": "next build",
 		"start": "HOSTNAME=0.0.0.0 next start -H 0.0.0.0 -p 3000",
 		"start:local": "next start -H localhost -p 3000",

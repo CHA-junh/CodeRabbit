@@ -38,22 +38,41 @@ export default function RootLayout({
 		document.title = getPageTitle(pageTitle)
 	}, [pathname])
 
-	// WebSocket 오류 처리
+	// WebSocket 완전 차단
 	useEffect(() => {
-		// 전역 오류 핸들러로 WebSocket 오류 무시
-		const handleError = (event: ErrorEvent) => {
-			if (event.message && event.message.includes('WebSocket')) {
-				console.log('WebSocket 오류 무시됨:', event.message)
-				event.preventDefault()
-				return false
+		// WebSocket 생성자 완전 차단
+		const originalWebSocket = (window as any).WebSocket
+		;(window as any).WebSocket = function (
+			url: string,
+			protocols?: string | string[]
+		) {
+			// webpack-hmr 관련 연결 시도 차단
+			if (url && url.includes('webpack-hmr')) {
+				console.log('WebSocket HMR 연결 차단됨:', url)
+				return {
+					readyState: 3,
+					url: url,
+					protocol: protocols || '',
+					extensions: '',
+					bufferedAmount: 0,
+					onopen: null,
+					onclose: null,
+					onmessage: null,
+					onerror: null,
+					close: () => {},
+					send: () => {},
+					addEventListener: () => {},
+					removeEventListener: () => {},
+					dispatchEvent: () => false,
+				}
 			}
+			// 다른 WebSocket 연결은 정상 처리
+			return new originalWebSocket(url, protocols)
 		}
 
-		window.addEventListener('error', handleError)
-
-		// 컴포넌트 언마운트 시 이벤트 리스너 제거
+		// 컴포넌트 언마운트 시 원래 WebSocket 복원
 		return () => {
-			window.removeEventListener('error', handleError)
+			;(window as any).WebSocket = originalWebSocket
 		}
 	}, [])
 
