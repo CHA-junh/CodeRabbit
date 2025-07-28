@@ -6,18 +6,27 @@ import '../common/common.css'
 interface LeftFrameProps {
 	onMenuClick?: () => void
 	onLogout?: () => void
+	onShortcutClick?: (action: string) => void
 }
 
 const menuItems = [
-	{ label: '메뉴', icon: '/icon_menu.svg' },
-	{ label: '사업관리', icon: '/icon_business.svg' },
-	{ label: '프로젝트', icon: '/icon_project.svg' },
-	{ label: '추진비', icon: '/icon_cost.svg' },
-	{ label: '인사관리', icon: '/icon_hr.svg' },
-	{ label: '시스템', icon: '/icon_system.svg' },
+	{ label: '메뉴', icon: '/icon_menu.svg', action: 'menu' },
+	{ label: '사업관리', icon: '/icon_business.svg', action: 'business' },
+	{ label: '프로젝트', icon: '/icon_project.svg', action: 'project' },
+	{ label: '추진비', icon: '/icon_cost.svg', action: 'cost' },
+	{ label: '인사관리', icon: '/icon_hr.svg', action: 'hr' },
+	{ label: '시스템', icon: '/icon_system.svg', action: 'system' },
 ]
 
-const LeftFrame: React.FC<LeftFrameProps> = ({ onMenuClick, onLogout }) => {
+const LeftFrame: React.FC<LeftFrameProps> = ({
+	onMenuClick,
+	onLogout,
+	onShortcutClick,
+}) => {
+	const handleShortcutClick = (action: string) => {
+		onShortcutClick?.(action)
+	}
+
 	return (
 		<div className='w-20 h-full flex flex-col bg-[#F6FBFF] border-r border-slate-200'>
 			{/* 상단 메뉴들 */}
@@ -26,7 +35,7 @@ const LeftFrame: React.FC<LeftFrameProps> = ({ onMenuClick, onLogout }) => {
 					<button
 						key={idx}
 						className='flex flex-col items-center gap-1 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82C4] rounded-sm'
-						onClick={item.label === '메뉴' ? onMenuClick : undefined}
+						onClick={() => handleShortcutClick(item.action)}
 					>
 						<img
 							src={item.icon}

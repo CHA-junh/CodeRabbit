@@ -119,6 +119,110 @@ export default function COM0000M00() {
 		})
 	}
 
+	// 바로가기 버튼 클릭 핸들러
+	const handleShortcutClick = (action: string) => {
+		switch (action) {
+			case 'menu':
+				setShowMenuTree(!showMenuTree)
+				break
+			case 'business':
+				// 사업관리메인(BSN0000) - 준비중 알림
+				showToast('준비중입니다.', 'info')
+				break
+			case 'project':
+				// 프로젝트관리메인(PRJ0000) - 준비중 알림
+				showToast('준비중입니다.', 'info')
+				break
+			case 'cost':
+				// 업무추진비메인(WPC_00_0000) - 준비중 알림
+				showToast('준비중입니다.', 'info')
+				break
+			case 'hr':
+				// 기본정보등록(개인별) (PSM0010) - 새 탭으로 호출
+				const hrPgmId = 'PSM0010' // PSM1010M00 → PSM0010으로 수정
+				const hrTitle = '기본정보등록(개인별)'
+
+				const hrProgram = (session.user?.programList || []).find(
+					(p: any) => p.PGM_ID === hrPgmId
+				)
+
+				if (!hrProgram) {
+					showToast('프로그램을 찾을 수 없습니다.', 'error')
+					return
+				}
+
+				// 메뉴 트리와 동일한 방식으로 menuPath 생성
+				const hrMenuPath = hrProgram.LINK_PATH
+					? hrProgram.LINK_PATH.replace(/\.tsx$/i, '')
+					: 'psm/PSM0010M00'
+
+
+				// 이미 열린 탭이면 포커스만 이동
+				if (tabs.some((tab) => tab.programId === hrPgmId)) {
+					setActiveTab(hrPgmId)
+					return
+				}
+
+				// 탭 개수 제한 체크
+				if (tabs.length >= TAB_CONSTANTS.MAX_TABS) {
+					showToast(MESSAGE_CONSTANTS.MAX_TABS, 'warning')
+					return
+				}
+
+				// 새 탭 추가
+				const newHrTab: TabItem = {
+					programId: hrPgmId,
+					title: hrTitle,
+					menuPath: hrMenuPath,
+				}
+				setTabs((prev) => [...prev, newHrTab])
+				setActiveTab(hrPgmId)
+				break
+			case 'system':
+				// 사용자관리(USR2010) - 새 탭으로 호출
+				const sysPgmId = 'USR2010' // USR2010M00 → USR2010으로 수정
+				const sysTitle = '사용자관리'
+
+				const sysProgram = (session.user?.programList || []).find(
+					(p: any) => p.PGM_ID === sysPgmId
+				)
+
+				if (!sysProgram) {
+					showToast('프로그램을 찾을 수 없습니다.', 'error')
+					return
+				}
+
+				// 메뉴 트리와 동일한 방식으로 menuPath 생성
+				const sysMenuPath = sysProgram.LINK_PATH
+					? sysProgram.LINK_PATH.replace(/\.tsx$/i, '')
+					: 'usr/USR2010M00'
+
+				// 이미 열린 탭이면 포커스만 이동
+				if (tabs.some((tab) => tab.programId === sysPgmId)) {
+					setActiveTab(sysPgmId)
+					return
+				}
+
+				// 탭 개수 제한 체크
+				if (tabs.length >= TAB_CONSTANTS.MAX_TABS) {
+					showToast(MESSAGE_CONSTANTS.MAX_TABS, 'warning')
+					return
+				}
+
+				// 새 탭 추가
+				const newSysTab: TabItem = {
+					programId: sysPgmId,
+					title: sysTitle,
+					menuPath: sysMenuPath,
+				}
+				setTabs((prev) => [...prev, newSysTab])
+				setActiveTab(sysPgmId)
+				break
+			default:
+				break
+		}
+	}
+
 	// 로그아웃 핸들러
 	const handleLogout = async () => {
 		await logout()
@@ -131,12 +235,6 @@ export default function COM0000M00() {
 	const handleLockChange = (locked: boolean) => {
 		setMenuTreeLocked(locked)
 	}
-
-	// 세션 데이터 디버깅 (필요시 주석 해제)
-	// console.log('=== 세션 데이터 디버깅 ===')
-	// console.log('session:', session)
-	// console.log('session.user:', session.user)
-	// console.log('session.user?.menuList:', session.user?.menuList)
 
 	// menuList key mapping (대문자->camelCase)
 	const mappedMenuList = (session.user?.menuList || []).map((menu: any) => ({
@@ -169,6 +267,7 @@ export default function COM0000M00() {
 					<LeftFrame
 						onMenuClick={() => setShowMenuTree((v) => !v)}
 						onLogout={handleLogout}
+						onShortcutClick={handleShortcutClick}
 					/>
 				</div>
 				{/* 콘텐츠 라인: relative */}
