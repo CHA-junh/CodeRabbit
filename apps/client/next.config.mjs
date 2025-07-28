@@ -12,7 +12,7 @@ const nextConfig = {
 		// 프리페치 비활성화
 		prefetch: false,
 		// Fast Refresh 비활성화 (HMR 문제 해결을 위해)
-		fastRefresh: process.env.NODE_ENV === 'development' ? false : false,
+		fastRefresh: false,
 		// 개발 모드 완전 비활성화
 		devIndicators: {
 			buildActivity: false,
